@@ -1,0 +1,84 @@
+start: galileo "---" bfl
+
+galileo: tle _event*
+
+tle: "toplevel"i EVENT_NAME ";"
+
+_event: (intermediate_event | basic_event) ";"
+
+BASIC_EVENT: EVENT_NAME
+basic_event: EVENT_NAME
+
+intermediate_event: EVENT_NAME gate EVENT_NAME+
+
+gate: "and"i -> and_gate
+    | "or"i -> or_gate
+    | INT "of"i INT -> of_gate
+    | "vot"i RELATION INT -> vot_gate
+
+
+bfl: (bfl_statement ";")+
+
+bfl_statement: _EXISTS phi -> exists
+             | _FORALL phi -> forall
+             | _IDP "(" phi "," phi ")" -> idp
+             | _SUP _paren -> sup
+             | basic_events _MODELS phi -> check_model
+             | "[[" phi "]]" -> satisfaction_set
+
+?phi: phi evidence -> with_evidence
+    | implies
+
+?implies: or_ (_IMPLIES implies)?
+
+?or_: and_ (_OR or_)?
+
+?and_: comp (_AND and_)?
+
+?comp: atom _EQUIV comp -> equiv
+     | atom _NEQUIV comp -> nequiv
+     | atom
+
+?atom: "(" phi ")"
+     | EVENT_NAME -> event
+     | _NEG atom -> neg
+     | _MCS _paren -> mcs
+     | _MPS _paren -> mps
+     | _VOT "[" RELATION INT "]" "(" basic_events ")" -> vot
+
+evidence: "[" (mapping ",")* mapping "]"
+mapping: BASIC_EVENT ":" TRUTH_VALUE
+
+
+_paren: "(" phi ")"
+basic_events: (BASIC_EVENT ",")* BASIC_EVENT
+
+
+RELATION: "<" | "<=" | "==" | ">=" | ">"
+EVENT_NAME: CNAME
+TRUTH_VALUE: "0" | "1"
+
+_EXISTS: "\\exists"i
+_FORALL: "\\forall"i
+
+_NEG: "!" | "\\neg"i
+_AND: "&&" | "\\land"i
+_OR: "||" | "\\lor"i
+_IMPLIES: "=>" | "\\implies"i
+_EQUIV: "==" | "\\equiv"i
+_NEQUIV: "!=" | "\\not"i "\\equiv"i
+_MODELS: "|=" | "\\models"i
+
+_MCS: "\\mcs"i
+_MPS: "\\mps"i
+_SUP: "\\sup"i
+_IDP: "\\idp"i
+_VOT: "\\vot"i
+
+%import common.INT
+%import common.CNAME
+%import common.WS
+%import common.CPP_COMMENT
+
+%ignore WS
+%ignore CPP_COMMENT
