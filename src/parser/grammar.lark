@@ -1,81 +1,131 @@
-start: galileo "---" bfl
+start: attack_tree (fault_tree (object_graph odglog | odglog object_graph) | object_graph (fault_tree odglog | odglog fault_tree) | odglog (fault_tree object_graph | object_graph fault_tree))
+   | fault_tree (attack_tree (object_graph odglog | odglog object_graph) | object_graph (attack_tree odglog | odglog attack_tree) | odglog (attack_tree object_graph | object_graph attack_tree))
+   | object_graph (attack_tree (fault_tree odglog | odglog fault_tree) | fault_tree (attack_tree odglog | odglog attack_tree) | odglog (attack_tree fault_tree | fault_tree attack_tree))
+   | odglog (attack_tree (fault_tree object_graph | object_graph fault_tree) | fault_tree (attack_tree object_graph | object_graph attack_tree) | object_graph (attack_tree fault_tree | fault_tree attack_tree))
 
-galileo: tle _event*
+attack_tree: "[odg.attack_tree]"i disruption_tree
+fault_tree: "[odg.fault_tree]"i disruption_tree
 
-tle: "toplevel"i EVENT_NAME ";"
+disruption_tree: tln _node*
 
-_event: (intermediate_event | basic_event) ";"
+tln: "toplevel"i NODE_NAME ";"
 
-BASIC_EVENT: EVENT_NAME
-basic_event: EVENT_NAME
+_node: (intermediate_node | basic_node) ";"
 
-intermediate_event: EVENT_NAME gate EVENT_NAME+
+intermediate_node: NODE_NAME gate NODE_NAME+
 
 gate: "and"i -> and_gate
     | "or"i -> or_gate
-    | INT "of"i INT -> of_gate
-    | "vot"i RELATION INT -> vot_gate
+
+basic_node: NODE_NAME attribute_list?
+
+attribute_list: probability ( objects condition? | condition objects? )?
+              | objects ( probability condition? | condition probability? )?
+              | condition ( probability objects? | objects probability? )?
+
+probability: "prob"i "=" DECIMAL
+objects: "objects"i "=" "[" node_list? "]"
+condition: "cond"i "=" "(" boolean_formula ")"
 
 
-bfl: (bfl_statement ";")+
+object_graph: "[odg.object_graph]"i object_graph_tree
+object_graph_tree: tln _object*
 
-bfl_statement: _EXISTS phi -> exists
-             | _FORALL phi -> forall
-             | _IDP "(" phi "," phi ")" -> idp
-             | _SUP _paren -> sup
-             | basic_events _MODELS phi -> check_model
-             | "[[" phi "]]" -> satisfaction_set
+_object: (intermediate_object | basic_object) ";"
 
-?phi: phi evidence -> with_evidence
-    | implies
+intermediate_object: NODE_NAME "has"i NODE_NAME+
 
-?implies: or_ (_IMPLIES implies)?
+basic_object: NODE_NAME properties?
 
-?or_: and_ (_OR or_)?
-
-?and_: comp (_AND and_)?
-
-?comp: atom _EQUIV comp -> equiv
-     | atom _NEQUIV comp -> nequiv
-     | atom
-
-?atom: "(" phi ")"
-     | EVENT_NAME -> event
-     | _NEG atom -> neg
-     | _MCS _paren -> mcs
-     | _MPS _paren -> mps
-     | _VOT "[" RELATION INT "]" "(" basic_events ")" -> vot
-
-evidence: "[" (mapping ",")* mapping "]"
-mapping: BASIC_EVENT ":" TRUTH_VALUE
+properties: "properties"i "=" "[" node_list? "]"
 
 
-_paren: "(" phi ")"
-basic_events: (BASIC_EVENT ",")* BASIC_EVENT
+odglog: "[formulas]"i (odglog_formula ";")+
+
+odglog_formula: layer1_formula
+              | configuration layer2_formula
+              | layer3_formula
+
+
+layer1_formula: layer1_formula boolean_evidence -> with_evidence
+              | l1_impl_formula
+
+?l1_impl_formula: l1_or_formula (_IMPLIES l1_impl_formula)?
+?l1_or_formula: l1_and_formula (_OR l1_or_formula)?
+?l1_and_formula: l1_comp_formula (_AND l1_and_formula)?
+?l1_comp_formula: l1_atom_formula _EQUIV l1_comp_formula -> l1_equiv_formula
+            | l1_atom_formula _NEQUIV l1_comp_formula -> l1_nequiv_formula
+            | l1_atom_formula
+?l1_atom_formula: "(" layer1_formula ")"
+            | _MRS "(" layer1_formula ")" -> mrs
+            | NODE_NAME -> node
+            | _NEG l1_atom_formula -> neg
+
+layer2_formula: layer2_formula probability_evidence -> with_evidence
+              | l2_impl_formula
+
+?l2_impl_formula: l2_or_formula (_IMPLIES l2_impl_formula)?
+?l2_or_formula: l2_and_formula (_OR l2_or_formula)?
+?l2_and_formula: l2_comp_formula (_AND l2_and_formula)?
+?l2_comp_formula: l2_atom_formula _EQUIV l2_comp_formula -> l2_equiv_formula
+            | l2_atom_formula _NEQUIV l2_comp_formula -> l2_nequiv_formula
+            | l2_atom_formula
+?l2_atom_formula: "(" layer2_formula ")"
+            | NODE_NAME -> node
+            | _NEG l2_atom_formula -> neg
+            | _P "(" layer1_formula ")" RELATION DECIMAL -> probability_formula
+
+
+layer3_formula: layer3_formula boolean_evidence -> with_evidence
+              | "MostRiskyA" "(" NODE_NAME ")" -> most_risky_a
+              | "MostRiskyF" "(" NODE_NAME ")" -> most_risky_f
+              | "OptimalConf" "(" NODE_NAME ")" -> optimal_conf
+              | "MaxTotalRisk" "(" NODE_NAME ")" -> max_total_risk
+              | "MinTotalRisk" "(" NODE_NAME ")" -> min_total_risk
+
+
+configuration: "{" (configuration_mapping ",")* configuration_mapping "}"
+configuration_mapping:  NODE_NAME "=" TRUTH_VALUE
+
+boolean_evidence: "[" (boolean_mapping ",")* boolean_mapping "]"
+boolean_mapping: NODE_NAME ":" TRUTH_VALUE
+
+probability_evidence: "{" (probability_mapping ",")* probability_mapping "}"
+probability_mapping: NODE_NAME ":" DECIMAL
+
+
+node_list: (NODE_NAME ",")* NODE_NAME
+
+
+boolean_formula: impl_formula
+
+?impl_formula: or_formula (_IMPLIES impl_formula)?
+?or_formula: and_formula (_OR or_formula)?
+?and_formula: comp_formula (_AND and_formula)?
+?comp_formula: atom_formula _EQUIV comp_formula -> equiv_formula
+            | atom_formula _NEQUIV comp_formula -> nequiv_formula
+            | atom_formula
+?atom_formula: "(" boolean_formula ")"
+            | NODE_NAME -> node
+            | _NEG atom_formula -> neg
 
 
 RELATION: "<" | "<=" | "==" | ">=" | ">"
-EVENT_NAME: CNAME
+NODE_NAME: CNAME
 TRUTH_VALUE: "0" | "1"
 
-_EXISTS: "\\exists"i
-_FORALL: "\\forall"i
+_NEG: "!" | "\\neg"
+_AND: "&&" | "\\land"
+_OR: "||" | "\\lor"
+_IMPLIES: "=>" | "\\implies"
+_EQUIV: "==" | "\\equiv"
+_NEQUIV: "!=" | "\\nequiv"
 
-_NEG: "!" | "\\neg"i
-_AND: "&&" | "\\land"i
-_OR: "||" | "\\lor"i
-_IMPLIES: "=>" | "\\implies"i
-_EQUIV: "==" | "\\equiv"i
-_NEQUIV: "!=" | "\\not"i "\\equiv"i
-_MODELS: "|=" | "\\models"i
+_MRS.2: "MRS" | "\\mrs"
+_P.2: "P"
 
-_MCS: "\\mcs"i
-_MPS: "\\mps"i
-_SUP: "\\sup"i
-_IDP: "\\idp"i
-_VOT: "\\vot"i
 
-%import common.INT
+%import common.DECIMAL
 %import common.CNAME
 %import common.WS
 %import common.CPP_COMMENT
