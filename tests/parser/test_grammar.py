@@ -1,6 +1,27 @@
 import pytest
 from lark import UnexpectedInput
 
+# Define components as variables for reuse
+ATTACK = """[odg.attack_tree]
+toplevel A;
+A;
+"""
+
+FAULT = """[odg.fault_tree]
+toplevel B;
+B;
+"""
+
+OBJ = """[odg.object_graph]
+toplevel C;
+C;
+"""
+
+FORMULAS = """[formulas]
+A;
+"""
+
+
 def test_minimal_valid_odg(parse):
     """Test a minimal valid ODG structure with all required components."""
     minimal_odg = """
@@ -18,6 +39,7 @@ A;"""
     # Should not raise an exception
     tree = parse(minimal_odg)
     assert tree is not None
+
 
 def test_complete_structure(parse):
     """Test a complete ODG structure with all components."""
@@ -49,59 +71,41 @@ MostRiskyA(Root);"""
     assert tree is not None
 
 
-# Define components as variables for reuse
-attack = """[odg.attack_tree]
-toplevel A;
-A;
-"""
-
-fault = """[odg.fault_tree]
-toplevel B;
-B;
-"""
-
-obj = """[odg.object_graph]
-toplevel C;
-C;
-"""
-
-formulas = """[formulas]
-A;
-"""
-
 def test_valid_component_orderings(parse):
     """Test different valid orderings of components."""
     valid_orderings = [
-        attack + fault + obj + formulas,
-        obj + attack + fault + formulas,
-        fault + obj + formulas + attack,
-        obj + formulas + attack + fault,
-        formulas + attack + obj + fault,
-        fault + formulas + obj + attack,
-        attack + obj + fault + formulas,
-        formulas + obj + fault + attack
+        ATTACK + FAULT + OBJ + FORMULAS,
+        OBJ + ATTACK + FAULT + FORMULAS,
+        FAULT + OBJ + FORMULAS + ATTACK,
+        OBJ + FORMULAS + ATTACK + FAULT,
+        FORMULAS + ATTACK + OBJ + FAULT,
+        FAULT + FORMULAS + OBJ + ATTACK,
+        ATTACK + OBJ + FAULT + FORMULAS,
+        FORMULAS + OBJ + FAULT + ATTACK
     ]
 
     for case in valid_orderings:
         tree = parse(case)
         assert tree is not None
 
+
 def test_invalid_structures(parse):
     """Test that invalid structures are rejected."""
     invalid_cases = [
         # Missing fault tree
-        attack + obj + formulas,
+        ATTACK + OBJ + FORMULAS,
         # Missing object graph
-        attack + fault + formulas,
+        ATTACK + FAULT + FORMULAS,
         # Missing formulas
-        attack + fault + obj,
+        ATTACK + FAULT + OBJ,
         # Missing attack tree
-        fault + obj + formulas,
+        FAULT + OBJ + FORMULAS,
     ]
-    
+
     for case in invalid_cases:
         with pytest.raises(UnexpectedInput):
             parse(case)
+
 
 def test_individual_attack_tree(parse_rule):
     """Test parsing just an attack tree."""
@@ -114,6 +118,7 @@ B prob = 0.5;"""
     result = parse_rule(tree, "attack_tree")
     assert result is not None
 
+
 def test_individual_fault_tree(parse_rule):
     """Test parsing just a fault tree."""
     tree = """
@@ -124,6 +129,7 @@ A;
 B prob = 0.3;"""
     result = parse_rule(tree, "fault_tree")
     assert result is not None
+
 
 def test_individual_object_graph(parse_rule):
     """Test parsing just an object graph."""
@@ -136,6 +142,7 @@ Component2;"""
     result = parse_rule(graph, "object_graph")
     assert result is not None
 
+
 def test_individual_formulas(parse_rule):
     """Test parsing just ODGLog formulas."""
     formulas = """
@@ -145,6 +152,7 @@ A && B;
 MostRiskyA(Root);"""
     result = parse_rule(formulas, "odglog")
     assert result is not None
+
 
 def test_whitespace_handling(parse):
     """Test that whitespace is handled correctly."""
@@ -167,6 +175,7 @@ def test_whitespace_handling(parse):
     tree = parse(odg_with_whitespace)
     assert tree is not None
 
+
 def test_comment_handling(parse):
     """Test that comments are handled correctly."""
     odg_with_comments = """
@@ -188,6 +197,7 @@ C;
 A && B;"""
     tree = parse(odg_with_comments)
     assert tree is not None
+
 
 def test_case_insensitivity(parse):
     """Test that keywords are case insensitive."""
