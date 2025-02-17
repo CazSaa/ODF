@@ -145,8 +145,8 @@ def test_layer1_formula_tree(parse_rule):
 
 def test_layer2_formula_tree(parse_rule):
     """Test exact tree structure of a Layer 2 formula."""
-    result = parse_rule("{A:1} P(B) >= 0.5", "layer2_formula")
-    expected = Tree(Token('RULE', 'layer2_formula'), [
+    result = parse_rule("{A:1} P(B) >= 0.5", "layer2_query")
+    expected = Tree(Token('RULE', 'layer2_query'), [
         Tree(Token('RULE', 'configuration'), [
             Tree(Token('RULE', 'configuration_mapping'), [
                 Token('NODE_NAME', 'A'),
@@ -154,8 +154,10 @@ def test_layer2_formula_tree(parse_rule):
             ])
         ]),
         Tree('probability_formula', [
-            Tree('node', [
-                Token('NODE_NAME', 'B')
+            Tree(Token('RULE', 'layer1_formula'), [
+                Tree('node', [
+                    Token('NODE_NAME', 'B')
+                ]),
             ]),
             Token('RELATION', '>='),
             Token('DECIMAL', '0.5')

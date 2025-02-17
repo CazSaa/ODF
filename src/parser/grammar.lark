@@ -42,14 +42,14 @@ properties: "properties"i "=" "[" node_list? "]"
 
 odglog: "[formulas]"i (odglog_formula ";")+
 
-odglog_formula: layer1_formula
-              | configuration layer2_formula
+odglog_formula: layer1_query
+              | layer2_query
               | layer3_formula
 
-layer1_formula: "[[" layer1_formula_ "]]" -> compute_all
-              | layer1_formula_ -> check
+layer1_query: "[[" layer1_formula "]]" -> compute_all
+              | layer1_formula -> check
 
-layer1_formula_: configuration layer1_mrs
+layer1_formula: configuration layer1_mrs
                | layer1_no_mrs
 
 ?layer1_mrs: layer1_mrs boolean_evidence -> with_evidence
@@ -79,8 +79,10 @@ layer1_formula_: configuration layer1_mrs
             | NODE_NAME -> node
             | _NEG l1_no_mrs_atom_formula -> neg
 
-layer2_formula: layer2_formula probability_evidence -> with_evidence
-              | l2_impl_formula
+layer2_query: configuration layer2_formula
+
+?layer2_formula: layer2_formula probability_evidence -> with_evidence
+               | l2_impl_formula
 
 ?l2_impl_formula: l2_or_formula (_IMPLIES l2_impl_formula)?
 ?l2_or_formula: l2_and_formula (_OR l2_or_formula)?
