@@ -3,7 +3,8 @@ from lark import UnexpectedInput
 
 def test_minimal_valid_odg(parse):
     """Test a minimal valid ODG structure with all required components."""
-    minimal_odg = """[odg.attack_tree]
+    minimal_odg = """
+[odg.attack_tree]
 toplevel A;
 
 [odg.fault_tree]
@@ -20,7 +21,8 @@ A;"""
 
 def test_complete_structure(parse):
     """Test a complete ODG structure with all components."""
-    complete_odg = """[odg.attack_tree]
+    complete_odg = """
+[odg.attack_tree]
 toplevel Root;
 Root and A B;
 A;
@@ -103,7 +105,8 @@ def test_invalid_structures(parse):
 
 def test_individual_attack_tree(parse_rule):
     """Test parsing just an attack tree."""
-    tree = """[odg.attack_tree]
+    tree = """
+[odg.attack_tree]
 toplevel Root;
 Root and A B;
 A;
@@ -113,7 +116,8 @@ B prob = 0.5;"""
 
 def test_individual_fault_tree(parse_rule):
     """Test parsing just a fault tree."""
-    tree = """[odg.fault_tree]
+    tree = """
+[odg.fault_tree]
 toplevel Root;
 Root or A B;
 A;
@@ -123,7 +127,8 @@ B prob = 0.3;"""
 
 def test_individual_object_graph(parse_rule):
     """Test parsing just an object graph."""
-    graph = """[odg.object_graph]
+    graph = """
+[odg.object_graph]
 toplevel System;
 System has Component1 Component2;
 Component1 properties = [prop1];
@@ -133,7 +138,8 @@ Component2;"""
 
 def test_individual_formulas(parse_rule):
     """Test parsing just ODGLog formulas."""
-    formulas = """[formulas]
+    formulas = """
+[formulas]
 A && B;
 {A=1} P(C) >= 0.5;
 MostRiskyA(Root);"""
@@ -163,7 +169,8 @@ def test_whitespace_handling(parse):
 
 def test_comment_handling(parse):
     """Test that comments are handled correctly."""
-    odg_with_comments = """[odg.attack_tree]
+    odg_with_comments = """
+[odg.attack_tree]
 // This is a comment
 toplevel A; // End of line comment
 A; // Basic node
@@ -184,7 +191,8 @@ A && B;"""
 
 def test_case_insensitivity(parse):
     """Test that keywords are case insensitive."""
-    case_variations = """[ODG.ATTACK_TREE]
+    case_variations = """
+[ODG.ATTACK_TREE]
 TOPLEVEL A;
 A AND B C;
 B;
