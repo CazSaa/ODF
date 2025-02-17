@@ -44,7 +44,7 @@ odglog: "[formulas]"i (odglog_formula ";")+
 
 odglog_formula: layer1_query
               | layer2_query
-              | layer3_formula
+              | layer3_query
 
 layer1_query: "[[" layer1_formula "]]" -> compute_all
               | layer1_formula -> check
@@ -95,6 +95,8 @@ layer2_query: configuration layer2_formula
             | _NEG l2_atom_formula -> neg
             | _P "(" layer1_formula ")" RELATION DECIMAL -> probability_formula
 
+
+layer3_query: layer3_formula
 
 layer3_formula: layer3_formula boolean_evidence -> with_evidence
               | "MostRiskyA" "(" NODE_NAME ")" -> most_risky_a
