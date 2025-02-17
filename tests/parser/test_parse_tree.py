@@ -31,7 +31,7 @@ def test_basic_node_full_attributes_tree(parse_rule):
                 ])
             ]),
             Tree(Token("RULE", "condition"), [
-                Tree(Token("RULE", "boolean_formula"), [
+                Tree(Token("RULE", "boolean_formula"), [  # maybe remove this layer
                     Tree(Token("RULE", "and_formula"), [
                         Tree("node", [
                             Token("NODE_NAME", "x")
@@ -238,14 +238,15 @@ def test_complete_odg_tree(parse):
 
 def test_complex_layer1_query_tree(parse_rule):
     """Test exact tree structure of a complex Layer 1 formula with nested operations and evidence."""
-    result = parse_rule("{}MRS(!(A && B) || (C => D)) [X:1, Y:0]", "layer1_query")
+    result = parse_rule("{}MRS(!(A && B) || (C => D)) [X:1, Y:0]",
+                        "layer1_query")  # todo also add some evidence inside the MRS
     expected = Tree("check", [
         Tree(Token("RULE", "with_configuration"), [
             Tree(Token("RULE", "configuration"), []),
             Tree(Token("RULE", "with_boolean_evidence"), [
                 Tree("mrs", [
                     Tree(Token("RULE", "or_formula"), [
-                        Tree("neg", [
+                        Tree("neg_formula", [
                             Tree(Token("RULE", "and_formula"), [
                                 Tree("node", [
                                     Token("NODE_NAME", "A")
@@ -565,7 +566,7 @@ def test_latex_operators_tree(parse_rule):
                         Token("NODE_NAME", "B")
                     ])
                 ]),
-                Tree("neg", [
+                Tree("neg_formula", [
                     Tree("node", [
                         Token("NODE_NAME", "C")
                     ])

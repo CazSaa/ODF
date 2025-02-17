@@ -58,14 +58,14 @@ layer1_query: "[[" layer1_formula "]]" -> compute_all
 ?l1_atom_formula: "(" layer1_mrs ")"
             | _MRS "(" layer1_mrs ")" -> mrs
             | NODE_NAME -> node
-            | _NEG l1_atom_formula -> neg
+            | _NEG l1_atom_formula -> neg_formula
             
 ?layer1_no_mrs: layer1_no_mrs boolean_evidence -> with_boolean_evidence
               | _boolean_template{l1_no_mrs_atom_formula}
 
 ?l1_no_mrs_atom_formula: "(" layer1_no_mrs ")"
             | NODE_NAME -> node
-            | _NEG l1_no_mrs_atom_formula -> neg
+            | _NEG l1_no_mrs_atom_formula -> neg_formula
 
 layer2_query: configuration layer2_formula
 
@@ -74,7 +74,7 @@ layer2_query: configuration layer2_formula
 
 ?l2_atom_formula: "(" layer2_formula ")"
             | NODE_NAME -> node
-            | _NEG l2_atom_formula -> neg
+            | _NEG l2_atom_formula -> neg_formula
             | _P "(" layer1_formula ")" RELATION DECIMAL -> probability_formula
 
 
@@ -114,7 +114,7 @@ _boolean_template{atom}: impl_formula{atom}
 
 ?atom_formula: "(" boolean_formula ")"
             | NODE_NAME -> node
-            | _NEG atom_formula -> neg
+            | _NEG atom_formula -> neg_formula
 
 
 RELATION: "<" | "<=" | "==" | ">=" | ">"
