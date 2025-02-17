@@ -35,10 +35,12 @@ Lock properties=[LJ,LP];
 {LP=1, LJ=1, DF=1, HS=0, IU=1, Inhab_in_House=1}
 P(FD && DGB || EDLU && FBO) > 0.5;
 
+{LP=1, LJ=1, DF=1, HS=0, IU=1, Inhab_in_House=1}
 MRS(!Attacker_breaks_in => Fire_impossible_escape) [LJ:1, DF:1];
 
-MRS((FD && DGB) == (EDLU && FBO)) [LP:1];
+(FD && DGB) == (EDLU && FBO) [LP:1];
 
+{LP=1, LJ=0, DF=0, HS=0, IU=1, Inhab_in_House=1}
 MRS(Attacker_breaks_in != Fire_impossible_escape) [HS:0];
 
 {LP=1, LJ=0, DF=1, HS=1, IU=0, Inhab_in_House=1}

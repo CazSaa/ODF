@@ -46,8 +46,13 @@ odglog_formula: layer1_formula
               | configuration layer2_formula
               | layer3_formula
 
+layer1_formula: "[[" layer1_formula_ "]]" -> compute_all
+              | layer1_formula_ -> check
 
-layer1_formula: layer1_formula boolean_evidence -> with_evidence
+layer1_formula_: configuration layer1_mrs
+               | layer1_no_mrs
+
+layer1_mrs: layer1_mrs boolean_evidence -> with_evidence
               | l1_impl_formula
 
 ?l1_impl_formula: l1_or_formula (_IMPLIES l1_impl_formula)?
@@ -56,10 +61,23 @@ layer1_formula: layer1_formula boolean_evidence -> with_evidence
 ?l1_comp_formula: l1_atom_formula _EQUIV l1_comp_formula -> l1_equiv_formula
             | l1_atom_formula _NEQUIV l1_comp_formula -> l1_nequiv_formula
             | l1_atom_formula
-?l1_atom_formula: "(" layer1_formula ")"
-            | _MRS "(" layer1_formula ")" -> mrs
+?l1_atom_formula: "(" layer1_mrs ")"
+            | _MRS "(" layer1_mrs ")" -> mrs
             | NODE_NAME -> node
             | _NEG l1_atom_formula -> neg
+            
+layer1_no_mrs: layer1_no_mrs boolean_evidence -> with_evidence
+              | l1_no_mrs_impl_formula
+
+?l1_no_mrs_impl_formula: l1_no_mrs_or_formula (_IMPLIES l1_no_mrs_impl_formula)?
+?l1_no_mrs_or_formula: l1_no_mrs_and_formula (_OR l1_no_mrs_or_formula)?
+?l1_no_mrs_and_formula: l1_no_mrs_comp_formula (_AND l1_no_mrs_and_formula)?
+?l1_no_mrs_comp_formula: l1_no_mrs_atom_formula _EQUIV l1_no_mrs_comp_formula -> l1_no_mrs_equiv_formula
+            | l1_no_mrs_atom_formula _NEQUIV l1_no_mrs_comp_formula -> l1_no_mrs_nequiv_formula
+            | l1_no_mrs_atom_formula
+?l1_no_mrs_atom_formula: "(" layer1_no_mrs ")"
+            | NODE_NAME -> node
+            | _NEG l1_no_mrs_atom_formula -> neg
 
 layer2_formula: layer2_formula probability_evidence -> with_evidence
               | l2_impl_formula
@@ -90,7 +108,7 @@ configuration_mapping:  NODE_NAME "=" TRUTH_VALUE
 boolean_evidence: "[" (boolean_mapping ",")* boolean_mapping "]"
 boolean_mapping: NODE_NAME ":" TRUTH_VALUE
 
-probability_evidence: "{" (probability_mapping ",")* probability_mapping "}"
+probability_evidence: "[" (probability_mapping ",")* probability_mapping "]"
 probability_mapping: NODE_NAME ":" DECIMAL
 
 
