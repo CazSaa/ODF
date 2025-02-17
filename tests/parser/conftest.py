@@ -1,12 +1,10 @@
 """
 Pytest fixtures for parser tests.
 """
-import logging
 import pytest
 from pathlib import Path
-from lark import Lark, logger
+from lark import Lark
 
-logger.setLevel(logging.DEBUG)
 
 @pytest.fixture(scope="session")
 def grammar_path():
