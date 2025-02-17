@@ -128,15 +128,13 @@ def test_layer1_formula_tree(parse_rule):
     expected = Tree('check', [
         Tree(Token('RULE', 'layer1_formula_'), [
             Tree(Token('RULE', 'configuration'), []),
-            Tree(Token('RULE', 'layer1_mrs'), [
-                Tree('mrs', [
-                    Tree(Token('RULE', 'and_formula'), [
-                        Tree('node', [
-                            Token('NODE_NAME', 'A')
-                        ]),
-                        Tree('node', [
-                            Token('NODE_NAME', 'B')
-                        ])
+            Tree('mrs', [
+                Tree(Token('RULE', 'l1_and_formula'), [
+                    Tree('node', [
+                        Token('NODE_NAME', 'A')
+                    ]),
+                    Tree('node', [
+                        Token('NODE_NAME', 'B')
                     ])
                 ])
             ])
@@ -356,7 +354,7 @@ def test_compute_all_layer1_formula_tree(parse_rule):
                     Token('TRUTH_VALUE', '1')
                 ])
             ]),
-            Tree(Token('RULE', 'layer1_mrs'), [
+            Tree(Token('RULE', 'with_evidence'), [
                 Tree('mrs', [
                     Tree('node', [
                         Token('NODE_NAME', 'B')

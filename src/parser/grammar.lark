@@ -52,7 +52,7 @@ layer1_formula: "[[" layer1_formula_ "]]" -> compute_all
 layer1_formula_: configuration layer1_mrs
                | layer1_no_mrs
 
-layer1_mrs: layer1_mrs boolean_evidence -> with_evidence
+?layer1_mrs: layer1_mrs boolean_evidence -> with_evidence
               | l1_impl_formula
 
 ?l1_impl_formula: l1_or_formula (_IMPLIES l1_impl_formula)?
@@ -66,7 +66,7 @@ layer1_mrs: layer1_mrs boolean_evidence -> with_evidence
             | NODE_NAME -> node
             | _NEG l1_atom_formula -> neg
             
-layer1_no_mrs: layer1_no_mrs boolean_evidence -> with_evidence
+?layer1_no_mrs: layer1_no_mrs boolean_evidence -> with_evidence
               | l1_no_mrs_impl_formula
 
 ?l1_no_mrs_impl_formula: l1_no_mrs_or_formula (_IMPLIES l1_no_mrs_impl_formula)?
