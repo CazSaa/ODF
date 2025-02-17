@@ -126,7 +126,7 @@ def test_layer1_query_tree(parse_rule):
     """Test exact tree structure of a Layer 1 formula."""
     result = parse_rule("{}MRS(A && B)", "layer1_query")
     expected = Tree('check', [
-        Tree(Token('RULE', 'layer1_formula'), [
+        Tree(Token('RULE', 'with_configuration'), [
             Tree(Token('RULE', 'configuration'), []),
             Tree('mrs', [
                 Tree(Token('RULE', 'l1_and_formula'), [
@@ -240,9 +240,9 @@ def test_complex_layer1_query_tree(parse_rule):
     """Test exact tree structure of a complex Layer 1 formula with nested operations and evidence."""
     result = parse_rule("{}MRS(!(A && B) || (C => D)) [X:1, Y:0]", "layer1_query")
     expected = Tree('check', [
-        Tree(Token('RULE', 'layer1_formula'), [
+        Tree(Token('RULE', 'with_configuration'), [
             Tree(Token('RULE', 'configuration'), []),
-            Tree(Token('RULE', 'layer1_mrs'), [
+            Tree(Token('RULE', 'with_evidence'), [
                 Tree('mrs', [
                     Tree(Token('RULE', 'or_formula'), [
                         Tree('neg', [
@@ -341,7 +341,7 @@ def test_compute_all_layer1_query_tree(parse_rule):
     """Test exact tree structure of a compute_all (double brackets) Layer 1 formula."""
     result = parse_rule("[[{A:1} MRS(B) [X:1]]]", "layer1_query")
     expected = Tree('compute_all', [
-        Tree(Token('RULE', 'layer1_formula'), [
+        Tree(Token('RULE', 'with_configuration'), [
             Tree(Token('RULE', 'configuration'), [
                 Tree(Token('RULE', 'configuration_mapping'), [
                     Token('NODE_NAME', 'A'),

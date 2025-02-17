@@ -49,8 +49,8 @@ odglog_formula: layer1_query -> layer1_query
 layer1_query: "[[" layer1_formula "]]" -> compute_all
               | layer1_formula -> check
 
-?layer1_formula: configuration layer1_mrs
-              | layer1_no_mrs
+?layer1_formula: configuration layer1_mrs -> with_configuration
+               | layer1_no_mrs
 
 ?layer1_mrs: layer1_mrs boolean_evidence -> with_evidence
               | l1_impl_formula
