@@ -103,13 +103,13 @@ layer3_formula: layer3_formula boolean_evidence -> with_evidence
 
 
 configuration: "{" ((configuration_mapping ",")* configuration_mapping)? "}"
-configuration_mapping:  NODE_NAME "=" TRUTH_VALUE
+configuration_mapping:  NODE_NAME ":" TRUTH_VALUE
 
 boolean_evidence: "[" (boolean_mapping ",")* boolean_mapping "]"
 boolean_mapping: NODE_NAME ":" TRUTH_VALUE
 
 probability_evidence: "[" (probability_mapping ",")* probability_mapping "]"
-probability_mapping: NODE_NAME ":" DECIMAL
+probability_mapping: NODE_NAME "=" DECIMAL
 
 
 node_list: (NODE_NAME ",")* NODE_NAME
