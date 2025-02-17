@@ -242,7 +242,7 @@ def test_complex_layer1_query_tree(parse_rule):
     expected = Tree("check", [
         Tree(Token("RULE", "with_configuration"), [
             Tree(Token("RULE", "configuration"), []),
-            Tree(Token("RULE", "with_evidence"), [
+            Tree(Token("RULE", "with_boolean_evidence"), [
                 Tree("mrs", [
                     Tree(Token("RULE", "or_formula"), [
                         Tree("neg", [
@@ -319,7 +319,7 @@ def test_complex_layer2_query_tree(parse_rule):
 def test_layer3_formula_with_evidence_tree(parse_rule):
     """Test exact tree structure of a Layer 3 formula with evidence."""
     result = parse_rule("OptimalConf(System) [A:1, B:0]", "layer3_formula")
-    expected = Tree("with_evidence", [
+    expected = Tree("with_boolean_evidence", [
         Tree("optimal_conf", [
             Token("NODE_NAME", "System")
         ]),
@@ -348,7 +348,7 @@ def test_compute_all_layer1_query_tree(parse_rule):
                     Token("TRUTH_VALUE", "1")
                 ])
             ]),
-            Tree(Token("RULE", "with_evidence"), [
+            Tree(Token("RULE", "with_boolean_evidence"), [
                 Tree("mrs", [
                     Tree("node", [
                         Token("NODE_NAME", "B")
@@ -417,7 +417,7 @@ def test_layer2_with_probability_evidence_tree(parse_rule):
                 Token("TRUTH_VALUE", "1")
             ])
         ]),
-        Tree("with_evidence", [
+        Tree("with_probability_evidence", [
             Tree("probability_formula", [
                 Tree("node", [
                     Token("NODE_NAME", "X")
