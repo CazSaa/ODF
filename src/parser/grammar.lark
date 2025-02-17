@@ -84,7 +84,7 @@ layer3_formula: layer3_formula boolean_evidence -> with_evidence
               | "MinTotalRisk" "(" NODE_NAME ")" -> min_total_risk
 
 
-configuration: "{" (configuration_mapping ",")* configuration_mapping "}"
+configuration: "{" ((configuration_mapping ",")* configuration_mapping)? "}"
 configuration_mapping:  NODE_NAME "=" TRUTH_VALUE
 
 boolean_evidence: "[" (boolean_mapping ",")* boolean_mapping "]"
