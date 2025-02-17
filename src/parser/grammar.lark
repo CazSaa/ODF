@@ -100,7 +100,7 @@ probability_mapping: NODE_NAME "=" DECIMAL
 node_list: (NODE_NAME ",")* NODE_NAME
 
 
-boolean_formula: _boolean_template{atom_formula}
+?boolean_formula: _boolean_template{atom_formula}
 
 _boolean_template{atom}: impl_formula{atom}
 

@@ -31,14 +31,12 @@ def test_basic_node_full_attributes_tree(parse_rule):
                 ])
             ]),
             Tree(Token("RULE", "condition"), [
-                Tree(Token("RULE", "boolean_formula"), [  # maybe remove this layer
-                    Tree(Token("RULE", "and_formula"), [
-                        Tree("node", [
-                            Token("NODE_NAME", "x")
-                        ]),
-                        Tree("node", [
-                            Token("NODE_NAME", "y")
-                        ])
+                Tree(Token("RULE", "and_formula"), [
+                    Tree("node", [
+                        Token("NODE_NAME", "x")
+                    ]),
+                    Tree("node", [
+                        Token("NODE_NAME", "y")
                     ])
                 ])
             ])
@@ -370,19 +368,17 @@ def test_compute_all_layer1_query_tree(parse_rule):
 def test_equiv_formula_tree(parse_rule):
     """Test exact tree structure of equiv and nequiv formulas."""
     result = parse_rule("A == B != C", "boolean_formula")
-    expected = Tree(Token("RULE", "boolean_formula"), [
-        Tree(Token("RULE", "nequiv_formula"), [
-            Tree(Token("RULE", "equiv_formula"), [
-                Tree("node", [
-                    Token("NODE_NAME", "A")
-                ]),
-                Tree("node", [
-                    Token("NODE_NAME", "B")
-                ])
+    expected = Tree(Token("RULE", "nequiv_formula"), [
+        Tree(Token("RULE", "equiv_formula"), [
+            Tree("node", [
+                Token("NODE_NAME", "A")
             ]),
             Tree("node", [
-                Token("NODE_NAME", "C")
+                Token("NODE_NAME", "B")
             ])
+        ]),
+        Tree("node", [
+            Token("NODE_NAME", "C")
         ])
     ])
     assert result == expected
@@ -410,7 +406,7 @@ def test_all_layer3_formulas_tree(parse_rule):
 
 def test_layer2_with_probability_evidence_tree(parse_rule):
     """Test exact tree structure of Layer 2 formula with probability evidence."""
-    result = parse_rule("{A:1} P(X) >= 0.5 [X=0.7, Y=0.3]", "layer2_query")
+    result = parse_rule("{A:1} P(X) >= 0.5 [X=0.7, Y=0.3]", "layer2_query")  # todo test the one with two prob evidences
     expected = Tree(Token("RULE", "layer2_query"), [
         Tree(Token("RULE", "configuration"), [
             Tree(Token("RULE", "boolean_mapping"), [
@@ -457,10 +453,8 @@ def test_attribute_list_orderings_tree(parse_rule):
                      Token("DECIMAL", "0.5")
                  ]),
                  Tree(Token("RULE", "condition"), [
-                     Tree(Token("RULE", "boolean_formula"), [
-                         Tree("node", [
-                             Token("NODE_NAME", "x")
-                         ])
+                     Tree("node", [
+                         Token("NODE_NAME", "x")
                      ])
                  ])
              ])
@@ -470,10 +464,8 @@ def test_attribute_list_orderings_tree(parse_rule):
              Token("NODE_NAME", "A"),
              Tree(Token("RULE", "attribute_list"), [
                  Tree(Token("RULE", "condition"), [
-                     Tree(Token("RULE", "boolean_formula"), [
-                         Tree("node", [
-                             Token("NODE_NAME", "x")
-                         ])
+                     Tree("node", [
+                         Token("NODE_NAME", "x")
                      ])
                  ]),
                  Tree(Token("RULE", "objects"), [
@@ -494,10 +486,8 @@ def test_attribute_list_orderings_tree(parse_rule):
                      Token("DECIMAL", "0.5")
                  ]),
                  Tree(Token("RULE", "condition"), [
-                     Tree(Token("RULE", "boolean_formula"), [
-                         Tree("node", [
-                             Token("NODE_NAME", "x")
-                         ])
+                     Tree("node", [
+                         Token("NODE_NAME", "x")
                      ])
                  ]),
                  Tree(Token("RULE", "objects"), [
@@ -555,35 +545,33 @@ def test_node_list_variations_tree(parse_rule):
 def test_latex_operators_tree(parse_rule):
     """Test exact tree structure using LaTeX operators."""
     result = parse_rule(r"A \land B \lor \neg C \implies D \equiv E \nequiv F", "boolean_formula")
-    expected = Tree(Token("RULE", "boolean_formula"), [
-        Tree(Token("RULE", "impl_formula"), [
-            Tree(Token("RULE", "or_formula"), [
-                Tree(Token("RULE", "and_formula"), [
-                    Tree("node", [
-                        Token("NODE_NAME", "A")
-                    ]),
-                    Tree("node", [
-                        Token("NODE_NAME", "B")
-                    ])
-                ]),
-                Tree("neg_formula", [
-                    Tree("node", [
-                        Token("NODE_NAME", "C")
-                    ])
-                ])
-            ]),
-            Tree(Token("RULE", "nequiv_formula"), [
-                Tree(Token("RULE", "equiv_formula"), [
-                    Tree("node", [
-                        Token("NODE_NAME", "D")
-                    ]),
-                    Tree("node", [
-                        Token("NODE_NAME", "E")
-                    ])
+    expected = Tree(Token("RULE", "impl_formula"), [
+        Tree(Token("RULE", "or_formula"), [
+            Tree(Token("RULE", "and_formula"), [
+                Tree("node", [
+                    Token("NODE_NAME", "A")
                 ]),
                 Tree("node", [
-                    Token("NODE_NAME", "F")
+                    Token("NODE_NAME", "B")
                 ])
+            ]),
+            Tree("neg_formula", [
+                Tree("node", [
+                    Token("NODE_NAME", "C")
+                ])
+            ])
+        ]),
+        Tree(Token("RULE", "nequiv_formula"), [
+            Tree(Token("RULE", "equiv_formula"), [
+                Tree("node", [
+                    Token("NODE_NAME", "D")
+                ]),
+                Tree("node", [
+                    Token("NODE_NAME", "E")
+                ])
+            ]),
+            Tree("node", [
+                Token("NODE_NAME", "F")
             ])
         ])
     ])
@@ -595,34 +583,13 @@ def test_operator_associativity(parse_rule):
     """Test operator associativity (left vs right) in boolean formulas."""
     # Test right-associative implication (a => b => c parses as a => (b => c))
     result = parse_rule("a => b => c", "boolean_formula")
-    expected = Tree(Token("RULE", "boolean_formula"), [
+    expected = Tree(Token("RULE", "impl_formula"), [
+        Tree("node", [
+            Token("NODE_NAME", "a")
+        ]),
         Tree(Token("RULE", "impl_formula"), [
             Tree("node", [
-                Token("NODE_NAME", "a")
-            ]),
-            Tree(Token("RULE", "impl_formula"), [
-                Tree("node", [
-                    Token("NODE_NAME", "b")
-                ]),
-                Tree("node", [
-                    Token("NODE_NAME", "c")
-                ])
-            ])
-        ])
-    ])
-    assert result == expected
-
-    # Test left-associative equality (a == b == c parses as (a == b) == c)
-    result = parse_rule("a == b != c", "boolean_formula")
-    expected = Tree(Token("RULE", "boolean_formula"), [
-        Tree(Token("RULE", "nequiv_formula"), [
-            Tree(Token("RULE", "equiv_formula"), [
-                Tree("node", [
-                    Token("NODE_NAME", "a")
-                ]),
-                Tree("node", [
-                    Token("NODE_NAME", "b")
-                ])
+                Token("NODE_NAME", "b")
             ]),
             Tree("node", [
                 Token("NODE_NAME", "c")
@@ -631,17 +598,66 @@ def test_operator_associativity(parse_rule):
     ])
     assert result == expected
 
+    # Test left-associative equality (a == b == c parses as (a == b) == c)
+    result = parse_rule("a == b != c", "boolean_formula")
+    expected = Tree(Token("RULE", "nequiv_formula"), [
+        Tree(Token("RULE", "equiv_formula"), [
+            Tree("node", [
+                Token("NODE_NAME", "a")
+            ]),
+            Tree("node", [
+                Token("NODE_NAME", "b")
+            ])
+        ]),
+        Tree("node", [
+            Token("NODE_NAME", "c")
+        ])
+    ])
+    assert result == expected
+
     # Test left-associative AND (a && b && c parses as (a && b) && c)
     result = parse_rule("a && b && c", "boolean_formula")
-    expected = Tree(Token("RULE", "boolean_formula"), [
+    expected = Tree(Token("RULE", "and_formula"), [
         Tree(Token("RULE", "and_formula"), [
-            Tree(Token("RULE", "and_formula"), [
-                Tree("node", [
-                    Token("NODE_NAME", "a")
-                ]),
-                Tree("node", [
-                    Token("NODE_NAME", "b")
-                ])
+            Tree("node", [
+                Token("NODE_NAME", "a")
+            ]),
+            Tree("node", [
+                Token("NODE_NAME", "b")
+            ])
+        ]),
+        Tree("node", [
+            Token("NODE_NAME", "c")
+        ])
+    ])
+    assert result == expected
+
+    # Test left-associative OR (a || b || c parses as (a || b) || c)
+    result = parse_rule("a || b || c", "boolean_formula")
+    expected = Tree(Token("RULE", "or_formula"), [
+        Tree(Token("RULE", "or_formula"), [
+            Tree("node", [
+                Token("NODE_NAME", "a")
+            ]),
+            Tree("node", [
+                Token("NODE_NAME", "b")
+            ])
+        ]),
+        Tree("node", [
+            Token("NODE_NAME", "c")
+        ])
+    ])
+    assert result == expected
+
+    # Test right-associative parenthesis with OR ( a || (b || c) parses as a || (b || c) )
+    result = parse_rule("a || (b || c)", "boolean_formula")
+    expected = Tree(Token("RULE", "or_formula"), [
+        Tree("node", [
+            Token("NODE_NAME", "a")
+        ]),
+        Tree(Token("RULE", "or_formula"), [
+            Tree("node", [
+                Token("NODE_NAME", "b")
             ]),
             Tree("node", [
                 Token("NODE_NAME", "c")
