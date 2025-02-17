@@ -410,30 +410,30 @@ def test_all_layer3_formulas_tree(parse_rule):
 def test_layer2_with_probability_evidence_tree(parse_rule):
     """Test exact tree structure of Layer 2 formula with probability evidence."""
     result = parse_rule("{A:1} P(X) >= 0.5 [X=0.7, Y=0.3]", "layer2_query")
-    expected = Tree('with_evidence', [
-        Tree(Token('RULE', 'layer2_query'), [
-            Tree(Token('RULE', 'configuration'), [
-                Tree(Token('RULE', 'configuration_mapping'), [
-                    Token('NODE_NAME', 'A'),
-                    Token('TRUTH_VALUE', '1')
-                ])
-            ]),
+    expected = Tree(Token('RULE', 'layer2_query'), [
+        Tree(Token('RULE', 'configuration'), [
+            Tree(Token('RULE', 'configuration_mapping'), [
+                Token('NODE_NAME', 'A'),
+                Token('TRUTH_VALUE', '1')
+            ])
+        ]),
+        Tree('with_evidence', [
             Tree('probability_formula', [
                 Tree('node', [
                     Token('NODE_NAME', 'X')
                 ]),
                 Token('RELATION', '>='),
                 Token('DECIMAL', '0.5')
-            ])
-        ]),
-        Tree(Token('RULE', 'probability_evidence'), [
-            Tree(Token('RULE', 'probability_mapping'), [
-                Token('NODE_NAME', 'X'),
-                Token('DECIMAL', '0.7')
             ]),
-            Tree(Token('RULE', 'probability_mapping'), [
-                Token('NODE_NAME', 'Y'),
-                Token('DECIMAL', '0.3')
+            Tree(Token('RULE', 'probability_evidence'), [
+                Tree(Token('RULE', 'probability_mapping'), [
+                    Token('NODE_NAME', 'X'),
+                    Token('DECIMAL', '0.7')
+                ]),
+                Tree(Token('RULE', 'probability_mapping'), [
+                    Token('NODE_NAME', 'Y'),
+                    Token('DECIMAL', '0.3')
+                ])
             ])
         ])
     ])
