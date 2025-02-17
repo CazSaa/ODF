@@ -105,10 +105,10 @@ boolean_formula: _boolean_template{atom_formula}
 _boolean_template{atom}: impl_formula{atom}
 
 ?impl_formula{atom}: or_formula{atom} (_IMPLIES impl_formula{atom})?
-?or_formula{atom}: and_formula{atom} (_OR or_formula{atom})?
-?and_formula{atom}: comp_formula{atom} (_AND and_formula{atom})?
-?comp_formula{atom}: atom _EQUIV comp_formula{atom} -> equiv_formula
-            | atom _NEQUIV comp_formula{atom} -> nequiv_formula
+?or_formula{atom}: (or_formula{atom} _OR)? and_formula{atom}
+?and_formula{atom}: (and_formula{atom} _AND)? comp_formula{atom}
+?comp_formula{atom}: comp_formula{atom} _EQUIV atom -> equiv_formula
+            | comp_formula{atom} _NEQUIV atom -> nequiv_formula
             | atom
 
 ?atom_formula: "(" boolean_formula ")"

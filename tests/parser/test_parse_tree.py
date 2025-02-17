@@ -371,17 +371,17 @@ def test_equiv_formula_tree(parse_rule):
     """Test exact tree structure of equiv and nequiv formulas."""
     result = parse_rule("A == B != C", "boolean_formula")
     expected = Tree(Token("RULE", "boolean_formula"), [
-        Tree(Token("RULE", "equiv_formula"), [
-            Tree("node", [
-                Token("NODE_NAME", "A")
-            ]),
-            Tree(Token("RULE", "nequiv_formula"), [
+        Tree(Token("RULE", "nequiv_formula"), [
+            Tree(Token("RULE", "equiv_formula"), [
                 Tree("node", [
-                    Token("NODE_NAME", "B")
+                    Token("NODE_NAME", "A")
                 ]),
                 Tree("node", [
-                    Token("NODE_NAME", "C")
+                    Token("NODE_NAME", "B")
                 ])
+            ]),
+            Tree("node", [
+                Token("NODE_NAME", "C")
             ])
         ])
     ])
@@ -572,18 +572,79 @@ def test_latex_operators_tree(parse_rule):
                     ])
                 ])
             ]),
-            Tree(Token("RULE", "equiv_formula"), [
-                Tree("node", [
-                    Token("NODE_NAME", "D")
-                ]),
-                Tree(Token("RULE", "nequiv_formula"), [
+            Tree(Token("RULE", "nequiv_formula"), [
+                Tree(Token("RULE", "equiv_formula"), [
                     Tree("node", [
-                        Token("NODE_NAME", "E")
+                        Token("NODE_NAME", "D")
                     ]),
                     Tree("node", [
-                        Token("NODE_NAME", "F")
+                        Token("NODE_NAME", "E")
                     ])
+                ]),
+                Tree("node", [
+                    Token("NODE_NAME", "F")
                 ])
+            ])
+        ])
+    ])
+    assert result.pretty() == expected.pretty()
+    assert result == expected
+
+
+def test_operator_associativity(parse_rule):
+    """Test operator associativity (left vs right) in boolean formulas."""
+    # Test right-associative implication (a => b => c parses as a => (b => c))
+    result = parse_rule("a => b => c", "boolean_formula")
+    expected = Tree(Token("RULE", "boolean_formula"), [
+        Tree(Token("RULE", "impl_formula"), [
+            Tree("node", [
+                Token("NODE_NAME", "a")
+            ]),
+            Tree(Token("RULE", "impl_formula"), [
+                Tree("node", [
+                    Token("NODE_NAME", "b")
+                ]),
+                Tree("node", [
+                    Token("NODE_NAME", "c")
+                ])
+            ])
+        ])
+    ])
+    assert result == expected
+
+    # Test left-associative equality (a == b == c parses as (a == b) == c)
+    result = parse_rule("a == b != c", "boolean_formula")
+    expected = Tree(Token("RULE", "boolean_formula"), [
+        Tree(Token("RULE", "nequiv_formula"), [
+            Tree(Token("RULE", "equiv_formula"), [
+                Tree("node", [
+                    Token("NODE_NAME", "a")
+                ]),
+                Tree("node", [
+                    Token("NODE_NAME", "b")
+                ])
+            ]),
+            Tree("node", [
+                Token("NODE_NAME", "c")
+            ])
+        ])
+    ])
+    assert result == expected
+
+    # Test left-associative AND (a && b && c parses as (a && b) && c)
+    result = parse_rule("a && b && c", "boolean_formula")
+    expected = Tree(Token("RULE", "boolean_formula"), [
+        Tree(Token("RULE", "and_formula"), [
+            Tree(Token("RULE", "and_formula"), [
+                Tree("node", [
+                    Token("NODE_NAME", "a")
+                ]),
+                Tree("node", [
+                    Token("NODE_NAME", "b")
+                ])
+            ]),
+            Tree("node", [
+                Token("NODE_NAME", "c")
             ])
         ])
     ])
