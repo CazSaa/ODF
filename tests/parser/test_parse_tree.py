@@ -154,10 +154,8 @@ def test_layer2_query_tree(parse_rule):
             ])
         ]),
         Tree('probability_formula', [
-            Tree(Token('RULE', 'layer1_formula'), [
-                Tree('node', [
-                    Token('NODE_NAME', 'B')
-                ]),
+            Tree('node', [
+                Token('NODE_NAME', 'B')
             ]),
             Token('RELATION', '>='),
             Token('DECIMAL', '0.5')
@@ -226,14 +224,10 @@ def test_complete_odg_tree(parse):
             ])
         ]),
         Tree(Token('RULE', 'odglog'), [
-            Tree(Token('RULE', 'odglog_formula'), [
-                Tree(Token('RULE', 'layer1_query'), [
-                    Tree('check', [
-                        Tree(Token('RULE', 'layer1_no_mrs'), [
-                            Tree('node', [
-                                Token('NODE_NAME', 'A')
-                            ])
-                        ])
+            Tree(Token('RULE', 'layer1_query'), [
+                Tree('check', [
+                    Tree('node', [
+                        Token('NODE_NAME', 'A')
                     ])
                 ])
             ])
