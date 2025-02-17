@@ -148,7 +148,7 @@ def test_layer2_query_tree(parse_rule):
     result = parse_rule("{A:1} P(B) >= 0.5", "layer2_query")
     expected = Tree(Token("RULE", "layer2_query"), [
         Tree(Token("RULE", "configuration"), [
-            Tree(Token("RULE", "configuration_mapping"), [
+            Tree(Token("RULE", "boolean_mapping"), [
                 Token("NODE_NAME", "A"),
                 Token("TRUTH_VALUE", "1")
             ])
@@ -287,7 +287,7 @@ def test_complex_layer2_query_tree(parse_rule):
     result = parse_rule("{A:1} P(X && Y) < 0.3 && P(Z) >= 0.7", "layer2_query")
     expected = Tree(Token("RULE", "layer2_query"), [
         Tree(Token("RULE", "configuration"), [
-            Tree(Token("RULE", "configuration_mapping"), [
+            Tree(Token("RULE", "boolean_mapping"), [
                 Token("NODE_NAME", "A"),
                 Token("TRUTH_VALUE", "1")
             ])
@@ -344,7 +344,7 @@ def test_compute_all_layer1_query_tree(parse_rule):
     expected = Tree("compute_all", [
         Tree(Token("RULE", "with_configuration"), [
             Tree(Token("RULE", "configuration"), [
-                Tree(Token("RULE", "configuration_mapping"), [
+                Tree(Token("RULE", "boolean_mapping"), [
                     Token("NODE_NAME", "A"),
                     Token("TRUTH_VALUE", "1")
                 ])
@@ -413,7 +413,7 @@ def test_layer2_with_probability_evidence_tree(parse_rule):
     result = parse_rule("{A:1} P(X) >= 0.5 [X=0.7, Y=0.3]", "layer2_query")
     expected = Tree(Token("RULE", "layer2_query"), [
         Tree(Token("RULE", "configuration"), [
-            Tree(Token("RULE", "configuration_mapping"), [
+            Tree(Token("RULE", "boolean_mapping"), [
                 Token("NODE_NAME", "A"),
                 Token("TRUTH_VALUE", "1")
             ])
@@ -522,7 +522,7 @@ def test_all_relations_tree(parse_rule):
         result = parse_rule(f"{{A:1}} P(X) {rel} 0.5", "layer2_query")
         expected = Tree(Token("RULE", "layer2_query"), [
             Tree(Token("RULE", "configuration"), [
-                Tree(Token("RULE", "configuration_mapping"), [
+                Tree(Token("RULE", "boolean_mapping"), [
                     Token("NODE_NAME", "A"),
                     Token("TRUTH_VALUE", "1")
                 ])
