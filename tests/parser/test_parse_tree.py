@@ -238,7 +238,7 @@ def test_complete_odg_tree(parse):
 
 def test_complex_layer1_query_tree(parse_rule):
     """Test exact tree structure of a complex Layer 1 formula with nested operations and evidence."""
-    result = parse_rule("{}MRS(!(A && B) || (C => D)) [X:1, Y:0]",
+    result = parse_rule("{}MRS(!A && B || (C => D)) [X:1, Y:0]",
                         "layer1_query")  # todo also add some evidence inside the MRS
     expected = Tree("check", [
         Tree(Token("RULE", "with_configuration"), [
@@ -246,14 +246,14 @@ def test_complex_layer1_query_tree(parse_rule):
             Tree(Token("RULE", "with_boolean_evidence"), [
                 Tree("mrs", [
                     Tree(Token("RULE", "or_formula"), [
-                        Tree("neg_formula", [
-                            Tree(Token("RULE", "and_formula"), [
+                        Tree(Token("RULE", "and_formula"), [
+                            Tree("neg_formula", [
                                 Tree("node", [
                                     Token("NODE_NAME", "A")
-                                ]),
-                                Tree("node", [
-                                    Token("NODE_NAME", "B")
                                 ])
+                            ]),
+                            Tree("node", [
+                                Token("NODE_NAME", "B")
                             ])
                         ]),
                         Tree(Token("RULE", "impl_formula"), [
