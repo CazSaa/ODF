@@ -21,13 +21,13 @@ def grammar_text(grammar_path):
 @pytest.fixture(scope="session")
 def parser(grammar_text):
     """Lark parser instance."""
-    return Lark(grammar_text, parser='lalr',  propagate_positions=True)
+    return Lark(grammar_text, parser='earley',  propagate_positions=True, strict=True)
 
 @pytest.fixture(scope="session")
 def make_parser(grammar_text):
     """Create a parser with a specific start rule."""
     def _make_parser(start):
-        return Lark(grammar_text, parser='lalr', propagate_positions=True, start=start)
+        return Lark(grammar_text, parser='earley', propagate_positions=True, start=start, strict=True)
     return _make_parser
 
 @pytest.fixture
