@@ -236,30 +236,45 @@ def test_complete_odg_tree(parse):
 
 def test_complex_layer1_query_tree(parse_rule):
     """Test exact tree structure of a complex Layer 1 formula with nested operations and evidence."""
-    result = parse_rule("{}MRS(!A && B || (C => D)) [X:1, Y:0]",
-                        "layer1_query")  # todo also add some evidence inside the MRS
+    result = parse_rule("{}MRS(!A && B || ((C [ZZ:1]) => D) [Z:0]) [X:1, Y:0]", "layer1_query")
     expected = Tree("check", [
         Tree(Token("RULE", "with_configuration"), [
             Tree(Token("RULE", "configuration"), []),
             Tree(Token("RULE", "with_boolean_evidence"), [
                 Tree("mrs", [
-                    Tree(Token("RULE", "or_formula"), [
-                        Tree(Token("RULE", "and_formula"), [
-                            Tree("neg_formula", [
+                    Tree(Token("RULE", "with_boolean_evidence"), [
+                        Tree(Token("RULE", "or_formula"), [
+                            Tree(Token("RULE", "and_formula"), [
+                                Tree("neg_formula", [
+                                    Tree("node", [
+                                        Token("NODE_NAME", "A")
+                                    ])
+                                ]),
                                 Tree("node", [
-                                    Token("NODE_NAME", "A")
+                                    Token("NODE_NAME", "B")
                                 ])
                             ]),
-                            Tree("node", [
-                                Token("NODE_NAME", "B")
+                            Tree(Token("RULE", "impl_formula"), [
+                                Tree(Token("RULE", "with_boolean_evidence"), [
+                                    Tree("node", [
+                                        Token("NODE_NAME", "C")
+                                    ]),
+                                    Tree(Token("RULE", "boolean_evidence"), [
+                                        Tree(Token("RULE", "boolean_mapping"), [
+                                            Token("NODE_NAME", "ZZ"),
+                                            Token("TRUTH_VALUE", "1")
+                                        ])
+                                    ])
+                                ]),
+                                Tree("node", [
+                                    Token("NODE_NAME", "D")
+                                ])
                             ])
                         ]),
-                        Tree(Token("RULE", "impl_formula"), [
-                            Tree("node", [
-                                Token("NODE_NAME", "C")
-                            ]),
-                            Tree("node", [
-                                Token("NODE_NAME", "D")
+                        Tree(Token("RULE", "boolean_evidence"), [
+                            Tree(Token("RULE", "boolean_mapping"), [
+                                Token("NODE_NAME", "Z"),
+                                Token("TRUTH_VALUE", "0")
                             ])
                         ])
                     ])
@@ -275,8 +290,9 @@ def test_complex_layer1_query_tree(parse_rule):
                     ])
                 ])
             ])
-        ]),
+        ])
     ])
+    assert result.pretty() == expected.pretty()
     assert result == expected
 
 
