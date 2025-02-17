@@ -193,9 +193,108 @@ toplevel C;
 C;
 
 [formulas]
-// Comment before formula
-A && B;"""
+A 
+// Comment within formula
+&& B;"""
     tree = parse(odg_with_comments)
+    assert tree is not None
+
+
+def test_layer2_formula_configuration(parse_rule):
+    """Test that layer 2 formulas require a configuration."""
+    valid_formula = "{A=1} P(C) >= 0.5"
+    result = parse_rule(valid_formula, "odglog_formula")
+    assert result is not None
+
+    invalid_formula = "P(C) >= 0.5"
+    with pytest.raises(UnexpectedInput):
+        parse_rule(invalid_formula, "odglog_formula")
+
+    complex_valid = "{A=0, B=1} !P(X && Y) < 0.3 && P(Z) >= 0.7"
+    result = parse_rule(complex_valid, "odglog_formula")
+    assert result is not None
+
+    complex_invalid = "!P(X && Y) < 0.3 && P(Z) >= 0.7"
+    with pytest.raises(UnexpectedInput):
+        parse_rule(complex_invalid, "odglog_formula")
+
+
+def test_complex_nested_formulas(parse_rule):
+    """Test parsing complex nested ODGLog formulas."""
+    formulas = [
+        # Layer 1 - Basic boolean expressions
+        "{}MRS(!((A && B) || (C => D)))",
+        "!(A && B) => (C || !D)",
+        "(A || B) && (C => D) && !(E == F)",
+        "(!A && B) || (C && !D) == (E || !F)",
+        "!(A => B) || (C == !D) && (E || F)",
+
+        # Layer 1 - Evidence
+        "A && B [X:1]",
+        "(A || B) && C [X:1, Y:0]",
+
+        # Layer 1 - MRS with evidence
+        "{}MRS(A && B) [X:1]",
+        "{}MRS(A || B) [X:1, Y:0]",
+
+        # Layer 1 - Evidence inside MRS
+        "{}MRS(A && B [X:1])",
+        "{}MRS((A || B) [X:1, Y:0])",
+
+        # Layer 1 - Multiple MRS/evidence combinations
+        "{}(MRS(A) [X:1]) && MRS(B) [Y:0]",
+        "{}((MRS((A))) [X:1]) && MRS(B) [Y:0]",
+        "{}MRS((A) [X:1]) || MRS(B [Y:0])",
+        "{}(MRS(A) && MRS(B)) [X:1, Y:0]",
+        "{}(MRS(A [X:1]) => MRS(B [Y:0]) [D:0]) && C [Z:1]",
+
+        # Layer 2 with configurations
+        "{A=1} !P(X && Y) < 0.3 && P(Z) >= 0.7",
+        "{A=0} P(!X || Y) == 0.5 => P(Z) > 0.2",
+        "{A=1, B=0} (P(X) >= 0.3 && P(Y) < 0.7) || P(Z) == 0.5",
+
+        # Layer 2 with probability evidence
+        "{A=1} P(X) >= 0.5 [X:0.7]",
+        "{A=0} P(X && Y) < 0.3 [X:0.4, Y:0.6]",
+        "{A=1, B=0} (P(X) >= 0.3 [X:0.8]) && (P(X) < 0.7 [X:0.2])",
+
+        # Layer 3
+        "MostRiskyF(Door) [DF:1]",
+        "OptimalConf(House) [HS:1, IU:0]",
+        "OptimalConf(House) [HS:1][IU:0]",
+    ]
+
+    for formula in formulas:
+        result = parse_rule(formula, "odglog_formula")
+        assert result is not None, f"Failed to parse: {formula}"
+
+    invalid_formulas = [
+        # Layer 1 MRS without configuration
+        "MRS(A)",
+        # Layer 2 wrong probability evidence syntax
+        "{A=1, B=0} (P(X) >= 0.3 {X:0.8}) && (P(X) < 0.7 {X:0.2})",
+        # Layer 2 without configuration
+        "P(X) >= 0.5",
+        "P(X && Y) < 0.3 [X:0.4]",
+        # Probability evidence inside probability formula
+        "{A=1} P(X [X:0.5]) >= 0.5",
+        # Probability evidence on non-Layer 2 formula
+        "A && B [X:0.5]",
+        # Layer 3
+        "MostRiskyF(A[A: 0])",
+    ]
+
+    for formula in invalid_formulas:
+        with pytest.raises(UnexpectedInput):
+            parse_rule(formula, "odglog_formula")
+
+
+def test_parse_example_odgl(parse):
+    """Test parsing the complete odglog-example.odgl file."""
+    with open("../docs/odglog-example.odgl", "r") as f:
+        example_odg = f.read()
+
+    tree = parse(example_odg)
     assert tree is not None
 
 
@@ -220,6 +319,7 @@ System Has Component;
 Component Properties = [prop1];
 
 [FORMULAS]
+{A=1}
 MRS(A);"""
     tree = parse(case_variations)
     assert tree is not None
