@@ -53,28 +53,16 @@ layer1_query: "[[" layer1_formula "]]" -> compute_all
                | layer1_no_mrs
 
 ?layer1_mrs: layer1_mrs boolean_evidence -> with_evidence
-              | l1_impl_formula
+              | _boolean_template{l1_atom_formula}
 
-?l1_impl_formula: l1_or_formula (_IMPLIES l1_impl_formula)?
-?l1_or_formula: l1_and_formula (_OR l1_or_formula)?
-?l1_and_formula: l1_comp_formula (_AND l1_and_formula)?
-?l1_comp_formula: l1_atom_formula _EQUIV l1_comp_formula -> l1_equiv_formula
-            | l1_atom_formula _NEQUIV l1_comp_formula -> l1_nequiv_formula
-            | l1_atom_formula
 ?l1_atom_formula: "(" layer1_mrs ")"
             | _MRS "(" layer1_mrs ")" -> mrs
             | NODE_NAME -> node
             | _NEG l1_atom_formula -> neg
             
 ?layer1_no_mrs: layer1_no_mrs boolean_evidence -> with_evidence
-              | l1_no_mrs_impl_formula
+              | _boolean_template{l1_no_mrs_atom_formula}
 
-?l1_no_mrs_impl_formula: l1_no_mrs_or_formula (_IMPLIES l1_no_mrs_impl_formula)?
-?l1_no_mrs_or_formula: l1_no_mrs_and_formula (_OR l1_no_mrs_or_formula)?
-?l1_no_mrs_and_formula: l1_no_mrs_comp_formula (_AND l1_no_mrs_and_formula)?
-?l1_no_mrs_comp_formula: l1_no_mrs_atom_formula _EQUIV l1_no_mrs_comp_formula -> l1_no_mrs_equiv_formula
-            | l1_no_mrs_atom_formula _NEQUIV l1_no_mrs_comp_formula -> l1_no_mrs_nequiv_formula
-            | l1_no_mrs_atom_formula
 ?l1_no_mrs_atom_formula: "(" layer1_no_mrs ")"
             | NODE_NAME -> node
             | _NEG l1_no_mrs_atom_formula -> neg
@@ -82,14 +70,8 @@ layer1_query: "[[" layer1_formula "]]" -> compute_all
 layer2_query: configuration layer2_formula
 
 ?layer2_formula: layer2_formula probability_evidence -> with_evidence
-               | l2_impl_formula
+               | _boolean_template{l2_atom_formula}
 
-?l2_impl_formula: l2_or_formula (_IMPLIES l2_impl_formula)?
-?l2_or_formula: l2_and_formula (_OR l2_or_formula)?
-?l2_and_formula: l2_comp_formula (_AND l2_and_formula)?
-?l2_comp_formula: l2_atom_formula _EQUIV l2_comp_formula -> l2_equiv_formula
-            | l2_atom_formula _NEQUIV l2_comp_formula -> l2_nequiv_formula
-            | l2_atom_formula
 ?l2_atom_formula: "(" layer2_formula ")"
             | NODE_NAME -> node
             | _NEG l2_atom_formula -> neg
@@ -119,14 +101,17 @@ probability_mapping: NODE_NAME "=" DECIMAL
 node_list: (NODE_NAME ",")* NODE_NAME
 
 
-boolean_formula: impl_formula
+boolean_formula: _boolean_template{atom_formula}
 
-?impl_formula: or_formula (_IMPLIES impl_formula)?
-?or_formula: and_formula (_OR or_formula)?
-?and_formula: comp_formula (_AND and_formula)?
-?comp_formula: atom_formula _EQUIV comp_formula -> equiv_formula
-            | atom_formula _NEQUIV comp_formula -> nequiv_formula
-            | atom_formula
+_boolean_template{atom}: impl_formula{atom}
+
+?impl_formula{atom}: or_formula{atom} (_IMPLIES impl_formula{atom})?
+?or_formula{atom}: and_formula{atom} (_OR or_formula{atom})?
+?and_formula{atom}: comp_formula{atom} (_AND and_formula{atom})?
+?comp_formula{atom}: atom _EQUIV comp_formula{atom} -> equiv_formula
+            | atom _NEQUIV comp_formula{atom} -> nequiv_formula
+            | atom
+
 ?atom_formula: "(" boolean_formula ")"
             | NODE_NAME -> node
             | _NEG atom_formula -> neg

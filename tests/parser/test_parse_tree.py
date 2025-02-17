@@ -129,7 +129,7 @@ def test_layer1_query_tree(parse_rule):
         Tree(Token('RULE', 'with_configuration'), [
             Tree(Token('RULE', 'configuration'), []),
             Tree('mrs', [
-                Tree(Token('RULE', 'l1_and_formula'), [
+                Tree(Token('RULE', 'and_formula'), [
                     Tree('node', [
                         Token('NODE_NAME', 'A')
                     ]),
@@ -291,7 +291,7 @@ def test_complex_layer2_query_tree(parse_rule):
                 Token('TRUTH_VALUE', '1')
             ])
         ]),
-        Tree(Token('RULE', 'l2_and_formula'), [
+        Tree(Token('RULE', 'and_formula'), [
             Tree('probability_formula', [
                 Tree(Token('RULE', 'and_formula'), [
                     Tree('node', [
