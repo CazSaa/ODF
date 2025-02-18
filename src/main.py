@@ -5,6 +5,7 @@ from lark import UnexpectedInput, Tree
 
 from parser.parser import parse
 from transformers.disruption_tree import DisruptionTreeTransformer
+from transformers.object_graph import ObjectGraphTransformer
 
 
 def extract_parse_trees(parse_tree: Tree):
@@ -37,6 +38,7 @@ def execute_str(odl_text):
      object_parse_tree, formulas_parse_tree] = extract_parse_trees(parse_tree)
     attack_tree = DisruptionTreeTransformer().transform(attack_parse_tree)
     fault_tree = DisruptionTreeTransformer().transform(fault_parse_tree)
+    object_graph = ObjectGraphTransformer().transform(object_parse_tree)
 
 
 def main(odl_text: str):
