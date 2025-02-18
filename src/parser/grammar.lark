@@ -3,8 +3,8 @@ start: attack_tree (fault_tree (object_graph odglog | odglog object_graph) | obj
    | object_graph (attack_tree (fault_tree odglog | odglog fault_tree) | fault_tree (attack_tree odglog | odglog attack_tree) | odglog (attack_tree fault_tree | fault_tree attack_tree))
    | odglog (attack_tree (fault_tree object_graph | object_graph fault_tree) | fault_tree (attack_tree object_graph | object_graph attack_tree) | object_graph (attack_tree fault_tree | fault_tree attack_tree))
 
-attack_tree: "[odg.attack_tree]"i disruption_tree
-fault_tree: "[odg.fault_tree]"i disruption_tree
+attack_tree: _ATTACK_TREE_SECTION disruption_tree
+fault_tree: _FAULT_TREE_SECTION disruption_tree
 
 disruption_tree: tln _node*
 
@@ -28,7 +28,7 @@ objects: "objects"i "=" "[" node_list? "]"
 condition: "cond"i "=" "(" boolean_formula ")"
 
 
-object_graph: "[odg.object_graph]"i object_graph_tree
+object_graph: _OBJECT_GRAPH_SECTION object_graph_tree
 object_graph_tree: tln _object*
 
 _object: (intermediate_object | basic_object) ";"
@@ -40,13 +40,13 @@ basic_object: NODE_NAME properties?
 properties: "properties"i "=" "[" node_list? "]"
 
 
-odglog: "[formulas]"i (odglog_formula ";")+
+odglog: _FORMULAS_SECTION (odglog_formula ";")+
 
 odglog_formula: layer1_query -> layer1_query
               | layer2_query -> layer2_query
               | layer3_query -> layer3_query
 
-layer1_query: "[[" layer1_formula "]]" -> compute_all
+layer1_query: _DOUBLE_LEFT_SQUARE_BRACKET layer1_formula _DOUBLE_RIGHT_SQUARE_BRACKET -> compute_all
               | layer1_formula -> check
 
 ?layer1_formula: configuration layer1_mrs -> with_configuration
@@ -115,6 +115,14 @@ _boolean_template{atom}: impl_formula{atom}
             | NODE_NAME -> node
             | _NEG atom_formula -> neg_formula
 
+
+_ATTACK_TREE_SECTION: "[odg.attack_tree]"i
+_FAULT_TREE_SECTION: "[odg.fault_tree]"i
+_OBJECT_GRAPH_SECTION: "[odg.object_graph]"i
+_FORMULAS_SECTION: "[formulas]"i
+
+_DOUBLE_LEFT_SQUARE_BRACKET: "[["
+_DOUBLE_RIGHT_SQUARE_BRACKET: "]]"
 
 RELATION: "<" | "<=" | "==" | ">=" | ">"
 NODE_NAME: CNAME
