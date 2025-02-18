@@ -52,7 +52,7 @@ def test_disruption_tree_with_intermediate_node(parse_rule):
     assert list(result.edges()) == [("Root", "A"), ("Root", "B")]
 
     # Check node attributes
-    assert result.nodes["Root"]["data"].gate_type == "AND"
+    assert result.nodes["Root"]["data"].gate_type == "and"
     assert result.nodes["A"]["data"].probability == 0.5
     assert result.nodes["B"]["data"].probability is None
     assert result.nodes["A"]["data"].gate_type is None
@@ -106,9 +106,9 @@ def test_complex_disruption_tree(parse_rule):
     ]
 
     # Check gate types
-    assert result.nodes["Root"]["data"].gate_type == "AND"
-    assert result.nodes["B"]["data"].gate_type == "AND"
-    assert result.nodes["C"]["data"].gate_type == "OR"
+    assert result.nodes["Root"]["data"].gate_type == "and"
+    assert result.nodes["B"]["data"].gate_type == "and"
+    assert result.nodes["C"]["data"].gate_type == "or"
     for node in ["A", "D", "E", "F", "G"]:
         assert result.nodes[node]["data"].gate_type is None
 
@@ -141,9 +141,9 @@ def test_complex_disruption_tree_basic_nodes_first(parse_rule):
     E prob = 0.6 cond = (x && y) objects = [obj2];
     F prob = 0.4;
     G objects = [obj4];
-    Root and A B C;
     B and D E;
     C or F G;
+    Root and A B C;
     """, "disruption_tree")
 
     result = transformer.transform(tree)
@@ -160,9 +160,9 @@ def test_complex_disruption_tree_basic_nodes_first(parse_rule):
     ]
 
     # Check gate types
-    assert result.nodes["Root"]["data"].gate_type == "AND"
-    assert result.nodes["B"]["data"].gate_type == "AND"
-    assert result.nodes["C"]["data"].gate_type == "OR"
+    assert result.nodes["Root"]["data"].gate_type == "and"
+    assert result.nodes["B"]["data"].gate_type == "and"
+    assert result.nodes["C"]["data"].gate_type == "or"
     for node in ["A", "D", "E", "F", "G"]:
         assert result.nodes[node]["data"].gate_type is None
 

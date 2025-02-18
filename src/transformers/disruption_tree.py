@@ -74,14 +74,14 @@ class DisruptionTreeTransformer(Transformer):
         return name
 
     def and_gate(self, _):
-        return "AND"
+        return "and"
 
     def or_gate(self, _):
-        return "OR"
+        return "or"
 
     def intermediate_node(self, items):
         parent = items[0].value
-        gate_type = items[1]  # "AND" or "OR" from gate
+        gate_type = items[1]  # "and" or "or" from gate
 
         # Create parent node if it doesn't exist
         if not self.tree.has_node(parent):
@@ -91,15 +91,13 @@ class DisruptionTreeTransformer(Transformer):
             node = self.tree.nodes[parent]["data"]
             node.gate_type = gate_type
 
-        # Both AND and OR gates add edges from parent to children
-        if gate_type in ("AND", "OR"):
-            # Create child nodes and edges
-            children = [child.value for child in items[2:]]
-            for child in children:
-                # Create child node if it doesn't exist
-                if not self.tree.has_node(child):
-                    self.tree.add_node(child, data=DTNode(child))
-                self.tree.add_edge(parent, child)
+        # Create child nodes and edges
+        children = [child.value for child in items[2:]]
+        for child in children:
+            # Create child node if it doesn't exist
+            if not self.tree.has_node(child):
+                self.tree.add_node(child, data=DTNode(child))
+            self.tree.add_edge(parent, child)
 
         return parent
 

@@ -1,6 +1,8 @@
-from typing import Optional
+from typing import Optional, Literal
 
 import networkx as nx
+
+GateType = Literal["and", "or"]
 
 
 class DisruptionTree(nx.DiGraph):
@@ -12,7 +14,7 @@ class DTNode:
                  probability: Optional[float] = None,
                  objects: Optional[list[str]] = None,
                  condition: Optional[str] = None,
-                 gate_type: Optional[str] = None):
+                 gate_type: Optional[GateType] = None):
         self.name = name
         self.probability = probability
         self.objects = objects
