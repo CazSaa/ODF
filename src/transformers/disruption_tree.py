@@ -1,6 +1,7 @@
 from lark import Transformer
 
-from src.models.disruption_tree import DisruptionTree, DTNode
+from models.disruption_tree import DisruptionTree, DTNode
+from transformers.exceptions import DuplicateNodeDefinitionError
 
 
 # noinspection PyMethodMayBeStatic,PyRedundantParentheses
@@ -8,6 +9,10 @@ class DisruptionTreeTransformer(Transformer):
     def __init__(self):
         super().__init__()
         self.tree = DisruptionTree()
+        # Track which nodes have been defined as basic nodes
+        self.basic_nodes = set()
+        # Track which nodes have been defined as intermediate nodes
+        self.intermediate_nodes = set()
 
     def probability(self, items):
         return ("probability", float(items[0].value))
@@ -57,6 +62,9 @@ class DisruptionTreeTransformer(Transformer):
 
     def basic_node(self, items):
         name = items[0].value
+        if name in self.basic_nodes:
+            raise DuplicateNodeDefinitionError(name, "basic")
+
         attrs = {}
         if len(items) > 1:
             assert len(items) == 2
@@ -71,6 +79,7 @@ class DisruptionTreeTransformer(Transformer):
             node = self.tree.nodes[name]["data"]
             node.update_from_attrs(attrs)
 
+        self.basic_nodes.add(name)
         return name
 
     def and_gate(self, _):
@@ -81,6 +90,9 @@ class DisruptionTreeTransformer(Transformer):
 
     def intermediate_node(self, items):
         parent = items[0].value
+        if parent in self.intermediate_nodes:
+            raise DuplicateNodeDefinitionError(parent, "intermediate")
+
         gate_type = items[1]  # "and" or "or" from gate
 
         # Create parent node if it doesn't exist
@@ -99,6 +111,7 @@ class DisruptionTreeTransformer(Transformer):
                 self.tree.add_node(child, data=DTNode(child))
             self.tree.add_edge(parent, child)
 
+        self.intermediate_nodes.add(parent)
         return parent
 
     def tln(self, items):

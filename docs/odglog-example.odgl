@@ -23,7 +23,6 @@ DSL prob=0.20 objects=[Door];
 [odg.object_graph]
 toplevel House;
 House has Door;
-Inhabitant;
 Door has Lock;
 
 House properties=[HS];

@@ -2,6 +2,7 @@ import argparse
 import sys
 
 from lark import UnexpectedInput, Tree
+from lark.exceptions import VisitError
 
 from parser.parser import parse
 from transformers.disruption_tree import DisruptionTreeTransformer
@@ -46,6 +47,9 @@ def main(odl_text: str):
         return execute_str(odl_text)
     except UnexpectedInput as e:
         print(f"Parse error:\n{e}\n", file=sys.stderr)
+        sys.exit(1)
+    except VisitError as e:
+        print(f"Input error:\n{e.orig_exc}\n", file=sys.stderr)
         sys.exit(1)
 
 
