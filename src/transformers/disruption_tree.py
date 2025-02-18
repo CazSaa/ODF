@@ -1,7 +1,7 @@
 from lark import Transformer
 
-from models.disruption_tree import DisruptionTree, DTNode
-from transformers.exceptions import DuplicateNodeDefinitionError
+from src.models.disruption_tree import DisruptionTree, DTNode
+from src.transformers.exceptions import DuplicateNodeDefinitionError
 
 
 # noinspection PyMethodMayBeStatic,PyRedundantParentheses

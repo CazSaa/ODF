@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from lark import UnexpectedInput
 
@@ -292,7 +294,10 @@ def test_complex_nested_formulas(parse_rule):
 
 def test_parse_example_odgl(parse):
     """Test parsing the complete odglog-example.odgl file."""
-    with open("../docs/odglog-example.odgl", "r") as f:
+    with open(
+            Path(
+                __file__).parent.parent.parent / "docs" / "odglog-example.odgl",
+            "r") as f:
         example_odg = f.read()
 
     tree = parse(example_odg)
