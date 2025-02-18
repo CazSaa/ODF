@@ -1,14 +1,18 @@
 image: ghcr.io/astral-sh/uv:python3.13-alpine
 
 variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+  UV_CACHE_DIR: .uv-cache
+  GIT_CLEAN_FLAGS: -ffdx -e $UV_CACHE_DIR
 
 cache:
-  paths:
-    - .pip-cache/
-    - .uv/
+  - key:
+      files:
+        - uv.lock
+    paths:
+      - $UV_CACHE_DIR
 
 test:
   script:
     - uv sync
     - uv run pytest tests/
+    - uv cache prune --ci
