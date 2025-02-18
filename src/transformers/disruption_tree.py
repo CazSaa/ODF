@@ -20,7 +20,7 @@ class DisruptionTreeTransformer(Transformer):
         # Each item is a NODE_NAME token
         return [item.value for item in items]
 
-    def node(self, items):
+    def node_atom(self, items):
         return items[0].value
 
     def and_formula(self, items):

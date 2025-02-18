@@ -17,7 +17,8 @@ def test_basic_node_tree(parse_rule):
 
 def test_basic_node_full_attributes_tree(parse_rule):
     """Test exact tree structure of a basic node with all attributes."""
-    result = parse_rule("A prob = 0.5 objects = [obj1, obj2] cond = (x && y)", "basic_node")
+    result = parse_rule("A prob = 0.5 objects = [obj1, obj2] cond = (x && y)",
+                        "basic_node")
     expected = Tree(Token("RULE", "basic_node"), [
         Token("NODE_NAME", "A"),
         Tree(Token("RULE", "attribute_list"), [
@@ -32,10 +33,10 @@ def test_basic_node_full_attributes_tree(parse_rule):
             ]),
             Tree(Token("RULE", "condition"), [
                 Tree(Token("RULE", "and_formula"), [
-                    Tree("node", [
+                    Tree("node_atom", [
                         Token("NODE_NAME", "x")
                     ]),
-                    Tree("node", [
+                    Tree("node_atom", [
                         Token("NODE_NAME", "y")
                     ])
                 ])
@@ -128,10 +129,10 @@ def test_layer1_query_tree(parse_rule):
             Tree(Token("RULE", "configuration"), []),
             Tree("mrs", [
                 Tree(Token("RULE", "and_formula"), [
-                    Tree("node", [
+                    Tree("node_atom", [
                         Token("NODE_NAME", "A")
                     ]),
-                    Tree("node", [
+                    Tree("node_atom", [
                         Token("NODE_NAME", "B")
                     ])
                 ])
@@ -152,7 +153,7 @@ def test_layer2_query_tree(parse_rule):
             ])
         ]),
         Tree("probability_formula", [
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "B")
             ]),
             Token("RELATION", ">="),
@@ -224,7 +225,7 @@ def test_complete_odg_tree(parse):
         Tree(Token("RULE", "odglog"), [
             Tree(Token("RULE", "layer1_query"), [
                 Tree("check", [
-                    Tree("node", [
+                    Tree("node_atom", [
                         Token("NODE_NAME", "A")
                     ])
                 ])
@@ -236,7 +237,8 @@ def test_complete_odg_tree(parse):
 
 def test_complex_layer1_query_tree(parse_rule):
     """Test exact tree structure of a complex Layer 1 formula with nested operations and evidence."""
-    result = parse_rule("{}MRS(!A && B || ((C [ZZ:1]) => D) [Z:0]) [X:1, Y:0]", "layer1_query")
+    result = parse_rule("{}MRS(!A && B || ((C [ZZ:1]) => D) [Z:0]) [X:1, Y:0]",
+                        "layer1_query")
     expected = Tree("check", [
         Tree(Token("RULE", "with_configuration"), [
             Tree(Token("RULE", "configuration"), []),
@@ -246,17 +248,17 @@ def test_complex_layer1_query_tree(parse_rule):
                         Tree(Token("RULE", "or_formula"), [
                             Tree(Token("RULE", "and_formula"), [
                                 Tree("neg_formula", [
-                                    Tree("node", [
+                                    Tree("node_atom", [
                                         Token("NODE_NAME", "A")
                                     ])
                                 ]),
-                                Tree("node", [
+                                Tree("node_atom", [
                                     Token("NODE_NAME", "B")
                                 ])
                             ]),
                             Tree(Token("RULE", "impl_formula"), [
                                 Tree(Token("RULE", "with_boolean_evidence"), [
-                                    Tree("node", [
+                                    Tree("node_atom", [
                                         Token("NODE_NAME", "C")
                                     ]),
                                     Tree(Token("RULE", "boolean_evidence"), [
@@ -266,7 +268,7 @@ def test_complex_layer1_query_tree(parse_rule):
                                         ])
                                     ])
                                 ]),
-                                Tree("node", [
+                                Tree("node_atom", [
                                     Token("NODE_NAME", "D")
                                 ])
                             ])
@@ -309,10 +311,10 @@ def test_complex_layer2_query_tree(parse_rule):
         Tree(Token("RULE", "and_formula"), [
             Tree("probability_formula", [
                 Tree(Token("RULE", "and_formula"), [
-                    Tree("node", [
+                    Tree("node_atom", [
                         Token("NODE_NAME", "X")
                     ]),
-                    Tree("node", [
+                    Tree("node_atom", [
                         Token("NODE_NAME", "Y")
                     ])
                 ]),
@@ -320,7 +322,7 @@ def test_complex_layer2_query_tree(parse_rule):
                 Token("DECIMAL", "0.3")
             ]),
             Tree("probability_formula", [
-                Tree("node", [
+                Tree("node_atom", [
                     Token("NODE_NAME", "Z")
                 ]),
                 Token("RELATION", ">="),
@@ -365,7 +367,7 @@ def test_compute_all_layer1_query_tree(parse_rule):
             ]),
             Tree(Token("RULE", "with_boolean_evidence"), [
                 Tree("mrs", [
-                    Tree("node", [
+                    Tree("node_atom", [
                         Token("NODE_NAME", "B")
                     ])
                 ]),
@@ -386,14 +388,14 @@ def test_equiv_formula_tree(parse_rule):
     result = parse_rule("A == B != C", "boolean_formula")
     expected = Tree(Token("RULE", "nequiv_formula"), [
         Tree(Token("RULE", "equiv_formula"), [
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "A")
             ]),
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "B")
             ])
         ]),
-        Tree("node", [
+        Tree("node_atom", [
             Token("NODE_NAME", "C")
         ])
     ])
@@ -414,7 +416,8 @@ def test_all_layer3_formulas_tree(parse_rule):
         result = parse_rule(formula, "layer3_query")
         expected = Tree(Token("RULE", "layer3_query"), [
             Tree(data, [
-                Token("NODE_NAME", formula[formula.index("(") + 1:formula.index(")")])
+                Token("NODE_NAME",
+                      formula[formula.index("(") + 1:formula.index(")")])
             ])
         ])
         assert result == expected
@@ -432,7 +435,7 @@ def test_layer2_with_probability_evidence_tree(parse_rule):
         ]),
         Tree("with_probability_evidence", [
             Tree("probability_formula", [
-                Tree("node", [
+                Tree("node_atom", [
                     Token("NODE_NAME", "X")
                 ]),
                 Token("RELATION", ">="),
@@ -454,7 +457,9 @@ def test_layer2_with_probability_evidence_tree(parse_rule):
 
 
 def test_layer2_with_more_probabilities(parse_rule):
-    result = parse_rule("{A:1, B:0} (P(X) >= 0.3 [X=0.8]) && (P(X) < 0.7 [X=0.2]) [Y=0.1]", "layer2_query")
+    result = parse_rule(
+        "{A:1, B:0} (P(X) >= 0.3 [X=0.8]) && (P(X) < 0.7 [X=0.2]) [Y=0.1]",
+        "layer2_query")
     expected = Tree(Token("RULE", "layer2_query"), [
         Tree(Token("RULE", "configuration"), [
             Tree(Token("RULE", "boolean_mapping"), [
@@ -470,7 +475,7 @@ def test_layer2_with_more_probabilities(parse_rule):
             Tree(Token("RULE", "and_formula"), [
                 Tree("with_probability_evidence", [
                     Tree("probability_formula", [
-                        Tree("node", [
+                        Tree("node_atom", [
                             Token("NODE_NAME", "X")
                         ]),
                         Token("RELATION", ">="),
@@ -485,7 +490,7 @@ def test_layer2_with_more_probabilities(parse_rule):
                 ]),
                 Tree("with_probability_evidence", [
                     Tree("probability_formula", [
-                        Tree("node", [
+                        Tree("node_atom", [
                             Token("NODE_NAME", "X")
                         ]),
                         Token("RELATION", "<"),
@@ -526,7 +531,7 @@ def test_attribute_list_orderings_tree(parse_rule):
                      Token("DECIMAL", "0.5")
                  ]),
                  Tree(Token("RULE", "condition"), [
-                     Tree("node", [
+                     Tree("node_atom", [
                          Token("NODE_NAME", "x")
                      ])
                  ])
@@ -537,7 +542,7 @@ def test_attribute_list_orderings_tree(parse_rule):
              Token("NODE_NAME", "A"),
              Tree(Token("RULE", "attribute_list"), [
                  Tree(Token("RULE", "condition"), [
-                     Tree("node", [
+                     Tree("node_atom", [
                          Token("NODE_NAME", "x")
                      ])
                  ]),
@@ -559,7 +564,7 @@ def test_attribute_list_orderings_tree(parse_rule):
                      Token("DECIMAL", "0.5")
                  ]),
                  Tree(Token("RULE", "condition"), [
-                     Tree("node", [
+                     Tree("node_atom", [
                          Token("NODE_NAME", "x")
                      ])
                  ]),
@@ -591,7 +596,7 @@ def test_all_relations_tree(parse_rule):
                 ])
             ]),
             Tree("probability_formula", [
-                Tree("node", [
+                Tree("node_atom", [
                     Token("NODE_NAME", "X")
                 ]),
                 Token("RELATION", rel),
@@ -617,33 +622,34 @@ def test_node_list_variations_tree(parse_rule):
 
 def test_latex_operators_tree(parse_rule):
     """Test exact tree structure using LaTeX operators."""
-    result = parse_rule(r"A \land B \lor \neg C \implies D \equiv E \nequiv F", "boolean_formula")
+    result = parse_rule(r"A \land B \lor \neg C \implies D \equiv E \nequiv F",
+                        "boolean_formula")
     expected = Tree(Token("RULE", "impl_formula"), [
         Tree(Token("RULE", "or_formula"), [
             Tree(Token("RULE", "and_formula"), [
-                Tree("node", [
+                Tree("node_atom", [
                     Token("NODE_NAME", "A")
                 ]),
-                Tree("node", [
+                Tree("node_atom", [
                     Token("NODE_NAME", "B")
                 ])
             ]),
             Tree("neg_formula", [
-                Tree("node", [
+                Tree("node_atom", [
                     Token("NODE_NAME", "C")
                 ])
             ])
         ]),
         Tree(Token("RULE", "nequiv_formula"), [
             Tree(Token("RULE", "equiv_formula"), [
-                Tree("node", [
+                Tree("node_atom", [
                     Token("NODE_NAME", "D")
                 ]),
-                Tree("node", [
+                Tree("node_atom", [
                     Token("NODE_NAME", "E")
                 ])
             ]),
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "F")
             ])
         ])
@@ -657,14 +663,14 @@ def test_operator_associativity(parse_rule):
     # Test right-associative implication (a => b => c parses as a => (b => c))
     result = parse_rule("a => b => c", "boolean_formula")
     expected = Tree(Token("RULE", "impl_formula"), [
-        Tree("node", [
+        Tree("node_atom", [
             Token("NODE_NAME", "a")
         ]),
         Tree(Token("RULE", "impl_formula"), [
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "b")
             ]),
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "c")
             ])
         ])
@@ -675,14 +681,14 @@ def test_operator_associativity(parse_rule):
     result = parse_rule("a == b != c", "boolean_formula")
     expected = Tree(Token("RULE", "nequiv_formula"), [
         Tree(Token("RULE", "equiv_formula"), [
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "a")
             ]),
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "b")
             ])
         ]),
-        Tree("node", [
+        Tree("node_atom", [
             Token("NODE_NAME", "c")
         ])
     ])
@@ -692,14 +698,14 @@ def test_operator_associativity(parse_rule):
     result = parse_rule("a && b && c", "boolean_formula")
     expected = Tree(Token("RULE", "and_formula"), [
         Tree(Token("RULE", "and_formula"), [
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "a")
             ]),
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "b")
             ])
         ]),
-        Tree("node", [
+        Tree("node_atom", [
             Token("NODE_NAME", "c")
         ])
     ])
@@ -709,14 +715,14 @@ def test_operator_associativity(parse_rule):
     result = parse_rule("a || b || c", "boolean_formula")
     expected = Tree(Token("RULE", "or_formula"), [
         Tree(Token("RULE", "or_formula"), [
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "a")
             ]),
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "b")
             ])
         ]),
-        Tree("node", [
+        Tree("node_atom", [
             Token("NODE_NAME", "c")
         ])
     ])
@@ -725,14 +731,14 @@ def test_operator_associativity(parse_rule):
     # Test right-associative parenthesis with OR ( a || (b || c) parses as a || (b || c) )
     result = parse_rule("a || (b || c)", "boolean_formula")
     expected = Tree(Token("RULE", "or_formula"), [
-        Tree("node", [
+        Tree("node_atom", [
             Token("NODE_NAME", "a")
         ]),
         Tree(Token("RULE", "or_formula"), [
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "b")
             ]),
-            Tree("node", [
+            Tree("node_atom", [
                 Token("NODE_NAME", "c")
             ])
         ])
