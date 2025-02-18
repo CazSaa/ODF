@@ -1,0 +1,14 @@
+image: ghcr.io/astral-sh/uv:python3.13-alpine
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+
+cache:
+  paths:
+    - .pip-cache/
+    - .uv/
+
+test:
+  script:
+    - uv sync
+    - uv run pytest tests/
