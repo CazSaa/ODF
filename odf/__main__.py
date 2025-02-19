@@ -5,7 +5,8 @@ from lark import UnexpectedInput, Tree
 from lark.exceptions import VisitError
 
 from odf.models.exceptions import CrossReferenceError
-from odf.models.validation import validate_disruption_tree_references
+from odf.models.validation import validate_disruption_tree_references, \
+    validate_unique_node_names
 from odf.parser.parser import parse
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
 from odf.transformers.exceptions import MyVisitError
@@ -52,6 +53,8 @@ def execute_str(odl_text):
         object_graph = ObjectGraphTransformer().transform(object_parse_tree)
     except VisitError as e:
         raise MyVisitError(e, "object graph")
+
+    validate_unique_node_names(attack_tree, fault_tree, object_graph)
 
     validate_disruption_tree_references(attack_tree, object_graph)
     validate_disruption_tree_references(fault_tree, object_graph)

@@ -5,6 +5,32 @@ from odf.models.exceptions import CrossReferenceError
 from odf.models.object_graph import ObjectGraph, ObjectNode
 
 
+def validate_unique_node_names(attack_tree: DisruptionTree,
+                               fault_tree: DisruptionTree,
+                               object_graph: ObjectGraph) -> None:
+    """Validate that all node names are unique across all trees.
+    
+    Names must be unique across attack tree nodes, fault tree nodes,
+    and object graph nodes to prevent ambiguity in references.
+    
+    Args:
+        attack_tree: The attack tree to validate
+        fault_tree: The fault tree to validate
+        object_graph: The object graph to validate
+    
+    Raises:
+        CrossReferenceError: If any node names are duplicated
+    """
+    node_names = set()
+
+    for tree in [attack_tree, fault_tree, object_graph]:
+        for node_name in tree.nodes:
+            if node_name in node_names:
+                raise CrossReferenceError(f"Node name '{node_name}' is used in"
+                                          f" multiple trees")
+            node_names.add(node_name)
+
+
 def validate_disruption_tree_references(dt: DisruptionTree,
                                         og: ObjectGraph) -> None:
     """Validate that all object and property references in a disruption tree

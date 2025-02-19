@@ -1,7 +1,8 @@
 import pytest
 
 from odf.models.exceptions import CrossReferenceError
-from odf.models.validation import validate_disruption_tree_references
+from odf.models.validation import validate_disruption_tree_references, \
+    validate_unique_node_names
 from odf.parser.parser import parse
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
 from odf.transformers.object_graph import ObjectGraphTransformer
@@ -40,6 +41,41 @@ def test_valid_references():
 
     # Should not raise any exceptions
     validate_disruption_tree_references(attack_tree, object_graph)
+
+
+def test_duplicate_node_names():
+    odl_text = """
+    [odg.attack_tree]
+    toplevel Root;
+    Root or DuplicateName Node2;
+    
+    Root objects=[House];
+    DuplicateName objects=[Door];
+    Node2 objects=[Lock];
+
+    [odg.fault_tree]
+    toplevel DuplicateName;  // Same name used in attack tree
+    DuplicateName;
+
+    [odg.object_graph]
+    toplevel House;
+    House has Door;
+    Door has Lock;
+    
+    [formulas]
+    Root;
+    """
+
+    parse_tree = parse(odl_text)
+    trees = parse_tree.children
+    attack_tree = DisruptionTreeTransformer().transform(trees[0])
+    fault_tree = DisruptionTreeTransformer().transform(trees[1])
+    object_graph = ObjectGraphTransformer().transform(trees[2])
+
+    with pytest.raises(CrossReferenceError) as exc_info:
+        validate_unique_node_names(attack_tree, fault_tree, object_graph)
+    assert "Node name 'DuplicateName' is used in multiple trees" in str(
+        exc_info.value)
 
 
 def test_invalid_object_reference():
