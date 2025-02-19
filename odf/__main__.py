@@ -4,6 +4,8 @@ import sys
 from lark import UnexpectedInput, Tree
 from lark.exceptions import VisitError
 
+from odf.models.exceptions import CrossReferenceError
+from odf.models.validation import validate_disruption_tree_references
 from odf.parser.parser import parse
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
 from odf.transformers.exceptions import MyVisitError
@@ -51,6 +53,9 @@ def execute_str(odl_text):
     except VisitError as e:
         raise MyVisitError(e, "object graph")
 
+    validate_disruption_tree_references(attack_tree, object_graph)
+    validate_disruption_tree_references(fault_tree, object_graph)
+
 
 def main(odl_text: str):
     try:
@@ -61,6 +66,9 @@ def main(odl_text: str):
     except MyVisitError as e:
         print(f"Error in {e.part}: {e.visit_error.orig_exc}\n",
               file=sys.stderr)
+        sys.exit(1)
+    except CrossReferenceError as e:
+        print(f"Cross-reference validation error: {e}\n", file=sys.stderr)
         sys.exit(1)
 
 

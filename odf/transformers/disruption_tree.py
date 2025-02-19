@@ -123,3 +123,11 @@ class DisruptionTreeTransformer(Transformer):
     def disruption_tree(self, _):
         self.tree.validate_tree()
         return self.tree
+
+    # Simply return the disruption_tree child
+    def attack_tree(self, items):
+        return items[0]
+
+    # Simply return the disruption_tree child
+    def fault_tree(self, items):
+        return items[0]

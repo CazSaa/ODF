@@ -2,15 +2,20 @@ from typing import Literal
 
 from lark.exceptions import VisitError
 
+from odf.core.exceptions import ODFError
 
-class MyVisitError(Exception):
+
+class MyVisitError(ODFError):
+    """Wrapper for Lark.VisitError that includes the specific tree that caused
+    the error."""
+
     def __init__(self, visit_error: VisitError, part: str):
         self.visit_error = visit_error
         self.part = part
         super().__init__(f"Visit error: {visit_error}")
 
 
-class MalformedTreeError(Exception):
+class MalformedTreeError(ODFError):
     pass
 
 
