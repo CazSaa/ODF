@@ -1,9 +1,9 @@
 from typing import Optional
 
-import networkx as nx
+from src.models.network_graph import TreeGraph
 
 
-class ObjectGraph(nx.DiGraph):
+class ObjectGraph(TreeGraph):
     pass
 
 

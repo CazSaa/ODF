@@ -1,11 +1,11 @@
 from typing import Optional, Literal
 
-import networkx as nx
+from src.models.network_graph import TreeGraph
 
 GateType = Literal["and", "or"]
 
 
-class DisruptionTree(nx.DiGraph):
+class DisruptionTree(TreeGraph):
     pass
 
 

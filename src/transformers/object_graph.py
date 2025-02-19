@@ -72,4 +72,5 @@ class ObjectGraphTransformer(Transformer):
         return name
 
     def object_graph_tree(self, _):
+        self.graph.validate_tree()
         return self.graph

@@ -109,7 +109,7 @@ def test_node_can_be_both_basic_and_child(parse_rule):
 def test_node_can_be_both_basic_and_intermediate(parse_rule):
     """Test that a node can be both a basic node and an intermediate node."""
     transformer = DisruptionTreeTransformer()
-    tree = parse_rule("""toplevel Root;
+    tree = parse_rule("""toplevel A;
     A prob = 0.5;
     A and B C;
     B objects = [obj1];
@@ -291,3 +291,50 @@ def test_complex_boolean_formula(parse_rule):
     assert node.probability is None
     assert node.objects is None
     assert node.gate_type is None
+
+
+def test_cyclic_graph_raises_error(parse_rule):
+    """Test that a cyclic graph raises NotAcyclicError."""
+    transformer = DisruptionTreeTransformer()
+    tree = parse_rule("""toplevel A;
+    A and B C;
+    B and C D;
+    C and A E;
+    D;
+    E;
+    """, "disruption_tree")
+
+    with pytest.raises(VisitError) as excinfo:
+        transformer.transform(tree)
+    assert "Graph is not acyclic" in str(excinfo.value.orig_exc)
+
+
+def test_disconnected_graph_raises_error(parse_rule):
+    """Test that a disconnected graph raises NotConnectedError."""
+    transformer = DisruptionTreeTransformer()
+    tree = parse_rule("""toplevel A;
+    A and B C;
+    D and E F;  // Disconnected subgraph
+    B;
+    C;
+    E;
+    F;
+    """, "disruption_tree")
+
+    with pytest.raises(VisitError) as excinfo:
+        transformer.transform(tree)
+    assert "Graph is not connected" in str(excinfo.value.orig_exc)
+
+
+def test_multiple_roots_raises_error(parse_rule):
+    """Test that multiple root nodes raise NotExactlyOneRootError."""
+    transformer = DisruptionTreeTransformer()
+    # Both A and D have no parents
+    tree = parse_rule("""toplevel A;
+    A and B C;
+    D and B C;
+    """, "disruption_tree")
+
+    with pytest.raises(VisitError) as excinfo:
+        transformer.transform(tree)
+    assert "Graph has more than one root" in str(excinfo.value.orig_exc)

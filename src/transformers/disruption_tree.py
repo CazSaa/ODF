@@ -121,4 +121,5 @@ class DisruptionTreeTransformer(Transformer):
         return name
 
     def disruption_tree(self, _):
+        self.tree.validate_tree()
         return self.tree
