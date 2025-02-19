@@ -1,8 +1,8 @@
 import re
 
-from odf.models.disruption_tree import DisruptionTree, DTNode
+from odf.models.disruption_tree import DisruptionTree
 from odf.models.exceptions import CrossReferenceError
-from odf.models.object_graph import ObjectGraph, ObjectNode
+from odf.models.object_graph import ObjectGraph
 
 
 def validate_unique_node_names(attack_tree: DisruptionTree,
@@ -45,17 +45,14 @@ def validate_disruption_tree_references(dt: DisruptionTree,
     """
     # Build a map of object names to their properties
     object_properties: dict[str, set[str]] = {}
-    for node_id in og.nodes:
-        node: ObjectNode = og.nodes[node_id]["data"]
+    for node in og.nodes_obj():
         if node.properties is not None:
             object_properties[node.name] = set(node.properties)
         else:
             object_properties[node.name] = set()
 
     # Validate each node in the disruption tree
-    for node_id in dt.nodes:
-        node: DTNode = dt.nodes[node_id]["data"]
-
+    for node in dt.nodes_obj():
         # Validate object references
         if node.objects is not None:
             for obj_name in node.objects:

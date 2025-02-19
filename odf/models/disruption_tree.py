@@ -9,21 +9,6 @@ from odf.transformers.exceptions import NotConnectedError, \
 GateType = Literal["and", "or"]
 
 
-class DisruptionTree(TreeGraph):
-    def validate_tree(self):
-        """Validate the tree structure.
-
-        Ensures the graph is:
-        1. Weakly connected (all nodes are connected when edges are treated as undirected)
-        2. Has exactly one root node (node with no incoming edges)
-        """
-        super().validate_tree()
-        if not is_weakly_connected(self):
-            raise NotConnectedError()
-        if sum(1 for (node, in_deg) in self.in_degree if in_deg == 0) != 1:
-            raise NotExactlyOneRootError()
-
-
 class DTNode:
     def __init__(self, name: str,
                  probability: Optional[float] = None,
@@ -45,3 +30,18 @@ class DTNode:
             self.condition = attrs["condition"]
         if "gate_type" in attrs:
             self.gate_type = attrs["gate_type"]
+
+
+class DisruptionTree(TreeGraph[DTNode]):
+    def validate_tree(self):
+        """Validate the tree structure.
+
+        Ensures the graph is:
+        1. Weakly connected (all nodes are connected when edges are treated as undirected)
+        2. Has exactly one root node (node with no incoming edges)
+        """
+        super().validate_tree()
+        if not is_weakly_connected(self):
+            raise NotConnectedError()
+        if sum(1 for (node, in_deg) in self.in_degree if in_deg == 0) != 1:
+            raise NotExactlyOneRootError()
