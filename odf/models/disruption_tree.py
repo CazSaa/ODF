@@ -1,6 +1,6 @@
 from typing import Optional, Literal
 
-from odf.models.network_graph import TreeGraph
+from odf.models.tree_graph import TreeGraph
 
 GateType = Literal["and", "or"]
 
