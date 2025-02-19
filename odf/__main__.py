@@ -4,10 +4,10 @@ import sys
 from lark import UnexpectedInput, Tree
 from lark.exceptions import VisitError
 
-from parser.parser import parse
-from transformers.disruption_tree import DisruptionTreeTransformer
-from transformers.exceptions import MyVisitError
-from transformers.object_graph import ObjectGraphTransformer
+from odf.parser.parser import parse
+from odf.transformers.disruption_tree import DisruptionTreeTransformer
+from odf.transformers.exceptions import MyVisitError
+from odf.transformers.object_graph import ObjectGraphTransformer
 
 
 def extract_parse_trees(parse_tree: Tree):
@@ -66,6 +66,7 @@ def main(odl_text: str):
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
+        prog="python -m odf",
         description="Executes a BFL file and prints the results.")
     argparser.add_argument("file",
                            help="path to the BFL file you want to execute",

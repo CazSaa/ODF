@@ -1,7 +1,7 @@
 from lark import Transformer
 
-from src.models.object_graph import ObjectGraph, ObjectNode
-from src.transformers.exceptions import DuplicateObjectDefinitionError
+from odf.models.object_graph import ObjectGraph, ObjectNode
+from odf.transformers.exceptions import DuplicateObjectDefinitionError
 
 
 # noinspection PyMethodMayBeStatic

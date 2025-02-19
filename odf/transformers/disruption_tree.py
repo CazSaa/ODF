@@ -1,7 +1,7 @@
 from lark import Transformer
 
-from src.models.disruption_tree import DisruptionTree, DTNode
-from src.transformers.exceptions import DuplicateNodeDefinitionError
+from odf.models.disruption_tree import DisruptionTree, DTNode
+from odf.transformers.exceptions import DuplicateNodeDefinitionError
 
 
 # noinspection PyMethodMayBeStatic,PyRedundantParentheses

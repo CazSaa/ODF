@@ -10,7 +10,7 @@ from lark import Lark
 @pytest.fixture(scope="session")
 def grammar_path():
     """Path to the grammar file."""
-    return Path(__file__).parent.parent / "src" / "parser" / "grammar.lark"
+    return Path(__file__).parent.parent / "odf" / "parser" / "grammar.lark"
 
 
 @pytest.fixture(scope="session")

@@ -2,7 +2,7 @@ from networkx import DiGraph
 from networkx.algorithms.components import is_weakly_connected
 from networkx.algorithms.dag import is_directed_acyclic_graph
 
-from src.transformers.exceptions import NotAcyclicError, NotConnectedError, \
+from odf.transformers.exceptions import NotAcyclicError, NotConnectedError, \
     NotExactlyOneRootError
 
 

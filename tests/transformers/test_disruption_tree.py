@@ -1,7 +1,7 @@
 import pytest
 from lark.exceptions import VisitError
 
-from src.transformers.disruption_tree import DisruptionTreeTransformer
+from odf.transformers.disruption_tree import DisruptionTreeTransformer
 
 
 def test_basic_disruption_tree(parse_rule):

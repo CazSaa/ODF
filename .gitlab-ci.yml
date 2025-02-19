@@ -14,5 +14,5 @@ cache:
 test:
   script:
     - uv sync
-    - uv run pytest tests/
+    - uv run pytest
     - uv cache prune --ci

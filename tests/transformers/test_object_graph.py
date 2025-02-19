@@ -1,7 +1,7 @@
 import pytest
 from lark.exceptions import VisitError
 
-from src.transformers.object_graph import ObjectGraphTransformer
+from odf.transformers.object_graph import ObjectGraphTransformer
 
 
 def test_basic_object_graph(parse_rule):
