@@ -1,12 +1,27 @@
 from typing import Optional, Literal
 
+from networkx.algorithms.components import is_weakly_connected
+
 from odf.models.tree_graph import TreeGraph
+from odf.transformers.exceptions import NotConnectedError, \
+    NotExactlyOneRootError
 
 GateType = Literal["and", "or"]
 
 
 class DisruptionTree(TreeGraph):
-    pass
+    def validate_tree(self):
+        """Validate the tree structure.
+
+        Ensures the graph is:
+        1. Weakly connected (all nodes are connected when edges are treated as undirected)
+        2. Has exactly one root node (node with no incoming edges)
+        """
+        super().validate_tree()
+        if not is_weakly_connected(self):
+            raise NotConnectedError()
+        if sum(1 for (node, in_deg) in self.in_degree if in_deg == 0) != 1:
+            raise NotExactlyOneRootError()
 
 
 class DTNode:

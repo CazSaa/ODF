@@ -195,7 +195,7 @@ def test_cyclic_graph_raises_error(parse_rule):
     assert "Graph is not acyclic" in str(excinfo.value.orig_exc)
 
 
-def test_disconnected_graph_raises_error(parse_rule):
+def test_disconnected_graph_is_allowed(parse_rule):
     """Test that a disconnected graph raises NotConnectedError."""
     transformer = ObjectGraphTransformer()
     tree = parse_rule("""toplevel A;
@@ -203,12 +203,11 @@ def test_disconnected_graph_raises_error(parse_rule):
     D has E F;  // Disconnected subgraph
     """, "object_graph_tree")
 
-    with pytest.raises(VisitError) as excinfo:
-        transformer.transform(tree)
-    assert "Graph is not connected" in str(excinfo.value.orig_exc)
+    graph = transformer.transform(tree)
+    assert {n for n in graph.nodes} == {"A", "B", "C", "D", "E", "F"}
 
 
-def test_multiple_roots_raises_error(parse_rule):
+def test_multiple_roots_is_allowed(parse_rule):
     """Test that multiple root nodes raise NotExactlyOneRootError."""
     transformer = ObjectGraphTransformer()
     # Both A and D have no parents
@@ -217,6 +216,5 @@ def test_multiple_roots_raises_error(parse_rule):
     D has B C;
     """, "object_graph_tree")
 
-    with pytest.raises(VisitError) as excinfo:
-        transformer.transform(tree)
-    assert "Graph has more than one root" in str(excinfo.value.orig_exc)
+    graph = transformer.transform(tree)
+    assert {n for n in graph.nodes if graph.in_degree(n) == 0} == {"A", "D"}
