@@ -6,6 +6,7 @@ from lark.exceptions import VisitError
 
 from parser.parser import parse
 from transformers.disruption_tree import DisruptionTreeTransformer
+from transformers.exceptions import MyVisitError
 from transformers.object_graph import ObjectGraphTransformer
 
 
@@ -37,9 +38,18 @@ def execute_str(odl_text):
     parse_tree = parse(odl_text)
     [attack_parse_tree, fault_parse_tree,
      object_parse_tree, formulas_parse_tree] = extract_parse_trees(parse_tree)
-    attack_tree = DisruptionTreeTransformer().transform(attack_parse_tree)
-    fault_tree = DisruptionTreeTransformer().transform(fault_parse_tree)
-    object_graph = ObjectGraphTransformer().transform(object_parse_tree)
+    try:
+        attack_tree = DisruptionTreeTransformer().transform(attack_parse_tree)
+    except VisitError as e:
+        raise MyVisitError(e, "attack tree")
+    try:
+        fault_tree = DisruptionTreeTransformer().transform(fault_parse_tree)
+    except VisitError as e:
+        raise MyVisitError(e, "fault tree")
+    try:
+        object_graph = ObjectGraphTransformer().transform(object_parse_tree)
+    except VisitError as e:
+        raise MyVisitError(e, "object graph")
 
 
 def main(odl_text: str):
@@ -48,8 +58,9 @@ def main(odl_text: str):
     except UnexpectedInput as e:
         print(f"Parse error:\n{e}\n", file=sys.stderr)
         sys.exit(1)
-    except VisitError as e:
-        print(f"Input error:\n{e.orig_exc}\n", file=sys.stderr)
+    except MyVisitError as e:
+        print(f"Error in {e.part}: {e.visit_error.orig_exc}\n",
+              file=sys.stderr)
         sys.exit(1)
 
 

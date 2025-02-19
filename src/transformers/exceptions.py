@@ -1,5 +1,14 @@
 from typing import Literal
 
+from lark.exceptions import VisitError
+
+
+class MyVisitError(Exception):
+    def __init__(self, visit_error: VisitError, part: str):
+        self.visit_error = visit_error
+        self.part = part
+        super().__init__(f"Visit error: {visit_error}")
+
 
 class MalformedTreeError(Exception):
     pass
