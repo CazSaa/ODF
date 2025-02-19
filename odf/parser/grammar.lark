@@ -1,7 +1,7 @@
 start: attack_tree (fault_tree (object_graph odglog | odglog object_graph) | object_graph (fault_tree odglog | odglog fault_tree) | odglog (fault_tree object_graph | object_graph fault_tree))
-   | fault_tree (attack_tree (object_graph odglog | odglog object_graph) | object_graph (attack_tree odglog | odglog attack_tree) | odglog (attack_tree object_graph | object_graph attack_tree))
-   | object_graph (attack_tree (fault_tree odglog | odglog fault_tree) | fault_tree (attack_tree odglog | odglog attack_tree) | odglog (attack_tree fault_tree | fault_tree attack_tree))
-   | odglog (attack_tree (fault_tree object_graph | object_graph fault_tree) | fault_tree (attack_tree object_graph | object_graph attack_tree) | object_graph (attack_tree fault_tree | fault_tree attack_tree))
+     | fault_tree (attack_tree (object_graph odglog | odglog object_graph) | object_graph (attack_tree odglog | odglog attack_tree) | odglog (attack_tree object_graph | object_graph attack_tree))
+     | object_graph (attack_tree (fault_tree odglog | odglog fault_tree) | fault_tree (attack_tree odglog | odglog attack_tree) | odglog (attack_tree fault_tree | fault_tree attack_tree))
+     | odglog (attack_tree (fault_tree object_graph | object_graph fault_tree) | fault_tree (attack_tree object_graph | object_graph attack_tree) | object_graph (attack_tree fault_tree | fault_tree attack_tree))
 
 attack_tree: _ATTACK_TREE_SECTION disruption_tree
 fault_tree: _FAULT_TREE_SECTION disruption_tree
@@ -47,25 +47,25 @@ odglog_formula: layer1_query -> layer1_query
               | layer3_query -> layer3_query
 
 layer1_query: _DOUBLE_LEFT_SQUARE_BRACKET layer1_formula _DOUBLE_RIGHT_SQUARE_BRACKET -> compute_all
-              | layer1_formula -> check
+            | layer1_formula -> check
 
 ?layer1_formula: configuration layer1_mrs -> with_configuration
                | layer1_no_mrs
 
 ?layer1_mrs: layer1_mrs boolean_evidence -> with_boolean_evidence
-              | _boolean_template{l1_atom_formula}
+           | _boolean_template{l1_atom_formula}
 
 ?l1_atom_formula: "(" layer1_mrs ")"
-            | _MRS "(" layer1_mrs ")" -> mrs
-            | NODE_NAME -> node_atom
-            | _NEG l1_atom_formula -> neg_formula
+                | _MRS "(" layer1_mrs ")" -> mrs
+                | NODE_NAME -> node_atom
+                | _NEG l1_atom_formula -> neg_formula
             
 ?layer1_no_mrs: layer1_no_mrs boolean_evidence -> with_boolean_evidence
               | _boolean_template{l1_no_mrs_atom_formula}
 
 ?l1_no_mrs_atom_formula: "(" layer1_no_mrs ")"
-            | NODE_NAME -> node_atom
-            | _NEG l1_no_mrs_atom_formula -> neg_formula
+                       | NODE_NAME -> node_atom
+                       | _NEG l1_no_mrs_atom_formula -> neg_formula
 
 layer2_query: configuration layer2_formula
 
@@ -73,9 +73,9 @@ layer2_query: configuration layer2_formula
                | _boolean_template{l2_atom_formula}
 
 ?l2_atom_formula: "(" layer2_formula ")"
-            | NODE_NAME -> node_atom
-            | _NEG l2_atom_formula -> neg_formula
-            | _P "(" layer1_formula ")" RELATION DECIMAL -> probability_formula
+                | NODE_NAME -> node_atom
+                | _NEG l2_atom_formula -> neg_formula
+                | _P "(" layer1_formula ")" RELATION DECIMAL -> probability_formula
 
 
 layer3_query: layer3_formula
@@ -108,12 +108,12 @@ _boolean_template{atom}: impl_formula{atom}
 ?or_formula{atom}: (or_formula{atom} _OR)? and_formula{atom}
 ?and_formula{atom}: (and_formula{atom} _AND)? comp_formula{atom}
 ?comp_formula{atom}: comp_formula{atom} _EQUIV atom -> equiv_formula
-            | comp_formula{atom} _NEQUIV atom -> nequiv_formula
-            | atom
+                   | comp_formula{atom} _NEQUIV atom -> nequiv_formula
+                   | atom
 
 ?atom_formula: "(" boolean_formula ")"
-            | NODE_NAME -> node_atom
-            | _NEG atom_formula -> neg_formula
+             | NODE_NAME -> node_atom
+             | _NEG atom_formula -> neg_formula
 
 
 _ATTACK_TREE_SECTION: "[odg.attack_tree]"i
