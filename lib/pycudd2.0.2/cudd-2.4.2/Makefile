@@ -230,7 +230,7 @@ build:
 	done
 
 libso:
-	@for dir in $(DIRS); do\
+	@for dir in $(BDIRS); do\
 		(cd $$dir;\
 		echo Making $$ dir;\
 		make libso CC=$(CC) RANLIB=$(RANLIB) MFLAG= MNEMLIB= ICFLAGS="$(ICFLAGS)" XCFLAGS="$(XCFLAGS)" DDDEBUG="$(DDDEBUG)" MTRDEBUG="$(MTRDEBUG)" LDFLAGS="$(LDFLAGS)" PURE="$(PURE)" EXE="$(EXE)" )\
