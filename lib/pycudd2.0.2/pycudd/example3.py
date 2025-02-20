@@ -30,7 +30,7 @@ ops.Push(d)
 rel = (~a & ~b & ((~c & ~d) | (c & d))) | (a & b & ((~c & d) | (c & ~d)))
 rel |= (~a & b)
 rel |= (a & ~b)
-print "The relation is"
+print("The relation is")
 rel.PrintMinterm()
 
 # Create a BrelRelation_t object 
@@ -45,8 +45,8 @@ z = bbr.SolveRelation(ct)
 # each minimised output. In our case, note how output 1 is reduced to always 0 --
 # thus, the call to PrintMinterm doesn't produce any output
 #
-print "Output 0 is"
+print("Output 0 is")
 z[0].PrintMinterm()
 
-print "Output 1 is"
+print("Output 1 is")
 z[1].PrintMinterm()

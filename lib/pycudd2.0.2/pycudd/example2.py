@@ -19,7 +19,7 @@ rel = (~a & ~b & ((~c & ~m.IthVar(3)) | (c & m.IthVar(3)))) | (a & b & ((~c & m.
 rel |= (~a & b)
 rel |= (a & ~b)
 
-print "Going to iterate over the following function"
+print("Going to iterate over the following function")
 rel.PrintMinterm()
 
 #
@@ -27,25 +27,25 @@ rel.PrintMinterm()
 # Note that since the package uses complement edges, the nodes may not be what
 # you expected!! Refer pyiter.i and ddnode.i for details on how this is done.
 # 
-print "Testing iteration methods ..."
+print("Testing iteration methods ...")
 # Over cubes
-print "Over cubes ..."
+print("Over cubes ...")
 pycudd.set_iter_meth(0)
 for cube in rel:
-    print pycudd.cube_tuple_to_str(cube)
+    print(pycudd.cube_tuple_to_str(cube))
 
 # Over nodes     
-print "Over nodes ..."
+print("Over nodes ...")
 pycudd.set_iter_meth(1)
 for node in rel:
-    print "***"
+    print("***")
     node.PrintMinterm()
 
 # Over primes     
-print "Over primes ..."
+print("Over primes ...")
 pycudd.set_iter_meth(2)
 for prime in rel:
-    print pycudd.cube_tuple_to_str(prime)
+    print(pycudd.cube_tuple_to_str(prime))
 
 #
 # One/two literal clause enumeration
@@ -54,7 +54,7 @@ for prime in rel:
 #
 # Simple POS expression (a + b)(!c + d)(!e + !f)(g + !h)i
 #
-h = (a | b) & (~c | m.IthVar(3)) & (~m.IthVar(4) | ~m.IthVar(5)) & (m.IthVar(6) | ~m.IthVar(7)) & m.IthVar(8) 
+h = (a | b) & (~c | m.IthVar(3)) & (~m.IthVar(4) | ~m.IthVar(5)) & (m.IthVar(6) | ~m.IthVar(7)) & m.IthVar(8)
 #
 # Create the DdTlcInfo object by calling
 #
@@ -68,6 +68,6 @@ tlc = h.FindTwoLiteralClauses()
 i=0
 cl = tlc.ReadIthClause(i)
 while cl[0] != 0:
-    print cl[1:]
+    print(cl[1:])
     i += 1
     cl = tlc.ReadIthClause(i)

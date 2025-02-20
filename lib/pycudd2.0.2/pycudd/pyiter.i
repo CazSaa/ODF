@@ -32,7 +32,7 @@ def set_iter_meth(meth,verbose = False):
   global iter_meth
   methods = ["cubes", "nodes", "primes"]
   if verbose:
-      print "Setting iter method to iterate over ",methods[meth]
+      print("Setting iter method to iterate over ",methods[meth])
   iter_meth = meth
 
 class ForeachCubeIterator:
@@ -42,16 +42,16 @@ class ForeachCubeIterator:
         self.done = 0
         self.ret_val = Dd.FirstCube(self.gen)
         if not self.ret_val[0]: self.done = 1
-        
+
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if self.done: raise StopIteration
         to_ret = self.ret_val[1:]
         self.ret_val = self.node.NextCube(self.gen)
         if not self.ret_val[0]:
-	    self.done = 1
+	        self.done = 1
         return to_ret
 
 class ForeachNodeIterator:
@@ -61,11 +61,11 @@ class ForeachNodeIterator:
         self.done = 0
         self.ret_val = Dd.FirstNode(self.gen)
         if not self.ret_val[0]: self.done = 1
-        
+
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if self.done: raise StopIteration
         to_ret = self.ret_val[1]
         self.ret_val = self.node.NextNode(self.gen)
@@ -77,7 +77,7 @@ class ForeachPrimeIterator:
     def __init__(self,npair):
         global cudd_version
         if cudd_version < 0x020400:
-            print "CUDD versions < 2.4.0 do not support iteration over primes"
+            print("CUDD versions < 2.4.0 do not support iteration over primes")
             raise RuntimeError
         self.gen = DdGen(npair.LOWER(), iter_meth, npair.UPPER())
         self.npair = npair
@@ -87,11 +87,11 @@ class ForeachPrimeIterator:
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if self.done: raise StopIteration
         to_ret = self.ret_val[1:]
         self.ret_val = self.npair.NextPrime(self.gen)
-	if not self.ret_val[0]:
+        if not self.ret_val[0]:
             self.done = 1
         return to_ret
 
