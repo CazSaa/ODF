@@ -23,7 +23,7 @@ PYTHON_LOC  := /usr
 # Change the following to lib64 for 64-bit architectures
 LIB_DIR     := lib
 #PYTHON_LOC  := /usr
-PYTHON_VER  := python2.7
+PYTHON_VER  := python3.13
 SWIG	    := /usr/bin/swig
 CCPLUS      := g++
 
@@ -53,8 +53,8 @@ TESTING =
 #
 # For AMD64 with 64-bit code:
 # Point to the 64-bit libs -- this is for Mandriva linux, may be different for other distros
-PYTHON_INCL := -I$(PYTHON_LOC)/include/$(PYTHON_VER) -I$(PYTHON_LOC)/$(LIB_DIR)/$(PYTHON_VER)/config
-PY_DEP_INCL := -isystem $(PYTHON_LOC)/include/$(PYTHON_VER) -isystem $(PYTHON_LOC)$(LIB_DIR)/$(PYTHON_VER)/config
+PYTHON_INCL := -I$(PYTHON_LOC)/include/$(PYTHON_VER)
+PY_DEP_INCL := -isystem $(PYTHON_LOC)/include/$(PYTHON_VER)
 #
 CUDD_INCL   := -I$(CUDD)/include
 INCLUDES    := $(CUDD_INCL) -I. $(PYTHON_INCL)
@@ -170,7 +170,7 @@ pycudd.o: pycudd.cpp pycudd.h ../cudd-2.4.2//include/util.h \
  ../cudd-2.4.2//include/cudd.h ../cudd-2.4.2//include/st.h \
  ../cudd-2.4.2//include/dddmp.h ../cudd-2.4.2//include/util.h \
  ../cudd-2.4.2//include/epd.h
-pycudd_wrap.cpp:  ../cudd-2.4.2//include/cudd.h \
+pycudd_wrap.cpp: ../cudd-2.4.2//include/cudd.h \
  ../cudd-2.4.2//include/mtr.h ../cudd-2.4.2//include/epd.h pycudd.h \
  ../cudd-2.4.2//include/util.h ../cudd-2.4.2//include/cuddInt.h \
  ../cudd-2.4.2//include/cudd.h ../cudd-2.4.2//include/st.h \
