@@ -1,0 +1,4 @@
+*.o
+*.so
+pycudd_wrap.cpp
+/lib/pycudd2.0.2/pycudd/pycudd.py
