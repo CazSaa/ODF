@@ -402,6 +402,21 @@ __doc__ = "This class wraps around the basic DdNode. The methods defined by this
     return retval;
   }
 
+  int DumpDott(char **inames) {
+
+    FILE *dfp = NULL;
+    DdNode *dfunc[1];
+    int retval;
+
+    dfunc[0] = self;
+    dfp = fopen("dump.dot", "w");
+
+    retval = Cudd_DumpDot(mgr,1,dfunc,inames,NULL,dfp);
+
+    fclose(dfp);
+    return retval;
+  }
+
   int DumpBlif() {
 
     FILE *dfp = NULL;

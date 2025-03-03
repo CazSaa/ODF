@@ -37,9 +37,20 @@ for cube in rel:
 # Over nodes     
 print("Over nodes ...")
 pycudd.set_iter_meth(1)
+last_node = None
 for node in rel:
+    node: pycudd.DdNode
     print("***")
+    print(node.NodeReadIndex())
     node.PrintMinterm()
+    node.PrintDebug(1, 3)
+    last_node = node
+
+if last_node is not None:
+    inames = ["a", "b", "c", "d"]
+
+    last_node.DumpDott(inames)
+
 
 # Over primes     
 print("Over primes ...")
