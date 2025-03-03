@@ -44,6 +44,7 @@ using std::string;
 #endif
 
 %include externs.i    // externs needed for the typemaps in utils.i
+%feature("python:annotations", "c");
 %include utils.i      // utils.i contains all the various typemaps used
 
 %include pycudd.h     // Provides classes IntArray, DoubleArray, StringArray and DdArray
