@@ -178,7 +178,6 @@ static PyObject * array_to_tuple(PyObject *dest, int **src, int sz) {
       if (PyString_Check(o)) {
         $1[i] = PyString_AsString(PyList_GetItem($input, i));
       } else {
-        free($1);
         PyErr_SetString(PyExc_TypeError, "list must contain strings");
         SWIG_fail;
       }
