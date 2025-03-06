@@ -417,6 +417,15 @@ __doc__ = "This class wraps around the basic DdNode. The methods defined by this
     return retval;
   }
 
+  /**
+   * Returns the node id of the BDD node. This id is used by CUDD in e.g. DOT
+   * dumps.
+   */
+  unsigned long GetNodeId() {
+    ptruint nodeId = (ptruint)self / (ptruint)sizeof(DdNode);
+    return nodeId;
+  }
+
   int DumpBlif() {
 
     FILE *dfp = NULL;
