@@ -36,7 +36,7 @@ def reordered(m: Optional[pycudd.DdManager] = None):
     vars = ["DD", "DF", "DSL", "EDLU", "FBO", "HS", "IU", "LGJ", "LJ", "LP",
             "PL"]
     # ind    0     1     2      3       4      5     6     7      8     9     10
-    # formula.DumpDott(vars)
+    # formula.DumpDot(vars)
 
     intended_reordering = ['LP', 'LJ', 'DF', 'HS', 'IU', 'DSL', 'LGJ', 'FBO',
                            'PL', 'DD', 'EDLU']
@@ -45,7 +45,7 @@ def reordered(m: Optional[pycudd.DdManager] = None):
     print(permutation)
 
     m.ShuffleHeap(list_to_int_array(permutation))
-    formula.DumpDott(vars)
+    formula.DumpDot(vars)
 
     return formula
 
@@ -74,7 +74,7 @@ def correct_order_from_start(m: Optional[pycudd.DdManager] = None):
     vars = ["LP", "LJ", "DF", "HS", "IU", "DSL", "LGJ", "FBO", "PL", "DD",
             "EDLU"]
     # ind    0     1     2      3       4      5     6     7      8     9     10
-    formula.DumpDott(vars)
+    formula.DumpDot(vars)
 
     return formula
 
@@ -161,11 +161,11 @@ def test_formula_equivalence():
     is_tautology = implication == m.ReadZero()
 
     # Generate dot files for visualization
-    formula1.DumpDottt("formula1.dot")
-    formula2.DumpDottt("formula2.dot")
-    var_constraints.DumpDottt("var_constraints.dot")
-    formula_equiv.DumpDottt("formula_equivalence.dot")
-    implication.DumpDottt("implication.dot")
+    formula1.DumpDot("formula1.dot")
+    formula2.DumpDot("formula2.dot")
+    var_constraints.DumpDot("var_constraints.dot")
+    formula_equiv.DumpDot("formula_equivalence.dot")
+    implication.DumpDot("implication.dot")
 
     print("Variable constraints => formulas equivalent:", is_tautology)
     return is_tautology
@@ -329,13 +329,13 @@ def replace_specific_nodes_rebuild(m, add, config_reflection_nodes, idx_to_name,
         return new_node
 
     # Start rebuilding from the root
-    add.DumpDotttt("original_add.dot", vars)
+    add.DumpDot("original_add.dot", vars)
     modified_add = rebuild_node(add)
     # for node in processed_nodes:
     #     m.KillNode(node)
 
     # Dump the original and modified ADDs for comparison
-    modified_add.DumpDotttt("rebuild_add.dot", vars)
+    modified_add.DumpDot("rebuild_add.dot", vars)
 
     print(
         "Rebuild complete. Check original_add.dot and rebuild_add.dot for visualization.")
@@ -373,7 +373,7 @@ def test_mtbdd(m: Optional[pycudd.DdManager] = None):
     at_nodes = {"PL", "DD", "EDLU"}
     idx_to_name = {i: name for i, name in enumerate(vars)}
 
-    formula.DumpDott(vars)
+    formula.DumpDot(vars)
 
     config_reflection_nodes = []
 
@@ -433,7 +433,7 @@ def test_mtbdd_smaller(m: Optional[pycudd.DdManager] = None):
 
     add = m.BddToAdd(formula)
 
-    add.DumpDott(vars)
+    add.DumpDot(vars)
 
     config_reflection_nodes = []
 
@@ -474,7 +474,7 @@ def test_mtbdd_smaller(m: Optional[pycudd.DdManager] = None):
 
 if __name__ == '__main__':
     m = pycudd.DdManager()
-    test_mtbdd(m=m)
-    # test_mtbdd_smaller(m=m)
+    # test_mtbdd(m=m)
+    test_mtbdd_smaller(m=m)
     # result = test_formula_equivalence()
     # print("Test result:", result)

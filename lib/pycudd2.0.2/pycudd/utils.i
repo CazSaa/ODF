@@ -189,6 +189,22 @@ static PyObject * array_to_tuple(PyObject *dest, int **src, int sz) {
   }
 }
 
+// Add a typecheck typemap for char ** to support function overloading
+%typemap(typecheck) char ** {
+  if (PyList_Check($input)) {
+    // Make sure all elements are strings
+    int size = PyList_Size($input);
+    if (size == 0) {
+      $1 = 1;
+    } else {
+      PyObject *o = PyList_GetItem($input, 0);
+      $1 = PyUnicode_Check(o);
+    }
+  } else {
+    $1 = 0;
+  }
+}
+
 // This cleans up the char ** array we malloc'd before the function call
 %typemap(freearg) char ** {
   free((char *) $1);
