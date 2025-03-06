@@ -36,6 +36,7 @@ using std::string;
 #define FROM_PYCUDDI
 %}
 
+#define CUDD_VALUE_TYPE double
 #if SWIG_VERSION >= 0x010328
 %pythonnondynamic;
 #elif SWIG_VERSION >= 0x010323
