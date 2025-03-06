@@ -345,39 +345,38 @@ def replace_specific_nodes_rebuild(m, add, config_reflection_nodes, idx_to_name,
 def test_mtbdd(m: Optional[pycudd.DdManager] = None):
     # m = pycudd.DdManager() if m is None else m
     m.SetDefault()
-    lp = m.addNewVar()
-    lj = m.addNewVar()
-    df = m.addNewVar()
-    hs = m.addNewVar()
-    iu = m.addNewVar()
-    dsl = m.addNewVar()
-    lgj = m.addNewVar()
-    fbo = m.addNewVar()
-    pl = m.addNewVar()
-    dd = m.addNewVar()
-    edlu = m.addNewVar()
+    lp = m.NewVar()
+    lj = m.NewVar()
+    df = m.NewVar()
+    hs = m.NewVar()
+    iu = m.NewVar()
+    dsl = m.NewVar()
+    lgj = m.NewVar()
+    fbo = m.NewVar()
+    pl = m.NewVar()
+    dd = m.NewVar()
+    edlu = m.NewVar()
 
-    print("1")
     fd = (pl & lp) | (dd & df)
-    print("2")
     dgb = (lgj & lj) & dsl
     fbo_ = fbo & (~hs & iu)
 
     formula = (fd & dgb) | (edlu & fbo_)
 
-    vars = ["LP", "LJ", "DF", "HS", "IU", "DSL", "LGJ", "FBO", "PL", "DD",
-            "EDLU"]
+    vars = ["LP", "LJ", "DF", "HS", "IU", "DSL", "LGJ", "FBO", "PL", "DD", "EDLU"]
     # ind    0     1     2      3       4      5     6     7      8     9     10
     object_properties = {"LP", "LJ", "DF", "HS", "IU"}
     ft_nodes = {"DSL", "LGJ", "FBO"}
     at_nodes = {"PL", "DD", "EDLU"}
     idx_to_name = {i: name for i, name in enumerate(vars)}
 
-    formula.DumpDot(vars)
+    add = m.BddToAdd(formula)
+
+    add.DumpDot(vars)
 
     config_reflection_nodes = []
 
-    for node in dfs(formula):
+    for node in dfs(add):
         index = node.NodeReadIndex() if not node.IsConstant() else None
         name = idx_to_name[index] if index is not None else None
         value = node.V() if node.IsConstant() else None
@@ -406,7 +405,7 @@ def test_mtbdd(m: Optional[pycudd.DdManager] = None):
 
     print(config_reflection_nodes)
 
-    replace_specific_nodes_rebuild(m, formula, config_reflection_nodes, idx_to_name, vars)
+    replace_specific_nodes_rebuild(m, add, config_reflection_nodes, idx_to_name, vars)
 
 
 def test_mtbdd_smaller(m: Optional[pycudd.DdManager] = None):
@@ -474,7 +473,7 @@ def test_mtbdd_smaller(m: Optional[pycudd.DdManager] = None):
 
 if __name__ == '__main__':
     m = pycudd.DdManager()
-    # test_mtbdd(m=m)
-    test_mtbdd_smaller(m=m)
+    test_mtbdd(m=m)
+    # test_mtbdd_smaller(m=m)
     # result = test_formula_equivalence()
     # print("Test result:", result)
