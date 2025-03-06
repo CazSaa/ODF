@@ -172,11 +172,11 @@ struct DdManager { };
 
   // This takes a long int representing the address of a DdNode and 
   // derefs it. Use with caution!!
-  void KillNode(long int num) {
+  void KillNode(DdNode *num) {
 #ifdef PYCUDD_DEBUG
     cerr << "Derefing " << hex << num << endl;
 #endif PYCUDD_DEBUG
-    Cudd_RecursiveDeref(self, (DdNode *) num);
+    Cudd_RecursiveDeref(self, num);
   }
 
   /* CUDD Manager functions */
