@@ -50,7 +50,8 @@ RANLIB	= ranlib
 # These four are typical settings for optimized code with gcc.  The
 # last two also work with icc/ecc.
 #ICFLAGS	= -g -O6 -Wall
-ICFLAGS	= -g -O6
+#ICFLAGS	= -g -O6
+ICFlAGS     = -g3 -O0
 #ICFLAGS	= -g -O3 -Wall
 #ICFLAGS	= -g -O3
 
@@ -68,7 +69,7 @@ ICFLAGS	= -g -O6
 # Gcc 4.2.4 or higher on x86 (32-bit)
 #XCFLAGS	= -m32 -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=4 -DSIZEOF_LONG=8 -fPIC
 # Gcc 4.2.4 or higher on x86_64 (64-bit compilation)
-XCFLAGS	= -mtune=native -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fPIC
+XCFLAGS	= -g3 -O0 -mtune=native -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fPIC
 # Gcc 4.2.4 or higher on x86_64 (32-bit compilation)
 #XCFLAGS	= -m32 -mtune=native -malign-double -DHAVE_IEEE_754 -DBSD
 # Icc on i686 (older versions may not support -xHost).
@@ -160,8 +161,8 @@ XCFLAGS	= -mtune=native -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 
 
 
 # Define the level of self-checking and verbosity of the CUDD package.
-#DDDEBUG = -DDD_DEBUG -DDD_VERBOSE -DDD_STATS -DDD_CACHE_PROFILE -DDD_UNIQUE_PROFILE -DDD_COUNT
-DDDEBUG	=
+DDDEBUG = -DDD_DEBUG -DDD_VERBOSE -DDD_STATS -DDD_CACHE_PROFILE -DDD_UNIQUE_PROFILE -DDD_COUNT
+#DDDEBUG	=
 
 # Define the level of self-checking and verbosity of the MTR package.
 #MTRDEBUG = -DMTR_DEBUG

@@ -34,8 +34,8 @@ CCPLUS      := g++
 
 ##
 ## Set debugging info on/off -- this should normally be off.
-PYCUDD_DEBUG =
-#PYCUDD_DEBUG = 1
+# PYCUDD_DEBUG =
+PYCUDD_DEBUG = 1
 
 ##
 ## For internal use only
@@ -68,7 +68,7 @@ SWIG_FLAGS  := -c++ -python -o $(MOD)_wrap.cpp -DCUDDVER=$(CUDDVER)
 FLAGS       := -DCUDDVER=$(CUDDVER) -fPIC
 #
 ifdef PYCUDD_DEBUG
-FLAGS       := $(FLAGS) -g -DPYCUDD_DEBUG
+FLAGS       := $(FLAGS) -g3 -O0 -DPYCUDD_DEBUG
 SWIG_FLAGS  := $(SWIG_FLAGS) -DPYCUDD_DEBUG -v -Wall
 else
 FLAGS       := $(FLAGS) -O2 
