@@ -31,7 +31,7 @@ def test_valid_references():
     Lock properties=[LP,LJ];
     
     [formulas]
-    Root;
+    {}Root;
     """
 
     parse_tree = parse(odl_text)
@@ -63,7 +63,7 @@ def test_duplicate_node_names():
     Door has Lock;
     
     [formulas]
-    Root;
+    {}Root;
     """
 
     parse_tree = parse(odl_text)
@@ -92,7 +92,7 @@ def test_invalid_object_reference():
     House properties=[HS];
     
     [formulas]
-    Root;
+    {}Root;
     """
 
     parse_tree = parse(odl_text)
@@ -120,7 +120,7 @@ def test_property_without_object():
     House properties=[HS];
     
     [formulas]
-    Root;
+    {}Root;
     """
 
     parse_tree = parse(odl_text)
@@ -147,7 +147,7 @@ def test_invalid_property_reference():
     House properties=[HS];
     
     [formulas]
-    Root;
+    {}Root;
     """
 
     parse_tree = parse(odl_text)
@@ -176,7 +176,7 @@ def test_property_from_wrong_object():
     Lock properties=[LP];
     
     [formulas]
-    Root;
+    {}Root;
     """
 
     parse_tree = parse(odl_text)
@@ -209,7 +209,7 @@ def test_complex_conditions():
     Lock properties=[LP,LJ];
     
     [formulas]
-    Root;
+    {}Root;
     """
 
     parse_tree = parse(odl_text)

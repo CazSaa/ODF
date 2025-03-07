@@ -125,16 +125,14 @@ def test_layer1_query_tree(parse_rule):
     """Test exact tree structure of a Layer 1 formula."""
     result = parse_rule("{}MRS(A && B)", "layer1_query")
     expected = Tree("check", [
-        Tree(Token("RULE", "with_configuration"), [
-            Tree(Token("RULE", "configuration"), []),
-            Tree("mrs", [
-                Tree(Token("RULE", "and_formula"), [
-                    Tree("node_atom", [
-                        Token("NODE_NAME", "A")
-                    ]),
-                    Tree("node_atom", [
-                        Token("NODE_NAME", "B")
-                    ])
+        Tree(Token("RULE", "configuration"), []),
+        Tree("mrs", [
+            Tree(Token("RULE", "and_formula"), [
+                Tree("node_atom", [
+                    Token("NODE_NAME", "A")
+                ]),
+                Tree("node_atom", [
+                    Token("NODE_NAME", "B")
                 ])
             ])
         ])
@@ -189,7 +187,7 @@ def test_complete_odg_tree(parse):
     C;
 
     [formulas]
-    A;"""
+    {}A;"""
     result = parse(odg_text)
     expected = Tree(Token("RULE", "start"), [
         Tree(Token("RULE", "attack_tree"), [
@@ -225,6 +223,7 @@ def test_complete_odg_tree(parse):
         Tree(Token("RULE", "odglog"), [
             Tree(Token("RULE", "layer1_query"), [
                 Tree("check", [
+                    Tree(Token("RULE", "configuration"), []),
                     Tree("node_atom", [
                         Token("NODE_NAME", "A")
                     ])
@@ -240,56 +239,54 @@ def test_complex_layer1_query_tree(parse_rule):
     result = parse_rule("{}MRS(!A && B || ((C [ZZ:1]) => D) [Z:0]) [X:1, Y:0]",
                         "layer1_query")
     expected = Tree("check", [
-        Tree(Token("RULE", "with_configuration"), [
-            Tree(Token("RULE", "configuration"), []),
-            Tree(Token("RULE", "with_boolean_evidence"), [
-                Tree("mrs", [
-                    Tree(Token("RULE", "with_boolean_evidence"), [
-                        Tree(Token("RULE", "or_formula"), [
-                            Tree(Token("RULE", "and_formula"), [
-                                Tree("neg_formula", [
-                                    Tree("node_atom", [
-                                        Token("NODE_NAME", "A")
-                                    ])
-                                ]),
+        Tree(Token("RULE", "configuration"), []),
+        Tree(Token("RULE", "with_boolean_evidence"), [
+            Tree("mrs", [
+                Tree(Token("RULE", "with_boolean_evidence"), [
+                    Tree(Token("RULE", "or_formula"), [
+                        Tree(Token("RULE", "and_formula"), [
+                            Tree("neg_formula", [
                                 Tree("node_atom", [
-                                    Token("NODE_NAME", "B")
+                                    Token("NODE_NAME", "A")
                                 ])
                             ]),
-                            Tree(Token("RULE", "impl_formula"), [
-                                Tree(Token("RULE", "with_boolean_evidence"), [
-                                    Tree("node_atom", [
-                                        Token("NODE_NAME", "C")
-                                    ]),
-                                    Tree(Token("RULE", "boolean_evidence"), [
-                                        Tree(Token("RULE", "boolean_mapping"), [
-                                            Token("NODE_NAME", "ZZ"),
-                                            Token("TRUTH_VALUE", "1")
-                                        ])
-                                    ])
-                                ]),
-                                Tree("node_atom", [
-                                    Token("NODE_NAME", "D")
-                                ])
+                            Tree("node_atom", [
+                                Token("NODE_NAME", "B")
                             ])
                         ]),
-                        Tree(Token("RULE", "boolean_evidence"), [
-                            Tree(Token("RULE", "boolean_mapping"), [
-                                Token("NODE_NAME", "Z"),
-                                Token("TRUTH_VALUE", "0")
+                        Tree(Token("RULE", "impl_formula"), [
+                            Tree(Token("RULE", "with_boolean_evidence"), [
+                                Tree("node_atom", [
+                                    Token("NODE_NAME", "C")
+                                ]),
+                                Tree(Token("RULE", "boolean_evidence"), [
+                                    Tree(Token("RULE", "boolean_mapping"), [
+                                        Token("NODE_NAME", "ZZ"),
+                                        Token("TRUTH_VALUE", "1")
+                                    ])
+                                ])
+                            ]),
+                            Tree("node_atom", [
+                                Token("NODE_NAME", "D")
                             ])
                         ])
-                    ])
-                ]),
-                Tree(Token("RULE", "boolean_evidence"), [
-                    Tree(Token("RULE", "boolean_mapping"), [
-                        Token("NODE_NAME", "X"),
-                        Token("TRUTH_VALUE", "1")
                     ]),
-                    Tree(Token("RULE", "boolean_mapping"), [
-                        Token("NODE_NAME", "Y"),
-                        Token("TRUTH_VALUE", "0")
+                    Tree(Token("RULE", "boolean_evidence"), [
+                        Tree(Token("RULE", "boolean_mapping"), [
+                            Token("NODE_NAME", "Z"),
+                            Token("TRUTH_VALUE", "0")
+                        ])
                     ])
+                ])
+            ]),
+            Tree(Token("RULE", "boolean_evidence"), [
+                Tree(Token("RULE", "boolean_mapping"), [
+                    Token("NODE_NAME", "X"),
+                    Token("TRUTH_VALUE", "1")
+                ]),
+                Tree(Token("RULE", "boolean_mapping"), [
+                    Token("NODE_NAME", "Y"),
+                    Token("TRUTH_VALUE", "0")
                 ])
             ])
         ])
@@ -356,30 +353,31 @@ def test_layer3_formula_with_evidence_tree(parse_rule):
 
 def test_compute_all_layer1_query_tree(parse_rule):
     """Test exact tree structure of a compute_all (double brackets) Layer 1 formula."""
-    result = parse_rule("[[{A:1} MRS(B) [X:1]]]", "layer1_query")
+    result = parse_rule("{A:1} [[MRS(B) [X:1]]]", "layer1_query")
     expected = Tree("compute_all", [
-        Tree(Token("RULE", "with_configuration"), [
-            Tree(Token("RULE", "configuration"), [
-                Tree(Token("RULE", "boolean_mapping"), [
-                    Token("NODE_NAME", "A"),
-                    Token("TRUTH_VALUE", "1")
+        Tree(Token("RULE", "configuration"), [
+            Tree(Token("RULE", "boolean_mapping"), [
+                Token("NODE_NAME", "A"),
+                Token("TRUTH_VALUE", "1")
+            ])
+        ]),
+        Tree(Token("RULE", "with_boolean_evidence"), [
+            Tree("mrs", [
+                Tree("node_atom", [
+                    Token("NODE_NAME", "B")
                 ])
             ]),
-            Tree(Token("RULE", "with_boolean_evidence"), [
-                Tree("mrs", [
-                    Tree("node_atom", [
-                        Token("NODE_NAME", "B")
-                    ])
-                ]),
-                Tree(Token("RULE", "boolean_evidence"), [
-                    Tree(Token("RULE", "boolean_mapping"), [
-                        Token("NODE_NAME", "X"),
-                        Token("TRUTH_VALUE", "1")
-                    ])
+            Tree(Token("RULE", "boolean_evidence"), [
+                Tree(Token("RULE", "boolean_mapping"), [
+                    Token("NODE_NAME", "X"),
+                    Token("TRUTH_VALUE", "1")
                 ])
             ])
         ])
     ])
+    print()
+    print(expected.pretty())
+    print(result.pretty())
     assert result == expected
 
 

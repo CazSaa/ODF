@@ -20,7 +20,7 @@ C;
 """
 
 FORMULAS = """[formulas]
-A;
+{}A;
 """
 
 
@@ -37,7 +37,7 @@ toplevel B;
 toplevel C;
 
 [formulas]
-A;"""
+{}A;"""
     # Should not raise an exception
     tree = parse(minimal_odg)
     assert tree is not None
@@ -65,7 +65,7 @@ Component1 properties = [prop1, prop2];
 Component2;
 
 [formulas]
-A && B;
+{}A && B;
 {A:1} P(C) >= 0.5;
 MostRiskyA(Root);"""
     # Should not raise an exception
@@ -149,7 +149,7 @@ def test_individual_formulas(parse_rule):
     """Test parsing just ODGLog formulas."""
     formulas = """
 [formulas]
-A && B;
+{}A && B;
 {A:1} P(C) >= 0.5;
 MostRiskyA(Root);"""
     result = parse_rule(formulas, "odglog")
@@ -173,7 +173,7 @@ def test_whitespace_handling(parse):
             C;
     
     [formulas]
-        A;"""
+        {}A;"""
     tree = parse(odg_with_whitespace)
     assert tree is not None
 
@@ -195,7 +195,7 @@ toplevel C;
 C;
 
 [formulas]
-A 
+{}A 
 // Comment within formula
 && B;"""
     tree = parse(odg_with_comments)
@@ -226,14 +226,14 @@ def test_complex_nested_formulas(parse_rule):
     formulas = [
         # Layer 1 - Basic boolean expressions
         "{}MRS(!((A && B) || (C => D)))",
-        "!(A && B) => (C || !D)",
-        "(A || B) && (C => D) && !(E == F)",
-        "(!A && B) || (C && !D) == (E || !F)",
-        "!(A => B) || (C == !D) && (E || F)",
+        "{}!(A && B) => (C || !D)",
+        "{}(A || B) && (C => D) && !(E == F)",
+        "{}(!A && B) || (C && !D) == (E || !F)",
+        "{}!(A => B) || (C == !D) && (E || F)",
 
         # Layer 1 - Evidence
-        "A && B [X:1]",
-        "(A || B) && C [X:1, Y:0]",
+        "{}A && B [X:1]",
+        "{}(A || B) && C [X:1, Y:0]",
 
         # Layer 1 - MRS with evidence
         "{}MRS(A && B) [X:1]",

@@ -46,27 +46,17 @@ odglog_formula: layer1_query -> layer1_query
               | layer2_query -> layer2_query
               | layer3_query -> layer3_query
 
-layer1_query: _DOUBLE_LEFT_SQUARE_BRACKET layer1_formula _DOUBLE_RIGHT_SQUARE_BRACKET -> compute_all
-            | layer1_formula -> check
+layer1_query: configuration _DOUBLE_LEFT_SQUARE_BRACKET layer1_formula _DOUBLE_RIGHT_SQUARE_BRACKET -> compute_all
+            | configuration layer1_formula -> check
 
-?layer1_formula: configuration layer1_mrs -> with_configuration
-               | layer1_no_mrs
+?layer1_formula: layer1_formula boolean_evidence -> with_boolean_evidence
+              | _boolean_template{l1_atom_formula}
 
-?layer1_mrs: layer1_mrs boolean_evidence -> with_boolean_evidence
-           | _boolean_template{l1_atom_formula}
-
-?l1_atom_formula: "(" layer1_mrs ")"
-                | _MRS "(" layer1_mrs ")" -> mrs
+?l1_atom_formula: "(" layer1_formula ")"
+                | _MRS "(" layer1_formula ")" -> mrs
                 | NODE_NAME -> node_atom
                 | _NEG l1_atom_formula -> neg_formula
             
-?layer1_no_mrs: layer1_no_mrs boolean_evidence -> with_boolean_evidence
-              | _boolean_template{l1_no_mrs_atom_formula}
-
-?l1_no_mrs_atom_formula: "(" layer1_no_mrs ")"
-                       | NODE_NAME -> node_atom
-                       | _NEG l1_no_mrs_atom_formula -> neg_formula
-
 layer2_query: configuration layer2_formula
 
 ?layer2_formula: layer2_formula probability_evidence -> with_probability_evidence
