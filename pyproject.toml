@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "dd",
     "lark>=1.2.2",
     "networkx>=3.4.2",
 ]
@@ -15,3 +16,6 @@ dev = [
     "pytest-cov>=6.0.0",
     "wurlitzer>=3.1.1",
 ]
+
+[tool.uv.sources]
+dd = { git = "https://github.com/CazSaa/dd.git", branch = "algebraic_cudd" }
