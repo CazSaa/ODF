@@ -38,6 +38,62 @@ class Layer1FormulaVisitor(Visitor):
         raise ValueError(f"Unknown node: {node_name}")
 
 
+# noinspection PyMethodMayBeStatic
+class ConditionTransformer(Transformer):
+    def __init__(self, bdd: cudd.BDD):
+        super().__init__()
+        self.bdd = bdd
+
+    def impl_formula(self, items):
+        formula1, formula2 = items
+        return formula1.implies(formula2)
+
+    def or_formula(self, items):
+        return items[0] | items[1]
+
+    def and_formula(self, items):
+        return items[0] & items[1]
+
+    def equiv_formula(self, items):
+        formula1, formula2 = items
+        return self.bdd.apply('equiv', formula1, formula2)
+
+    def nequiv_formula(self, items):
+        formula1, formula2 = items
+        return self.bdd.apply('xor', formula1, formula2)
+
+    def node_atom(self, items):
+        return self.bdd.var(items[0].value)
+
+    def neg_formula(self, items):
+        return ~items[0]
+
+
+def intermediate_node_to_bdd(bdd: cudd.BDD, disruption_tree: DisruptionTree, node_name: str) -> cudd.Function:
+    node = disruption_tree.nodes[node_name]["data"]
+    if disruption_tree.out_degree(node_name) == 0:
+        if node.condition_tree is None:
+            return bdd.var(node_name)
+
+        condition_bdd = ConditionTransformer(bdd).transform(node.condition_tree)
+        return bdd.var(node_name) & condition_bdd
+
+    children = list(disruption_tree.successors(node_name))
+
+    if len(children) == 1:
+        return intermediate_node_to_bdd(bdd, disruption_tree, children[0])
+
+    assert node.gate_type is not None
+    apply = node.gate_type
+
+    result = intermediate_node_to_bdd(bdd, disruption_tree, children[0])
+    for child in children[1:]:
+        result = bdd.apply(apply, result, intermediate_node_to_bdd(bdd, disruption_tree, child))
+
+    return result
+
+
+# noinspection PyMethodMayBeStatic
 class Layer1BDDTransformer(Transformer):
     """Transforms a layer 1 formula parse tree into a BDD."""
 
@@ -59,3 +115,47 @@ class Layer1BDDTransformer(Transformer):
         self.bdd.declare(*visitor.object_properties, *visitor.fault_nodes,
                          *visitor.attack_nodes)
         super().transform(tree)
+
+    def with_boolean_evidence(self, items):
+        raise NotImplementedError()
+
+
+    def impl_formula(self, items):
+        formula1, formula2 = items
+        return formula1.implies(formula2)
+
+    def or_formula(self, items):
+        return items[0] | items[1]
+
+    def and_formula(self, items):
+        return items[0] & items[1]
+
+    def equiv_formula(self, items):
+        formula1, formula2 = items
+        return self.bdd.apply('equiv', formula1, formula2)
+
+    def nequiv_formula(self, items):
+        formula1, formula2 = items
+        return self.bdd.apply('xor', formula1, formula2)
+
+    def mrs(self, items):
+        formula = items[0]
+        raise NotImplementedError()
+
+    def node_atom(self, items):
+        node_name = items[0].value
+
+        if node_name in self.bdd.vars:
+            # A basic node or object property
+            # fixme does not take object properties into account
+            return self.bdd.var(node_name)
+
+        for disruption_tree in [self.attack_tree, self.fault_tree]:
+            if disruption_tree.has_intermediate_node(node_name):
+                return intermediate_node_to_bdd(self.bdd, disruption_tree, node_name)
+
+        if node_name not in self.bdd.vars:
+            raise ValueError(f"Unknown node: {node_name}")
+
+    def neg_formula(self, items):
+        return ~items[0]

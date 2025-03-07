@@ -25,36 +25,8 @@ class DisruptionTreeTransformer(Transformer):
         # Each item is a NODE_NAME token
         return [item.value for item in items]
 
-    def node_atom(self, items):
-        return items[0].value
-
-    def and_formula(self, items):
-        return " && ".join(items)
-
-    def or_formula(self, items):
-        return " || ".join(items)
-
-    def impl_formula(self, items):
-        assert len(items) == 2
-        return f"{items[0]} => {items[1]}"
-
-    def equiv_formula(self, items):
-        assert len(items) == 2
-        return f"{items[0]} == {items[1]}"
-
-    def nequiv_formula(self, items):
-        assert len(items) == 2
-        return f"{items[0]} != {items[1]}"
-
-    def neg_formula(self, items):
-        return f"!{items[0]}"
-
-    def boolean_formula(self, items):
-        # At this point, items will be a single string with the complete formula
-        return items[0]
-
     def condition(self, items):
-        return ("condition", items[0])
+        return ("condition_tree", items[0])
 
     def attribute_list(self, items):
         # Convert list of (key, value) tuples into a dict

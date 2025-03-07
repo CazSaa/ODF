@@ -1,6 +1,7 @@
 import re
 from typing import Optional, Literal
 
+from lark import Transformer, Tree
 from networkx.algorithms.components import is_weakly_connected
 from networkx.algorithms.dag import descendants
 
@@ -13,16 +14,45 @@ GateType = Literal["and", "or"]
 NODE_NAME_PATTERN = re.compile(r'[a-zA-Z_][a-zA-Z0-9_]*')
 
 
+# noinspection PyMethodMayBeStatic
+class ConditionStringTransformer(Transformer):
+    def impl_formula(self, items):
+        assert len(items) == 2
+        return f"{items[0]} => {items[1]}"
+
+    def or_formula(self, items):
+        return " || ".join(items)
+
+    def and_formula(self, items):
+        return " && ".join(items)
+
+    def equiv_formula(self, items):
+        assert len(items) == 2
+        return f"{items[0]} == {items[1]}"
+
+    def nequiv_formula(self, items):
+        assert len(items) == 2
+        return f"{items[0]} != {items[1]}"
+
+    def node_atom(self, items):
+        return items[0].value
+
+    def neg_formula(self, items):
+        return f"!{items[0]}"
+
+
+
 class DTNode:
     def __init__(self, name: str,
                  probability: Optional[float] = None,
                  objects: Optional[list[str]] = None,
-                 condition: Optional[str] = None,
+                 condition_tree: Optional[Tree] = None,
                  gate_type: Optional[GateType] = None):
         self.name = name
         self.probability = probability
         self.objects = objects
-        self.condition = condition
+        self.condition_tree = condition_tree
+        self.condition = ConditionStringTransformer().transform(condition_tree) if condition_tree else None
         self.gate_type = gate_type
 
     def update_from_attrs(self, attrs: dict) -> None:
@@ -30,8 +60,9 @@ class DTNode:
             self.probability = attrs["probability"]
         if "objects" in attrs:
             self.objects = attrs["objects"]
-        if "condition" in attrs:
-            self.condition = attrs["condition"]
+        if "condition_tree" in attrs:
+            self.condition_tree = attrs["condition_tree"]
+            self.condition = ConditionStringTransformer().transform(attrs["condition_tree"])
         if "gate_type" in attrs:
             self.gate_type = attrs["gate_type"]
 
@@ -45,6 +76,9 @@ class DTNode:
 class DisruptionTree(TreeGraph[DTNode]):
     def has_basic_node(self, node_name: str) -> bool:
         return node_name in self.nodes and self.out_degree(node_name) == 0
+
+    def has_intermediate_node(self, node_name: str) -> bool:
+        return node_name in self.nodes and self.out_degree(node_name) > 0
 
     def validate_tree(self):
         """Validate the tree structure.

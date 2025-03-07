@@ -13,3 +13,16 @@ def test_simple():
     f2 = manager.add_expr('a & b')
 
     assert f1 == f2
+
+    a = manager.var('a')
+    b = manager.var('b')
+
+    f1 = manager.apply('equiv', a, b)
+    f2 = a.equiv(b)
+
+    assert f1 == f2
+
+    ne = ~f2
+    f3 = manager.apply('xor', a, b)
+
+    assert ne == f3
