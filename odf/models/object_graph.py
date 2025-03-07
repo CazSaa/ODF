@@ -14,4 +14,6 @@ class ObjectNode:
 
 
 class ObjectGraph(TreeGraph[ObjectNode]):
-    pass
+    def has_object_property(self, object_property: str) -> bool:
+        # TODO caz very inefficient
+        return any((object_property in (node.properties or [])) for node in self.nodes_obj())

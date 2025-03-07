@@ -4,6 +4,7 @@ import sys
 from lark import UnexpectedInput, Tree
 from lark.exceptions import VisitError
 
+from odf.checker.checker import check_formulas
 from odf.models.exceptions import CrossReferenceError
 from odf.models.validation import validate_disruption_tree_references, \
     validate_unique_node_names
@@ -58,6 +59,9 @@ def execute_str(odl_text):
 
     validate_disruption_tree_references(attack_tree, object_graph)
     validate_disruption_tree_references(fault_tree, object_graph)
+
+    check_formulas(formulas_parse_tree, attack_tree, fault_tree,
+                   object_graph)
 
 
 def main(odl_text: str):

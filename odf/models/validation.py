@@ -63,10 +63,7 @@ def validate_disruption_tree_references(dt: DisruptionTree,
 
         # Validate object property references in conditions
         if node.condition is not None:
-            # Extract property names from the condition
-            # Find all identifiers that match NODE_NAME pattern from grammar
-            pattern = re.compile(r'[a-zA-Z_][a-zA-Z0-9_]*')
-            properties = set(re.findall(pattern, node.condition))
+            properties = node.object_properties
 
             # If node has no objects, it can't reference properties
             if node.objects is None and len(properties) > 0:
