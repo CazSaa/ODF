@@ -1,12 +1,12 @@
-import dd.cudd
-import dd.cudd_add
+from dd import cudd, cudd_add
+from dd.cudd import restrict
 
 
 def test_simple():
     """
     Test creating a BDD/ADD and modifying specific edges
     """
-    manager = dd.cudd.BDD()
+    manager = cudd.BDD()
     manager.declare('a', 'b')
     f1 = manager.add_expr('a & b')
 
@@ -33,7 +33,7 @@ def test_restrict():
     Test the restrict operator which assigns values to specific variables.
     This is useful for simplifying decision diagrams and focusing on specific subproblems.
     """
-    manager = dd.cudd.BDD()
+    manager = cudd.BDD()
     manager.declare('a', 'b', 'c', 'd')
     
     # Create an expression with multiple variables: (a & b) | (c & d)
@@ -74,9 +74,7 @@ def test_restrict_operator():
     Test the restrict operator directly which optimizes BDD structures
     based on Coudert's algorithm for restricting functions to care sets.
     """
-    from dd.cudd import restrict
-    
-    manager = dd.cudd.BDD()
+    manager = cudd.BDD()
     manager.declare('a', 'b', 'c', 'd')
     
     # Create an expression with multiple variables: (a & b) | (c & d)
@@ -117,3 +115,29 @@ def test_restrict_operator():
     # Verify the second restriction
     c = manager.var('c')
     assert restricted_f2 == c, "After restriction with b=False and d=True, expression should simplify to just 'c'"
+
+
+def test_mrs_pattern():
+    manager = cudd_add.ADD()
+    manager.declare('x1', 'x2', 'x3', 'x4', 'p1', 'p2', 'p3', 'p4')
+    f1 = manager.add_expr('(p1 => x1) & (p2 => x2) & (p3 => x3) & (p4 => x4) & ((p1 ^ x1) | (p2 ^ x2) | (p3 ^ x3) | (p4 ^ x4))')
+    manager.dump('mrs_pattern.dot', [f1])
+
+    manager2 = cudd_add.ADD()
+    manager2.declare('x1', 'p1', 'x2', 'p2', 'x3', 'p3', 'x4', 'p4')
+    f2 = manager2.add_expr('(p1 => x1) & (p2 => x2) & (p3 => x3) & (p4 => x4) & ((p1 ^ x1) | (p2 ^ x2) | (p3 ^ x3) | (p4 ^ x4))')
+    manager2.dump('mrs_pattern2.dot', [f2])
+
+    manager3 = cudd_add.ADD()
+    manager3.declare('p1', 'x1', 'p2', 'x2', 'p3', 'x3', 'p4', 'x4')
+    f3 = manager3.add_expr('(p1 => x1) & (p2 => x2) & (p3 => x3) & (p4 => x4) & ((p1 ^ x1) | (p2 ^ x2) | (p3 ^ x3) | (p4 ^ x4))')
+    manager3.dump('mrs_pattern3.dot', [f3])
+
+    # With 5
+    manager4 = cudd_add.ADD()
+    manager4.declare('x1', 'x2', 'x3', 'x4', 'x5', 'p1', 'p2', 'p3', 'p4', 'p5')
+    f4 = manager4.add_expr('(p1 => x1) & (p2 => x2) & (p3 => x3) & (p4 => x4) & (p5 => x5) & ((p1 ^ x1) | (p2 ^ x2) | (p3 ^ x3) | (p4 ^ x4) | (p5 ^ x5))')
+    manager4.dump('mrs_pattern4.dot', [f4])
+
+
+
