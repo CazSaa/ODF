@@ -285,3 +285,109 @@ def test_deeply_nested_nodes(parse_rule):
     expected = (l1a & l1b) & (v('prop1') & v('prop2'))
 
     assert bdd == expected
+
+# Test cases for formulas with boolean evidence
+def test_basic_evidence_substitution(attack_tree_str, fault_tree_str, object_graph_str):
+    """Test basic substitution of nodes with boolean evidence."""
+    # Set BasicAttack to true
+    transformer, bdd = parse_and_transform_to_bdd(
+        "BasicAttack [BasicAttack:1]", 
+        attack_tree_str, fault_tree_str, object_graph_str
+    )
+    assert bdd == transformer.bdd.true
+
+    # Set BasicAttack to false
+    transformer, bdd = parse_and_transform_to_bdd(
+        "BasicAttack [BasicAttack:0]", 
+        attack_tree_str, fault_tree_str, object_graph_str
+    )
+    assert bdd == transformer.bdd.false
+
+def test_complex_formula_with_evidence(attack_tree_str, fault_tree_str, object_graph_str):
+    """Test evidence in a complex formula affecting multiple nodes."""
+    formula = "(BasicAttack || BasicFault) && ComplexAttack [BasicAttack:1, BasicFault:0]"
+    transformer, bdd = parse_and_transform_to_bdd(
+        formula, attack_tree_str, fault_tree_str, object_graph_str
+    )
+    
+    # With BasicAttack=true and BasicFault=false, the formula reduces to just ComplexAttack
+    expected = (transformer.bdd.var('SubAttack1') & transformer.bdd.var('SubAttack2')) & \
+               (transformer.bdd.var('obj_prop1') & transformer.bdd.var('obj_prop2'))
+    assert bdd == expected
+
+@pytest.mark.xfail(reason="Currently failing due to incorrect handling of intermediate nodes")
+def test_intermediate_node_evidence(attack_tree_str, fault_tree_str, object_graph_str):
+    """Test evidence on intermediate nodes affecting their basic events."""
+    transformer, bdd = parse_and_transform_to_bdd(
+        "ComplexAttack || BasicAttack [ComplexAttack:1]",
+        attack_tree_str, fault_tree_str, object_graph_str
+    )
+    expected = transformer.bdd.true  # Formula is true regardless of BasicAttack
+    assert bdd == expected
+
+    # Setting ComplexAttack to false
+    transformer, bdd = parse_and_transform_to_bdd(
+        "ComplexAttack || BasicAttack [ComplexAttack:0]",
+        attack_tree_str, fault_tree_str, object_graph_str
+    )
+    expected = transformer.bdd.var('BasicAttack')  # Formula reduces to just BasicAttack
+    assert bdd == expected
+
+def test_object_property_evidence(attack_tree_str, fault_tree_str, object_graph_str):
+    """Test evidence on object properties."""
+    # Test with ComplexAttack which has object property conditions
+    transformer, bdd = parse_and_transform_to_bdd(
+        "ComplexAttack [obj_prop1:1, obj_prop2:1]",
+        attack_tree_str, fault_tree_str, object_graph_str
+    )
+    # Only the gates and basic events remain, conditions are satisfied
+    expected = transformer.bdd.var('SubAttack1') & transformer.bdd.var('SubAttack2')
+    assert bdd == expected
+
+@pytest.mark.xfail(reason="Currently failing due to incorrect handling of intermediate nodes")
+def test_multiple_evidence_combined(attack_tree_str, fault_tree_str, object_graph_str):
+    """Test multiple pieces of evidence affecting different parts of the formula."""
+    formula = "(ComplexAttack || BasicFault) && (BasicAttack || ComplexFault)"
+    evidence = "[ComplexAttack:1, BasicFault:0, obj_prop4:1, obj_prop5:1]"
+    
+    transformer, bdd = parse_and_transform_to_bdd(
+        f"{formula} {evidence}",
+        attack_tree_str, fault_tree_str, object_graph_str
+    )
+    
+    # First part reduces to true (ComplexAttack:1), second part becomes (BasicAttack || (SubFault1 && SubFault2))
+    expected = transformer.bdd.var('BasicAttack') | \
+               (transformer.bdd.var('SubFault1') & 
+                (transformer.bdd.var('SubFault2') & transformer.bdd.var('obj_prop6')))
+    assert bdd == expected
+
+def test_evidence_with_node_conditions(attack_tree_str, fault_tree_str, object_graph_str):
+    """Test evidence affecting nodes that have conditions."""
+    # ComplexFault has condition (obj_prop4 && obj_prop5)
+    # SubFault2 has condition (obj_prop6)
+    transformer, bdd = parse_and_transform_to_bdd(
+        "ComplexFault [SubFault1:1, obj_prop4:1]",
+        attack_tree_str, fault_tree_str, object_graph_str
+    )
+    
+    # Still need SubFault2 and obj_prop5 to be true
+    expected = transformer.bdd.var('SubFault2') & \
+               transformer.bdd.var('obj_prop5') & \
+               transformer.bdd.var('obj_prop6')
+    assert bdd == expected
+
+@pytest.mark.xfail(reason="Currently failing due to maybe incorrect handling of evidence")
+def test_evidence_overrides_conditions(attack_tree_str, fault_tree_str, object_graph_str):
+    """Test that evidence on a node overrides its conditions."""
+    # ComplexFault has conditions but we set it directly to true
+    transformer, bdd = parse_and_transform_to_bdd(
+        "(SubFault2 && BasicAttack) || BasicFault [SubFault2:1]",
+        attack_tree_str, fault_tree_str, object_graph_str
+    )
+    
+    # Formula reduces to (true && BasicAttack) || BasicFault
+    expected = transformer.bdd.var('BasicAttack') | transformer.bdd.var('BasicFault')
+    # Currently, below is happening:
+    # expected = (transformer.bdd.var('obj_prop6') & transformer.bdd.var('BasicAttack')) | transformer.bdd.var('BasicFault')
+
+    assert bdd == expected

@@ -4,6 +4,7 @@ from lark.visitors import _Leaf_T, _Return_T
 
 from odf.models.disruption_tree import DisruptionTree, DTNode
 from odf.models.object_graph import ObjectGraph
+from odf.transformers.mixins.mappings import BooleanMappingMixin
 
 
 class Layer1FormulaVisitor(Visitor):
@@ -105,7 +106,7 @@ def intermediate_node_to_bdd(bdd: cudd.BDD, disruption_tree: DisruptionTree,
 
 
 # noinspection PyMethodMayBeStatic
-class Layer1BDDTransformer(Transformer):
+class Layer1BDDTransformer(Transformer, BooleanMappingMixin):
     """Transforms a layer 1 formula parse tree into a BDD."""
 
     attack_nodes: set[str]
@@ -136,7 +137,14 @@ class Layer1BDDTransformer(Transformer):
         return super().transform(tree)
 
     def with_boolean_evidence(self, items):
-        raise NotImplementedError()
+        # TODO caz discuss how to handle OPs, and intermediate nodes. Also
+        #  consider raising error if illegal thing has evidence set because
+        #  currently cudd.pyx will throw a cryptic ValueError
+        formula, evidence_dict = items
+        return self.bdd.let(evidence_dict, formula)
+
+    def boolean_evidence(self, items):
+        return self.mappings_to_dict(items)
 
     def impl_formula(self, items):
         formula1, formula2 = items
