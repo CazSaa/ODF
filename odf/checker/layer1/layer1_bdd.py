@@ -4,6 +4,7 @@ from lark.visitors import _Leaf_T, _Return_T
 
 from odf.models.disruption_tree import DisruptionTree, DTNode
 from odf.models.object_graph import ObjectGraph
+from odf.transformers.mixins.boolean_formula import BooleanFormulaMixin
 from odf.transformers.mixins.mappings import BooleanMappingMixin
 
 
@@ -41,35 +42,10 @@ class Layer1FormulaVisitor(Visitor):
         raise ValueError(f"Unknown node: {node_name}")
 
 
-# noinspection PyMethodMayBeStatic
-class ConditionTransformer(Transformer):
+class ConditionTransformer(Transformer, BooleanFormulaMixin):
     def __init__(self, bdd: cudd.BDD):
         super().__init__()
         self.bdd = bdd
-
-    def impl_formula(self, items):
-        formula1, formula2 = items
-        return formula1.implies(formula2)
-
-    def or_formula(self, items):
-        return items[0] | items[1]
-
-    def and_formula(self, items):
-        return items[0] & items[1]
-
-    def equiv_formula(self, items):
-        formula1, formula2 = items
-        return self.bdd.apply('equiv', formula1, formula2)
-
-    def nequiv_formula(self, items):
-        formula1, formula2 = items
-        return self.bdd.apply('xor', formula1, formula2)
-
-    def node_atom(self, items):
-        return self.bdd.var(items[0].value)
-
-    def neg_formula(self, items):
-        return ~items[0]
 
 
 def basic_node_to_bdd(bdd: cudd.BDD, node: DTNode):
@@ -106,7 +82,7 @@ def intermediate_node_to_bdd(bdd: cudd.BDD, disruption_tree: DisruptionTree,
 
 
 # noinspection PyMethodMayBeStatic
-class Layer1BDDTransformer(Transformer, BooleanMappingMixin):
+class Layer1BDDTransformer(Transformer, BooleanMappingMixin, BooleanFormulaMixin):
     """Transforms a layer 1 formula parse tree into a BDD."""
 
     attack_nodes: set[str]
@@ -146,24 +122,6 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin):
     def boolean_evidence(self, items):
         return self.mappings_to_dict(items)
 
-    def impl_formula(self, items):
-        formula1, formula2 = items
-        return formula1.implies(formula2)
-
-    def or_formula(self, items):
-        return items[0] | items[1]
-
-    def and_formula(self, items):
-        return items[0] & items[1]
-
-    def equiv_formula(self, items):
-        formula1, formula2 = items
-        return self.bdd.apply('equiv', formula1, formula2)
-
-    def nequiv_formula(self, items):
-        formula1, formula2 = items
-        return self.bdd.apply('xor', formula1, formula2)
-
     def mrs(self, items):
         formula = items[0]
         raise NotImplementedError()
@@ -191,6 +149,3 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin):
 
         if node_name not in self.bdd.vars:
             raise ValueError(f"Unknown node: {node_name}")
-
-    def neg_formula(self, items):
-        return ~items[0]
