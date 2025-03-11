@@ -62,23 +62,22 @@ def validate_disruption_tree_references(dt: DisruptionTree,
                         f" '{obj_name}'")
 
         # Validate object property references in conditions
-        if node.condition is not None:
-            properties = node.object_properties
+        properties = node.object_properties
 
-            # If node has no objects, it can't reference properties
-            if node.objects is None and len(properties) > 0:
+        # If node has no objects, it can't reference properties
+        if node.objects is None and len(properties) > 0:
+            raise CrossReferenceError(
+                f"Node '{node.name}' has properties in its condition but no"
+                f" associated objects")
+
+        # Check each property exists in at least one of the node's objects
+        for prop in properties:
+            valid_property = False
+            for obj_name in node.objects:
+                if prop in object_properties[obj_name]:
+                    valid_property = True
+                    break
+            if not valid_property:
                 raise CrossReferenceError(
-                    f"Node '{node.name}' has properties in its condition but no"
-                    f" associated objects")
-
-            # Check each property exists in at least one of the node's objects
-            for prop in properties:
-                valid_property = False
-                for obj_name in node.objects:
-                    if prop in object_properties[obj_name]:
-                        valid_property = True
-                        break
-                if not valid_property:
-                    raise CrossReferenceError(
-                        f"Node '{node.name}' references property '{prop}' which"
-                        f" doesn't exist in any of its objects {node.objects}")
+                    f"Node '{node.name}' references property '{prop}' which"
+                    f" doesn't exist in any of its objects {node.objects}")

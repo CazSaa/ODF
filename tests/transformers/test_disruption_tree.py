@@ -15,7 +15,7 @@ def test_basic_disruption_tree(parse_rule):
     assert node.name == "A"
     assert node.probability == 0.5
     assert node.objects is None
-    assert node.condition is None
+    assert node.object_properties == set()
     assert node.gate_type is None
 
 
@@ -31,7 +31,7 @@ def test_disruption_tree_with_all_attributes(parse_rule):
     assert node.name == "A"
     assert node.probability == 0.5
     assert node.objects == ["obj1", "obj2"]
-    assert node.condition == "x && y"
+    assert node.object_properties == {"x", "y"}
     assert node.gate_type is None
 
 
@@ -171,7 +171,7 @@ def test_complex_disruption_tree(parse_rule):
     assert result.nodes["D"]["data"].probability is None
 
     assert result.nodes["E"]["data"].probability == 0.6
-    assert result.nodes["E"]["data"].condition == "x && y"
+    assert result.nodes["E"]["data"].object_properties == {"x", "y"}
     assert result.nodes["E"]["data"].objects == ["obj2"]
 
     assert result.nodes["F"]["data"].probability == 0.4
@@ -225,7 +225,7 @@ def test_complex_disruption_tree_basic_nodes_first(parse_rule):
     assert result.nodes["D"]["data"].probability is None
 
     assert result.nodes["E"]["data"].probability == 0.6
-    assert result.nodes["E"]["data"].condition == "x && y"
+    assert result.nodes["E"]["data"].object_properties == {"x", "y"}
     assert result.nodes["E"]["data"].objects == ["obj2"]
 
     assert result.nodes["F"]["data"].probability == 0.4
@@ -271,10 +271,9 @@ def test_attribute_combinations(parse_rule):
             assert node.objects is None
 
         if "cond = (x)" in case:
-            assert node.condition == "x"
+            assert node.object_properties == {"x"}
         else:
-            assert node.condition is None
-
+            assert node.object_properties == set()
         assert node.gate_type is None
 
 
@@ -287,7 +286,7 @@ def test_complex_boolean_formula(parse_rule):
 
     result = transformer.transform(tree)
     node = result.nodes["Root"]["data"]
-    assert node.condition == "!a && b || c => d || x == y || p != q"  # todo caz keep parentheses
+    assert node.object_properties == {"a", "b", "c", "d", "x", "y", "p", "q"}
     assert node.probability is None
     assert node.objects is None
     assert node.gate_type is None
