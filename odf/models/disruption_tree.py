@@ -1,7 +1,7 @@
 import re
 from typing import Optional, Literal
 
-from lark import Transformer, Tree, Visitor
+from lark import Tree, Visitor
 from networkx.algorithms.components import is_weakly_connected
 from networkx.algorithms.dag import descendants
 
@@ -22,7 +22,6 @@ class ConditionVariablesVisitor(Visitor):
 
     def node_atom(self, items):
         self.vars.add(items.children[0].value)
-
 
 
 class DTNode:

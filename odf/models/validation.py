@@ -1,5 +1,3 @@
-import re
-
 from odf.models.disruption_tree import DisruptionTree
 from odf.models.exceptions import CrossReferenceError
 from odf.models.object_graph import ObjectGraph

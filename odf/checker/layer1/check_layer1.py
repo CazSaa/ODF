@@ -5,7 +5,6 @@ from odf.models.disruption_tree import DisruptionTree
 from odf.models.object_graph import ObjectGraph
 from odf.transformers.configuration import ConfigurationTransformer
 
-
 Configuration = dict[str, bool]
 
 
@@ -27,7 +26,8 @@ def check_layer1_query(formula: Tree,
     match query_type:
         case "check":
             formula = formula.children[0].children[1]
-            layer1_check(formula, configuration, attack_tree, fault_tree, object_graph)
+            layer1_check(formula, configuration, attack_tree, fault_tree,
+                         object_graph)
         case "compute_all":
             raise NotImplementedError()
         case _:
@@ -42,4 +42,3 @@ def layer1_check(formula: Tree,
     transformer = Layer1BDDTransformer(attack_tree, fault_tree, object_graph)
     bdd = transformer.transform(formula)
     pass
-
