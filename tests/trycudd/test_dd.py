@@ -137,6 +137,7 @@ def test_mrs_pattern():
     manager4 = cudd_add.ADD()
     manager4.declare('x1', 'x2', 'x3', 'x4', 'x5', 'p1', 'p2', 'p3', 'p4', 'p5')
     f4 = manager4.add_expr('(p1 => x1) & (p2 => x2) & (p3 => x3) & (p4 => x4) & (p5 => x5) & ((p1 ^ x1) | (p2 ^ x2) | (p3 ^ x3) | (p4 ^ x4) | (p5 ^ x5))')
+    manager4.reorder()
     manager4.dump('mrs_pattern4.dot', [f4])
 
 
