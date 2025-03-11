@@ -82,7 +82,8 @@ def intermediate_node_to_bdd(bdd: cudd.BDD, disruption_tree: DisruptionTree,
 
 
 # noinspection PyMethodMayBeStatic
-class Layer1BDDTransformer(Transformer, BooleanMappingMixin, BooleanFormulaMixin):
+class Layer1BDDTransformer(Transformer, BooleanMappingMixin,
+                           BooleanFormulaMixin):
     """Transforms a layer 1 formula parse tree into a BDD."""
 
     attack_nodes: set[str]
@@ -97,7 +98,9 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin, BooleanFormulaMixin
         self.attack_tree = attack_tree
         self.fault_tree = fault_tree
         self.object_graph = object_graph
+        self.bdd_vars: list[str] = []
         self.bdd = cudd.BDD()
+        self.prime_count = 0
 
     def transform(self, tree: Tree[_Leaf_T]) -> _Return_T:
         visitor = Layer1FormulaVisitor(self.attack_tree, self.fault_tree,
@@ -108,8 +111,9 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin, BooleanFormulaMixin
         self.fault_nodes = visitor.fault_nodes
         self.object_properties = visitor.object_properties
 
-        self.bdd.declare(*visitor.object_properties, *visitor.fault_nodes,
-                         *visitor.attack_nodes)
+        self.bdd_vars = [*visitor.object_properties, *visitor.fault_nodes,
+                         *visitor.attack_nodes]
+        self.bdd.declare(*self.bdd_vars)
         return super().transform(tree)
 
     def with_boolean_evidence(self, items):
@@ -123,8 +127,40 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin, BooleanFormulaMixin
         return self.mappings_to_dict(items)
 
     def mrs(self, items):
+        self.prime_count += 1
+
+        def p(var):
+            return f"{var}'{self.prime_count}"
+
+        primed_vars = [p(var) for var in self.bdd_vars]
+        self.bdd.declare(*primed_vars)
+
         formula = items[0]
-        raise NotImplementedError()
+        primed_formula = self.bdd.let({var: p(var) for var in self.bdd_vars},
+                                      formula)
+
+        # Construct the primes_subset formula:
+        # 1. First part: conjunction of implications (p'i => xi)
+        implications = self.bdd.true
+        for var in self.bdd_vars:
+            prime_var = self.bdd.var(p(var))
+            orig_var = self.bdd.var(var)
+            implication = prime_var.implies(orig_var)
+            implications = implications & implication
+
+        # 2. Second part: disjunction of XORs ((p'i ^ xi) | (p'j ^ xj) | ...)
+        xor_terms = self.bdd.false
+        for var in self.bdd_vars:
+            prime_var = self.bdd.var(p(var))
+            orig_var = self.bdd.var(var)
+            xor_term = self.bdd.apply('xor', prime_var, orig_var)
+            xor_terms = xor_terms | xor_term
+
+        # Combine both parts
+        primes_subset = implications & xor_terms
+
+        return formula & ~self.bdd.exist(primed_vars,
+                                         primes_subset & primed_formula)
 
     def node_atom(self, items):
         node_name = items[0].value
