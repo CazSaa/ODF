@@ -1,6 +1,6 @@
 from dd import cudd
 from lark import Transformer, Visitor, Tree
-from lark.visitors import _Leaf_T, _Return_T
+from lark.visitors import _Leaf_T
 
 from odf.models.disruption_tree import DisruptionTree, DTNode
 from odf.models.object_graph import ObjectGraph
@@ -102,7 +102,7 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin,
         self.bdd = cudd.BDD()
         self.prime_count = 0
 
-    def transform(self, tree: Tree[_Leaf_T]) -> _Return_T:
+    def transform(self, tree: Tree[_Leaf_T]) -> cudd.Function:
         visitor = Layer1FormulaVisitor(self.attack_tree, self.fault_tree,
                                        self.object_graph)
         visitor.visit(tree)

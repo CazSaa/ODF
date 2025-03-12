@@ -26,8 +26,9 @@ def check_layer1_query(formula: Tree,
     match query_type:
         case "check":
             formula = formula.children[0].children[1]
-            layer1_check(formula, configuration, attack_tree, fault_tree,
+            res = layer1_check(formula, configuration, attack_tree, fault_tree,
                          object_graph)
+            print(f"Result: {res}")
         case "compute_all":
             raise NotImplementedError()
         case _:
@@ -38,7 +39,26 @@ def layer1_check(formula: Tree,
                  configuration: Configuration,
                  attack_tree: DisruptionTree,
                  fault_tree: DisruptionTree,
-                 object_graph: ObjectGraph):
+                 object_graph: ObjectGraph) -> bool:
     transformer = Layer1BDDTransformer(attack_tree, fault_tree, object_graph)
     bdd = transformer.transform(formula)
-    pass
+    manager = transformer.bdd
+
+    needed_vars = bdd.support
+    given_vars = set(configuration.keys())
+    missing_vars = needed_vars - given_vars
+    if len(missing_vars) > 0:
+        # todo caz
+        raise ValueError(f"Missing variables: {missing_vars}")
+
+    non_existing_vars = given_vars - manager.vars
+    if len(non_existing_vars) > 0:
+        # todo caz
+        print(
+            f"WARNING: You specified variables that do not exist in the model, these will be ignored: {non_existing_vars}")
+        for var in non_existing_vars:
+            del configuration[var]
+
+    res = bdd.eval(configuration)
+
+    return res

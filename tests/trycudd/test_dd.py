@@ -1,3 +1,4 @@
+import pytest
 from dd import cudd, cudd_add
 from dd.cudd import restrict
 
@@ -143,3 +144,24 @@ def test_mrs_pattern():
         '(p1 => x1) & (p2 => x2) & (p3 => x3) & (p4 => x4) & (p5 => x5) & ((p1 ^ x1) | (p2 ^ x2) | (p3 ^ x3) | (p4 ^ x4) | (p5 ^ x5))')
     manager4.reorder()
     manager4.dump('mrs_pattern4.dot', [f4])
+
+
+def test_eval():
+    bdd = cudd.BDD()
+    bdd.declare('a', 'b', 'c', 'd')
+
+    an = bdd.add_expr("a & b")
+    or_ = bdd.add_expr("c | d")
+
+    assert an.eval({'a': True, 'b': True}) == True
+    assert an.eval({'a': True, 'b': False}) == False
+    assert an.eval({'a': False, 'b': True}) == False
+    assert an.eval({'a': False, 'b': False}) == False
+
+    assert or_.eval({'c': True, 'd': False}) == True
+    assert or_.eval({'c': False, 'd': True}) == True
+    assert or_.eval({'c': True, 'd': True}) == True
+    assert or_.eval({'c': False, 'd': False}) == False
+
+    with pytest.raises(ValueError):
+        an.eval({'a': True})
