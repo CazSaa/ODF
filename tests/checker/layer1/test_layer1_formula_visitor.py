@@ -1,51 +1,7 @@
 import pytest
 from lark import Tree, Token
 
-from odf.transformers.disruption_tree import DisruptionTreeTransformer
-from odf.transformers.object_graph import ObjectGraphTransformer
 from odf.checker.layer1.layer1_bdd import Layer1FormulaVisitor
-
-
-@pytest.fixture
-def attack_tree(parse_rule):
-    """Create an attack tree with basic and non-basic nodes."""
-    tree_str = """toplevel Root;
-    Root and BasicAttack ComplexAttack;
-    BasicAttack prob = 0.5;
-    ComplexAttack and SubAttack1 SubAttack2;
-    ComplexAttack cond = (obj_prop1 && obj_prop2);
-    SubAttack1 prob = 0.3;
-    SubAttack2 prob = 0.4;
-    """
-    tree = parse_rule(tree_str, "disruption_tree")
-    return DisruptionTreeTransformer().transform(tree)
-
-
-@pytest.fixture
-def fault_tree(parse_rule):
-    """Create a fault tree with a basic node."""
-    tree_str = """toplevel Root;
-    Root and BasicFault ComplexFault;
-    BasicFault prob = 0.3;
-    ComplexFault and SubFault1 SubFault2;
-    ComplexFault cond = (obj_prop4 && obj_prop5);
-    SubFault1 prob = 0.2;
-    SubFault2 prob = 0.1 cond = (obj_prop6);
-    """
-    tree = parse_rule(tree_str, "disruption_tree")
-    return DisruptionTreeTransformer().transform(tree)
-
-
-@pytest.fixture
-def object_graph(parse_rule):
-    """Create an object graph with properties."""
-    graph_str = """toplevel Root;
-    Root has Object1 Object2;
-    Object1 properties = [obj_prop1, obj_prop2];
-    Object2 properties = [obj_prop3];
-    """
-    tree = parse_rule(graph_str, "object_graph_tree")
-    return ObjectGraphTransformer().transform(tree)
 
 
 @pytest.fixture

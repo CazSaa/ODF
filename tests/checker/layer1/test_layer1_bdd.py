@@ -2,118 +2,38 @@ import pytest
 from dd import cudd
 from lark import Tree, Token
 
-from odf.__main__ import extract_parse_trees
 from odf.checker.layer1.layer1_bdd import Layer1BDDTransformer, \
     intermediate_node_to_bdd, ConditionTransformer
-from odf.parser.parser import parse
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
-from odf.transformers.object_graph import ObjectGraphTransformer
 
 
-def parse_and_transform_to_bdd(formula_str: str, attack_tree_str: str,
-                               fault_tree_str: str, object_graph_str: str):
-    """Parse input strings and transform the formula to a BDD."""
-    full_input = f"""
-{attack_tree_str}
-
-{fault_tree_str}
-
-{object_graph_str}
-
-[formulas]
-{{}} {formula_str};
-"""
-    parse_tree = parse(full_input)
-    [attack_parse_tree, fault_parse_tree,
-     object_parse_tree, formula_parse_tree] = extract_parse_trees(parse_tree)
-
-    attack_tree = DisruptionTreeTransformer().transform(attack_parse_tree)
-    fault_tree = DisruptionTreeTransformer().transform(fault_parse_tree)
-    object_graph = ObjectGraphTransformer().transform(object_parse_tree)
-
-    query = formula_parse_tree.children[0]
-    assert query.data == "layer1_query"
-    formula = query.children[0].children[1]
-
-    transformer = Layer1BDDTransformer(attack_tree, fault_tree, object_graph)
-    return transformer, transformer.transform(formula)
-
-
-@pytest.fixture
-def attack_tree_str():
-    """Create an attack tree with basic and non-basic nodes."""
-    return """[odg.attack_tree]
-    toplevel Root;
-    Root and BasicAttack ComplexAttack;
-    BasicAttack prob = 0.5;
-    ComplexAttack and SubAttack1 SubAttack2;
-    ComplexAttack cond = (obj_prop1 && obj_prop2);
-    SubAttack1 prob = 0.3;
-    SubAttack2 prob = 0.4;"""
-
-
-@pytest.fixture
-def fault_tree_str():
-    """Create a fault tree with basic and complex nodes."""
-    return """[odg.fault_tree]
-    toplevel Root;
-    Root and BasicFault ComplexFault;
-    BasicFault prob = 0.3;
-    ComplexFault and SubFault1 SubFault2;
-    ComplexFault cond = (obj_prop4 && obj_prop5);
-    SubFault1 prob = 0.2;
-    SubFault2 prob = 0.1 cond = (obj_prop6);"""
-
-
-@pytest.fixture
-def object_graph_str():
-    """Create an object graph with properties."""
-    return """[odg.object_graph]
-    toplevel Root;
-    Root has Object1 Object2;
-    Object1 properties = [obj_prop1, obj_prop2];
-    Object2 properties = [obj_prop3];"""
-
-
-def test_basic_node_bdd_creation(attack_tree_str, fault_tree_str,
-                                 object_graph_str):
+def test_basic_node_bdd_creation(parse_and_get_bdd):
     """Test creating BDD for a basic node reference."""
-    transformer, bdd = parse_and_transform_to_bdd("BasicAttack",
-                                                  attack_tree_str,
-                                                  fault_tree_str,
-                                                  object_graph_str)
+    transformer, bdd = parse_and_get_bdd("BasicAttack")
 
     expected = transformer.bdd.var('BasicAttack')
     assert bdd == expected
 
 
-def test_basic_node_negation(attack_tree_str, fault_tree_str, object_graph_str):
+def test_basic_node_negation(parse_and_get_bdd):
     """Test creating BDD for a negated basic node."""
-    transformer, bdd = parse_and_transform_to_bdd("!BasicAttack",
-                                                  attack_tree_str,
-                                                  fault_tree_str,
-                                                  object_graph_str)
+    transformer, bdd = parse_and_get_bdd("!BasicAttack")
 
     expected = ~transformer.bdd.var('BasicAttack')
     assert bdd == expected
 
 
-def test_object_property_bdd(attack_tree_str, fault_tree_str, object_graph_str):
+def test_object_property_bdd(parse_and_get_bdd):
     """Test creating BDD for an object property."""
-    transformer, bdd = parse_and_transform_to_bdd("obj_prop1", attack_tree_str,
-                                                  fault_tree_str,
-                                                  object_graph_str)
+    transformer, bdd = parse_and_get_bdd("obj_prop1")
 
     expected = transformer.bdd.var('obj_prop1')
     assert bdd == expected
 
 
-def test_complex_node_bdd(attack_tree_str, fault_tree_str, object_graph_str):
+def test_complex_node_bdd(parse_and_get_bdd):
     """Test creating BDD for a complex node (which uses AND gate and conditions)."""
-    transformer, bdd = parse_and_transform_to_bdd("ComplexAttack",
-                                                  attack_tree_str,
-                                                  fault_tree_str,
-                                                  object_graph_str)
+    transformer, bdd = parse_and_get_bdd("ComplexAttack")
 
     # ComplexAttack is (SubAttack1 AND SubAttack2) AND (obj_prop1 AND obj_prop2)
     expected = (transformer.bdd.var('SubAttack1') & transformer.bdd.var(
@@ -123,13 +43,10 @@ def test_complex_node_bdd(attack_tree_str, fault_tree_str, object_graph_str):
     assert bdd == expected
 
 
-def test_combined_formula_bdd(attack_tree_str, fault_tree_str,
-                              object_graph_str):
+def test_combined_formula_bdd(parse_and_get_bdd):
     """Test creating BDD for a formula combining multiple nodes and operators."""
     formula = "(BasicAttack && ComplexFault) || obj_prop3"
-    transformer, bdd = parse_and_transform_to_bdd(formula, attack_tree_str,
-                                                  fault_tree_str,
-                                                  object_graph_str)
+    transformer, bdd = parse_and_get_bdd(formula)
 
     # ComplexFault is (SubFault1 AND SubFault2) AND (obj_prop4 AND obj_prop5)
     complex_fault = (
@@ -160,13 +77,8 @@ def test_condition_transformer():
     assert bdd == expected
 
 
-def test_intermediate_node_bdd(attack_tree_str, fault_tree_str,
-                               object_graph_str, parse_rule):
+def test_intermediate_node_bdd(attack_tree):
     """Test intermediate_node_to_bdd function directly."""
-    # Parse and transform the attack tree
-    attack_tree = DisruptionTreeTransformer().transform(
-        parse_rule(attack_tree_str, "attack_tree"))
-
     # Create BDD manager and test intermediate node conversion
     bdd_manager = cudd.BDD()
     bdd_manager.declare('SubAttack1', 'SubAttack2', 'obj_prop1', 'obj_prop2')
@@ -300,31 +212,23 @@ def test_deeply_nested_nodes(parse_rule):
 
 
 # Test cases for formulas with boolean evidence
-def test_basic_evidence_substitution(attack_tree_str, fault_tree_str,
-                                     object_graph_str):
+def test_basic_evidence_substitution(parse_and_get_bdd):
     """Test basic substitution of nodes with boolean evidence."""
     # Set BasicAttack to true
-    transformer, bdd = parse_and_transform_to_bdd(
-        "BasicAttack [BasicAttack:1]",
-        attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(
+        "BasicAttack [BasicAttack:1]")
     assert bdd == transformer.bdd.true
 
     # Set BasicAttack to false
-    transformer, bdd = parse_and_transform_to_bdd(
-        "BasicAttack [BasicAttack:0]",
-        attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(
+        "BasicAttack [BasicAttack:0]")
     assert bdd == transformer.bdd.false
 
 
-def test_complex_formula_with_evidence(attack_tree_str, fault_tree_str,
-                                       object_graph_str):
+def test_complex_formula_with_evidence(parse_and_get_bdd):
     """Test evidence in a complex formula affecting multiple nodes."""
     formula = "(BasicAttack || BasicFault) && ComplexAttack [BasicAttack:1, BasicFault:0]"
-    transformer, bdd = parse_and_transform_to_bdd(
-        formula, attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(formula)
 
     # With BasicAttack=true and BasicFault=false, the formula reduces to just ComplexAttack
     expected = (transformer.bdd.var('SubAttack1') & transformer.bdd.var(
@@ -336,34 +240,26 @@ def test_complex_formula_with_evidence(attack_tree_str, fault_tree_str,
 
 @pytest.mark.xfail(
     reason="Currently failing due to incorrect handling of intermediate nodes")
-def test_intermediate_node_evidence(attack_tree_str, fault_tree_str,
-                                    object_graph_str):
+def test_intermediate_node_evidence(parse_and_get_bdd):
     """Test evidence on intermediate nodes affecting their basic events."""
-    transformer, bdd = parse_and_transform_to_bdd(
-        "ComplexAttack || BasicAttack [ComplexAttack:1]",
-        attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(
+        "ComplexAttack || BasicAttack [ComplexAttack:1]")
     expected = transformer.bdd.true  # Formula is true regardless of BasicAttack
     assert bdd == expected
 
     # Setting ComplexAttack to false
-    transformer, bdd = parse_and_transform_to_bdd(
-        "ComplexAttack || BasicAttack [ComplexAttack:0]",
-        attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(
+        "ComplexAttack || BasicAttack [ComplexAttack:0]")
     expected = transformer.bdd.var(
         'BasicAttack')  # Formula reduces to just BasicAttack
     assert bdd == expected
 
 
-def test_object_property_evidence(attack_tree_str, fault_tree_str,
-                                  object_graph_str):
+def test_object_property_evidence(parse_and_get_bdd):
     """Test evidence on object properties."""
     # Test with ComplexAttack which has object property conditions
-    transformer, bdd = parse_and_transform_to_bdd(
-        "ComplexAttack [obj_prop1:1, obj_prop2:1]",
-        attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(
+        "ComplexAttack [obj_prop1:1, obj_prop2:1]")
     # Only the gates and basic events remain, conditions are satisfied
     expected = transformer.bdd.var('SubAttack1') & transformer.bdd.var(
         'SubAttack2')
@@ -372,16 +268,12 @@ def test_object_property_evidence(attack_tree_str, fault_tree_str,
 
 @pytest.mark.xfail(
     reason="Currently failing due to incorrect handling of intermediate nodes")
-def test_multiple_evidence_combined(attack_tree_str, fault_tree_str,
-                                    object_graph_str):
+def test_multiple_evidence_combined(parse_and_get_bdd):
     """Test multiple pieces of evidence affecting different parts of the formula."""
     formula = "(ComplexAttack || BasicFault) && (BasicAttack || ComplexFault)"
     evidence = "[ComplexAttack:1, BasicFault:0, obj_prop4:1, obj_prop5:1]"
 
-    transformer, bdd = parse_and_transform_to_bdd(
-        f"{formula} {evidence}",
-        attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(f"{formula} {evidence}")
 
     # First part reduces to true (ComplexAttack:1), second part becomes (BasicAttack || (SubFault1 && SubFault2))
     expected = transformer.bdd.var('BasicAttack') | \
@@ -391,22 +283,17 @@ def test_multiple_evidence_combined(attack_tree_str, fault_tree_str,
     assert bdd == expected
 
 
-def test_nested_contradicting_evidence(attack_tree_str, fault_tree_str,
-                                       object_graph_str):
+def test_nested_contradicting_evidence(parse_and_get_bdd):
     """Test handling of nested contradicting evidence."""
     # Inner evidence should override outer evidence
     formula = "(ComplexAttack [SubAttack1:0]) [SubAttack1:1, SubAttack2:1]"
-    transformer, bdd = parse_and_transform_to_bdd(
-        formula, attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(formula)
     # Inner evidence makes SubAttack1 false
     expected = transformer.bdd.false  # ComplexAttack is false because SubAttack1 is false
     assert bdd == expected
 
     formula = "ComplexAttack [SubAttack1:1, SubAttack2:1]"
-    transformer, bdd = parse_and_transform_to_bdd(
-        formula, attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(formula)
     expected = transformer.bdd.var('obj_prop1') & transformer.bdd.var(
         'obj_prop2')
     assert bdd == expected
@@ -416,9 +303,7 @@ def test_nested_contradicting_evidence(attack_tree_str, fault_tree_str,
         (((ComplexAttack [SubAttack1:1, SubAttack2:1]) [SubAttack1:0]) || 
          (BasicAttack [BasicAttack:0])) [BasicAttack:1]
     """
-    transformer, bdd = parse_and_transform_to_bdd(
-        formula, attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(formula)
     # For ComplexAttack: innermost makes both subs true, then SubAttack1:0 takes precedence
     # For BasicAttack: inner false overrides outer true
     # obj_prop1 && obj_prop2 still required for ComplexAttack
@@ -430,9 +315,7 @@ def test_nested_contradicting_evidence(attack_tree_str, fault_tree_str,
         (((ComplexAttack [SubAttack1:1, SubAttack2:1]) [SubAttack1:0]) && 
          (BasicAttack [BasicAttack:0])) [BasicAttack:1]
     """
-    transformer, bdd = parse_and_transform_to_bdd(
-        formula, attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(formula)
     # For ComplexAttack: innermost makes both subs true, then SubAttack1:0 takes precedence
     # For BasicAttack: inner false overrides outer true
     # obj_prop1 && obj_prop2 still required for ComplexAttack
@@ -442,31 +325,25 @@ def test_nested_contradicting_evidence(attack_tree_str, fault_tree_str,
 
 @pytest.mark.xfail(
     reason="Currently failing due to incorrect handling of intermediate nodes")
-def test_evidence_node_condition_contradiction(attack_tree_str, fault_tree_str,
-                                               object_graph_str):
+def test_evidence_node_condition_contradiction(parse_and_get_bdd):
     # Evidence contradicting node conditions and descendants
     formula = """ComplexFault [
         SubFault1:1,             // Set basic event true
         obj_prop4:0,             // Contradict parent condition (obj_prop4 && obj_prop5)
         ComplexFault:1           // Override everything to true
     ]"""
-    transformer, bdd = parse_and_transform_to_bdd(
-        formula, attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(formula)
     # Direct evidence on ComplexFault:1 should override everything else
     expected = transformer.bdd.true
     assert bdd == expected
 
 
-def test_evidence_with_node_conditions(attack_tree_str, fault_tree_str,
-                                       object_graph_str):
+def test_evidence_with_node_conditions(parse_and_get_bdd):
     """Test evidence affecting nodes that have conditions."""
     # ComplexFault has condition (obj_prop4 && obj_prop5)
     # SubFault2 has condition (obj_prop6)
-    transformer, bdd = parse_and_transform_to_bdd(
-        "ComplexFault [SubFault1:1, obj_prop4:1]",
-        attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(
+        "ComplexFault [SubFault1:1, obj_prop4:1]")
 
     # Still need SubFault2 and obj_prop5 to be true
     expected = transformer.bdd.var('SubFault2') & \
@@ -477,14 +354,11 @@ def test_evidence_with_node_conditions(attack_tree_str, fault_tree_str,
 
 @pytest.mark.xfail(
     reason="Currently failing due to maybe incorrect handling of evidence")
-def test_evidence_overrides_conditions(attack_tree_str, fault_tree_str,
-                                       object_graph_str):
+def test_evidence_overrides_conditions(parse_and_get_bdd):
     """Test that evidence on a node overrides its conditions."""
     # ComplexFault has conditions but we set it directly to true
-    transformer, bdd = parse_and_transform_to_bdd(
-        "(SubFault2 && BasicAttack) || BasicFault [SubFault2:1]",
-        attack_tree_str, fault_tree_str, object_graph_str
-    )
+    transformer, bdd = parse_and_get_bdd(
+        "(SubFault2 && BasicAttack) || BasicFault [SubFault2:1]")
 
     # Formula reduces to (true && BasicAttack) || BasicFault
     expected = transformer.bdd.var('BasicAttack') | transformer.bdd.var(
@@ -495,12 +369,10 @@ def test_evidence_overrides_conditions(attack_tree_str, fault_tree_str,
     assert bdd == expected
 
 
-def test_mrs_simple_formula(attack_tree_str, fault_tree_str, object_graph_str):
+def test_mrs_simple_formula(parse_and_get_bdd):
     """Test MRS with a simple formula consisting of a single basic node."""
     formula = "MRS(BasicAttack)"
-    transformer, bdd = parse_and_transform_to_bdd(formula, attack_tree_str,
-                                                  fault_tree_str,
-                                                  object_graph_str)
+    transformer, bdd = parse_and_get_bdd(formula)
 
     var_name = 'BasicAttack'
     prime_var = f"{var_name}'1"
@@ -511,12 +383,10 @@ def test_mrs_simple_formula(attack_tree_str, fault_tree_str, object_graph_str):
     assert bdd == expected_formula
 
 
-def test_mrs_disjunction(attack_tree_str, fault_tree_str, object_graph_str):
+def test_mrs_disjunction(parse_and_get_bdd):
     """Test MRS with a disjunction of two basic nodes."""
     formula = "MRS(BasicAttack || BasicFault)"
-    transformer, bdd = parse_and_transform_to_bdd(formula, attack_tree_str,
-                                                  fault_tree_str,
-                                                  object_graph_str)
+    transformer, bdd = parse_and_get_bdd(formula)
 
     # For MRS(A | B), we want the formula to be true, and no proper subset of variables to make it true
     # In a disjunction, proper subsets would be just A or just B being true
@@ -533,13 +403,10 @@ def test_mrs_disjunction(attack_tree_str, fault_tree_str, object_graph_str):
     assert bdd == expected
 
 
-def test_mrs_with_object_properties(attack_tree_str, fault_tree_str,
-                                    object_graph_str):
+def test_mrs_with_object_properties(parse_and_get_bdd):
     """Test MRS with a formula that includes object properties."""
     formula = "MRS(obj_prop1 || obj_prop2)"
-    transformer, bdd = parse_and_transform_to_bdd(formula, attack_tree_str,
-                                                  fault_tree_str,
-                                                  object_graph_str)
+    transformer, bdd = parse_and_get_bdd(formula)
 
     op1 = transformer.bdd.var('obj_prop1')
     op2 = transformer.bdd.var('obj_prop2')
@@ -554,12 +421,10 @@ def test_mrs_with_object_properties(attack_tree_str, fault_tree_str,
     assert bdd == expected
 
 
-def test_mrs_nested(attack_tree_str, fault_tree_str, object_graph_str):
+def test_mrs_nested(parse_and_get_bdd):
     """Test nested MRS operations."""
     formula = "MRS(MRS(BasicAttack || obj_prop1))"
-    transformer, bdd = parse_and_transform_to_bdd(formula, attack_tree_str,
-                                                  fault_tree_str,
-                                                  object_graph_str)
+    transformer, bdd = parse_and_get_bdd(formula)
 
     # First, compute the inner MRS: MRS(BasicAttack || obj_prop1)
     a_var = transformer.bdd.var('BasicAttack')
@@ -578,12 +443,10 @@ def test_mrs_nested(attack_tree_str, fault_tree_str, object_graph_str):
     assert bdd == expected
 
 
-def test_mrs_with_evidence(attack_tree_str, fault_tree_str, object_graph_str):
+def test_mrs_with_evidence(parse_and_get_bdd):
     """Test MRS with boolean evidence."""
     formula = "MRS(BasicAttack || BasicFault) [BasicFault:1]"
-    transformer, bdd = parse_and_transform_to_bdd(formula, attack_tree_str,
-                                                  fault_tree_str,
-                                                  object_graph_str)
+    transformer, bdd = parse_and_get_bdd(formula)
 
     # With BasicFault=1, the formula MRS(BasicAttack || BasicFault) becomes MRS(BasicAttack || True)
     # Since MRS checks for minimal sets, and BasicFault=True is already sufficient,
@@ -595,9 +458,9 @@ def test_mrs_with_evidence(attack_tree_str, fault_tree_str, object_graph_str):
 
 
 @pytest.fixture
-def complex_attack_tree_str():
+def complex_attack_tree(transform_disruption_tree_str):
     """Create an attack tree with a more complex structure having both AND and OR gates."""
-    return """[odg.attack_tree]
+    return transform_disruption_tree_str("""
     toplevel Root;
     Root and MixedGateNode SimpleNode;
     MixedGateNode or AndGateNode1 AndGateNode2;
@@ -616,17 +479,14 @@ def complex_attack_tree_str():
     
     MixedGateNode cond = (obj_prop1);
     AndGateNode2 cond = (obj_prop2);
-    """
+    """)
 
 
-def test_mrs_complex_intermediate_node(complex_attack_tree_str, fault_tree_str,
-                                       object_graph_str):
+def test_mrs_complex_intermediate_node(complex_attack_tree, parse_and_get_bdd):
     """Test MRS with a complex intermediate node that has both AND and OR gate descendants."""
     formula = "MRS(MixedGateNode)"
-    transformer, bdd = parse_and_transform_to_bdd(formula,
-                                                  complex_attack_tree_str,
-                                                  fault_tree_str,
-                                                  object_graph_str)
+    transformer, bdd = parse_and_get_bdd(formula,
+                                         attack_tree=complex_attack_tree)
 
     # Break down the structure of MixedGateNode:
     # MixedGateNode = (AndGateNode1 | AndGateNode2) & obj_prop1
