@@ -132,17 +132,18 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin,
         def p(var):
             return f"{var}'{self.prime_count}"
 
-        primed_vars = [p(var) for var in self.bdd_vars]
+        formula = items[0]
+        vars_ = formula.support
+        primed_vars = [p(var) for var in vars_]
         self.bdd.declare(*primed_vars)
 
-        formula = items[0]
-        primed_formula = self.bdd.let({var: p(var) for var in self.bdd_vars},
+        primed_formula = self.bdd.let({var: p(var) for var in vars_},
                                       formula)
 
         # Construct the primes_subset formula:
         # 1. First part: conjunction of implications (p'i => xi)
         implications = self.bdd.true
-        for var in self.bdd_vars:
+        for var in vars_:
             prime_var = self.bdd.var(p(var))
             orig_var = self.bdd.var(var)
             implication = prime_var.implies(orig_var)
@@ -150,7 +151,7 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin,
 
         # 2. Second part: disjunction of XORs ((p'i ^ xi) | (p'j ^ xj) | ...)
         xor_terms = self.bdd.false
-        for var in self.bdd_vars:
+        for var in vars_:
             prime_var = self.bdd.var(p(var))
             orig_var = self.bdd.var(var)
             xor_term = self.bdd.apply('xor', prime_var, orig_var)

@@ -141,3 +141,130 @@ def test_object_property_check(do_layer1_check):
         "SubFault2",
         "{SubFault2:1, obj_prop6:1}"
     )
+
+
+def test_evidence_in_check(do_layer1_check):
+    """Test checking formulas with boolean evidence."""
+    # Simple evidence
+    assert do_layer1_check(
+        "ComplexAttack [SubAttack1:1, SubAttack2:1]",
+        "{obj_prop1:1, obj_prop2:1}"
+    )
+
+    # Evidence overriding configuration
+    assert do_layer1_check(
+        "BasicAttack [BasicAttack:1]",
+        "{BasicAttack:0}"  # Evidence should override configuration
+    )
+
+    # Evidence in complex formula
+    assert do_layer1_check(
+        "(ComplexAttack [SubAttack1:1, SubAttack2:1]) && !(ComplexFault [SubFault1:0])",
+        "{obj_prop1:1, obj_prop2:1, obj_prop4:1, obj_prop5:1, obj_prop6:1}"
+    )
+
+    # Evidence affecting conditions
+    assert do_layer1_check(
+        "ComplexAttack [obj_prop1:1, obj_prop2:1]",
+        "{SubAttack1:1, SubAttack2:1}"  # Evidence sets the conditions
+    )
+
+
+def test_mrs_operator(do_layer1_check):
+    """Test checking formulas with MRS operator."""
+    assert do_layer1_check(
+        "MRS(BasicAttack)",
+        "{BasicAttack:1}"
+    )
+
+    assert do_layer1_check(
+        "MRS(BasicAttack || BasicFault)",
+        "{BasicAttack:0, BasicFault:1}"
+    )
+    assert do_layer1_check(
+        "MRS(BasicAttack || BasicFault)",
+        "{BasicAttack:1, BasicFault:0}"
+    )
+    assert not do_layer1_check(
+        "MRS(BasicAttack || BasicFault)",
+        "{BasicAttack:1, BasicFault:1}"
+    )
+    assert not do_layer1_check(
+        "MRS(BasicAttack || BasicFault)",
+        "{BasicAttack:0, BasicFault:0}"
+    )
+
+    assert do_layer1_check(
+        "MRS(ComplexAttack)",
+        "{SubAttack1:1, SubAttack2:1, obj_prop1:1, obj_prop2:1}"
+    )
+
+
+def test_mrs_with_evidence(do_layer1_check):
+    """Test checking formulas with both MRS and evidence."""
+    assert do_layer1_check(
+        "MRS(BasicAttack || BasicFault) [BasicFault:1]",
+        "{BasicAttack:0}"  # Only BasicFault should be minimal
+    )
+
+    # MRS with evidence inside formula
+    assert do_layer1_check(
+        "MRS(ComplexAttack [SubAttack1:1])",
+        "{SubAttack2:1, obj_prop1:1, obj_prop2:1}"
+    )
+
+
+def test_nested_mrs(do_layer1_check):
+    """Test checking formulas with nested MRS operators."""
+    # Nested MRS
+    assert do_layer1_check(
+        "MRS(MRS(BasicAttack || BasicFault))",
+        "{BasicAttack:0, BasicFault:1}"
+    )
+    assert do_layer1_check(
+        "MRS(MRS(BasicAttack || BasicFault))",
+        "{BasicAttack:1, BasicFault:0}"
+    )
+    assert not do_layer1_check(
+        "MRS(MRS(BasicAttack || BasicFault))",
+        "{BasicAttack:1, BasicFault:1}"
+    )
+    assert not do_layer1_check(
+        "MRS(MRS(BasicAttack || BasicFault))",
+        "{BasicAttack:0, BasicFault:0}"
+    )
+
+    # Nested MRS with evidence at different levels
+    assert do_layer1_check(
+        "MRS(BasicAttack || BasicFault) [BasicFault:1]",
+        "{BasicAttack:0}"
+    )
+    assert do_layer1_check(
+        "MRS(BasicAttack) && (ComplexFault || !ComplexFault)",
+        "{BasicAttack:1}"
+    )
+    assert do_layer1_check(
+        "MRS(BasicAttack || BasicFault [BasicFault:1])",
+        "{BasicAttack:0}"
+    )
+    assert do_layer1_check(
+        "MRS(MRS(BasicAttack || BasicFault) [BasicFault:1])",
+        "{BasicAttack:0}"
+    )
+
+
+def test_evidence_configuration_interaction(do_layer1_check):
+    """Test complex interactions between evidence and configuration."""
+    assert do_layer1_check(
+        "(ComplexAttack [SubAttack1:1]) && (ComplexFault [SubFault1:1])",
+        """{
+            SubAttack2:1, obj_prop1:1, obj_prop2:1,  // For ComplexAttack
+            SubFault2:1, obj_prop4:1, obj_prop5:1, obj_prop6:1  // For ComplexFault
+        }"""
+    )
+
+    with pytest.raises(ValueError, match="Missing variables"):
+        do_layer1_check(
+            "ComplexAttack [SubAttack1:1, SubAttack2:1]",
+            "{obj_prop1:1}"  # Missing obj_prop2
+        )
