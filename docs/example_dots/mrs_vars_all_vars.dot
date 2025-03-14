@@ -1,0 +1,72 @@
+digraph {
+
+    "L-1" -> "L0" [style = "invis"];
+    "L0" -> "L1" [style = "invis"];
+    "L1" -> "L2" [style = "invis"];
+    "L2" -> "L3" [style = "invis"];
+    "L3" -> "L4" [style = "invis"];
+    "L4" -> "L5" [style = "invis"];
+    "L5" -> "L12" [style = "invis"];
+    2 -> 1 [style = "dashed", taillabel = "-1"];
+    2 -> 1 [style = "solid"];
+    4 -> 2 [style = "dashed", taillabel = "-1"];
+    4 -> 1 [style = "solid"];
+    6 -> 4 [style = "dashed"];
+    6 -> 1 [style = "solid"];
+    8 -> 6 [style = "dashed"];
+    8 -> 1 [style = "solid"];
+    10 -> 8 [style = "dashed"];
+    10 -> 1 [style = "solid"];
+    12 -> 10 [style = "dashed"];
+    12 -> 1 [style = "solid"];
+    "ref-12" -> 12 [style = "dashed", taillabel = "-1"];
+
+    subgraph {
+    rank = same
+    "L-1" [label = "ref", shape = "none"];
+    "ref-12" [label = "@-12"];
+    }
+
+    subgraph {
+    rank = same
+    "L0" [label = "0", shape = "none"];
+    12 [label = "obj_prop5-12"];
+    }
+
+    subgraph {
+    rank = same
+    "L1" [label = "1", shape = "none"];
+    10 [label = "obj_prop6-10"];
+    }
+
+    subgraph {
+    rank = same
+    "L2" [label = "2", shape = "none"];
+    8 [label = "obj_prop4-8"];
+    }
+
+    subgraph {
+    rank = same
+    "L3" [label = "3", shape = "none"];
+    6 [label = "SubFault1-6"];
+    }
+
+    subgraph {
+    rank = same
+    "L4" [label = "4", shape = "none"];
+    4 [label = "SubFault2-4"];
+    }
+
+    subgraph {
+    rank = same
+    "L5" [label = "5", shape = "none"];
+    2 [label = "BasicAttack-2"];
+    }
+
+    subgraph {
+    rank = same
+    "L12" [label = "12", shape = "none"];
+    1 [label = "True-1"];
+    }
+
+}

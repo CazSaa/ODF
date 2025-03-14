@@ -2,6 +2,8 @@ import pytest
 from dd import cudd, cudd_add
 from dd.cudd import restrict
 
+from odf.checker.layer1.layer1_bdd import Layer1BDDTransformer
+
 
 def test_simple():
     """
@@ -165,3 +167,12 @@ def test_eval():
 
     with pytest.raises(ValueError):
         an.eval({'a': True})
+
+
+def test_mrs_vars(parse_rule, attack_tree, fault_tree, object_graph):
+    formula_tree = parse_rule(
+        "MRS(BasicAttack) && (ComplexFault || !ComplexFault)", "layer1_formula")
+    transformer = Layer1BDDTransformer(attack_tree, fault_tree, object_graph)
+    bdd = transformer.transform(formula_tree)
+    manager = transformer.bdd
+    manager.dump('mrs_vars_all_vars.dot', [bdd])

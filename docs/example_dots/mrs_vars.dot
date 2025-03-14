@@ -1,0 +1,27 @@
+digraph {
+
+    "L-1" -> "L5" [style = "invis"];
+    "L5" -> "L7" [style = "invis"];
+    2 -> 1 [style = "dashed", taillabel = "-1"];
+    2 -> 1 [style = "solid"];
+    "ref2" -> 2 [style = "dashed"];
+
+    subgraph {
+    rank = same
+    "L-1" [label = "ref", shape = "none"];
+    "ref2" [label = "@2"];
+    }
+
+    subgraph {
+    rank = same
+    "L5" [label = "5", shape = "none"];
+    2 [label = "BasicAttack-2"];
+    }
+
+    subgraph {
+    rank = same
+    "L7" [label = "7", shape = "none"];
+    1 [label = "True-1"];
+    }
+
+}
