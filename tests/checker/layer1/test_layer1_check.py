@@ -268,3 +268,167 @@ def test_evidence_configuration_interaction(do_layer1_check):
             "ComplexAttack [SubAttack1:1, SubAttack2:1]",
             "{obj_prop1:1}"  # Missing obj_prop2
         )
+
+
+def test_mrs_with_mixed_gates(do_layer1_check, attack_tree_mixed_gates, capsys):
+    """Test MRS computation with a complex tree containing mixed gate types."""
+
+    # Test MRS of PathA - requires all basic events in path
+    assert do_layer1_check(
+        "MRS(PathA)",
+        "{Attack1:1, Attack2:1, StepA2:1}",
+        attack_tree=attack_tree_mixed_gates
+    )
+
+    # Still minimal because Attack3 is ignored since it's not in PathA
+    assert do_layer1_check(
+        "MRS(PathA)",
+        "{Attack1:1, Attack2:1, StepA2:1, Attack3:1}",
+        attack_tree=attack_tree_mixed_gates
+    )
+    # Will print warning about extra variable
+    captured = capsys.readouterr()
+    assert "You specified variables that either do not exist" in captured.out
+    assert "Attack3" in captured.out
+
+    # PathB - should work with either SubPath
+    assert do_layer1_check(
+        "MRS(PathB)",
+        "{Attack3:1, Attack4:1, Attack5:0, Attack6:0}",  # First minimal set
+        attack_tree=attack_tree_mixed_gates
+    )
+    assert do_layer1_check(
+        "MRS(PathB)",
+        "{Attack5:1, Attack6:1, Attack3:0, Attack4:0}",  # Second minimal set
+        attack_tree=attack_tree_mixed_gates
+    )
+
+    # Both paths together is not minimal
+    assert not do_layer1_check(
+        "MRS(PathB)",
+        "{Attack3:1, Attack4:1, Attack5:1, Attack6:1}",
+        attack_tree=attack_tree_mixed_gates
+    )
+    assert not do_layer1_check(
+        "MRS(PathB)",
+        "{Attack3:1, Attack4:0, Attack5:1, Attack6:1}",
+        attack_tree=attack_tree_mixed_gates
+    )
+    assert not do_layer1_check(
+        "MRS(PathB)",
+        "{Attack3:1, Attack4:1, Attack5:0, Attack6:1}",
+        attack_tree=attack_tree_mixed_gates
+    )
+
+
+def test_mrs_with_conditions_mixed_gates(do_layer1_check,
+                                         attack_tree_mixed_gates):
+    """Test MRS computation with nodes that have conditions in mixed gate tree."""
+
+    # Test SubPathC1 which has conditional nodes
+    assert do_layer1_check(
+        "MRS(SubPathC1)",
+        "{Attack7:1, prop1:1, Attack8:0, prop2:0}",
+        attack_tree=attack_tree_mixed_gates
+    )
+
+    assert do_layer1_check(
+        "MRS(SubPathC1)",
+        "{Attack8:1, prop2:1, Attack7:0, prop1:0}",
+        attack_tree=attack_tree_mixed_gates
+    )
+
+    # Both paths together is not minimal
+    assert not do_layer1_check(
+        "MRS(SubPathC1)",
+        "{Attack7:1, Attack8:1, prop1:1, prop2:1}",
+        attack_tree=attack_tree_mixed_gates
+    )
+    assert not do_layer1_check(
+        "MRS(SubPathC1)",
+        "{Attack7:1, Attack8:1, prop1:0, prop2:1}",
+        attack_tree=attack_tree_mixed_gates
+    )
+    assert not do_layer1_check(
+        "MRS(SubPathC1)",
+        "{Attack7:1, Attack8:1, prop1:1, prop2:0}",
+        attack_tree=attack_tree_mixed_gates
+    )
+
+
+def test_mrs_nested_gates_mixed(do_layer1_check, attack_tree_mixed_gates):
+    """Test MRS computation with deeply nested mixed gates."""
+
+    # Test SubPathC2 which has nested OR inside AND
+    # Minimal sets are: {Attack9, Attack10} or {Attack9, Attack11}
+    assert do_layer1_check(
+        "MRS(SubPathC2)",
+        "{Attack9:1, Attack10:1, Attack11:0}",
+        attack_tree=attack_tree_mixed_gates
+    )
+
+    assert do_layer1_check(
+        "MRS(SubPathC2)",
+        "{Attack9:1, Attack11:1, Attack10:0}",
+        attack_tree=attack_tree_mixed_gates
+    )
+
+    # All attacks together is not minimal
+    assert not do_layer1_check(
+        "MRS(SubPathC2)",
+        "{Attack9:1, Attack10:1, Attack11:1}",
+        attack_tree=attack_tree_mixed_gates
+    )
+
+
+def test_mrs_root_mixed_gates(do_layer1_check, attack_tree_mixed_gates):
+    """Test MRS computation at the root level with all paths through mixed gates."""
+
+    # Test complete tree - each path represents a different minimal set
+    assert do_layer1_check(
+        "MRS(Root)",
+        "{Attack1:1, Attack2:1, StepA2:1, Attack3:0, Attack4:0, Attack5:0, Attack6:0, Attack7:0, Attack8:0, Attack9:0, Attack10:0, Attack11:0, SubPathC3:0, prop1:0, prop2:0}",
+        # PathA minimal set
+        attack_tree=attack_tree_mixed_gates
+    )
+
+    assert do_layer1_check(
+        "MRS(Root)",
+        "{Attack3:1, Attack4:1, Attack1:0, Attack2:0, StepA2:0, Attack5:0, Attack6:0, Attack7:0, Attack8:0, Attack9:0, Attack10:0, Attack11:0, SubPathC3:0, prop1:0, prop2:0}",
+        # PathB (first option) minimal set
+        attack_tree=attack_tree_mixed_gates
+    )
+
+    assert do_layer1_check(
+        "MRS(Root)",
+        "{Attack5:1, Attack6:1, Attack1:0, Attack2:0, StepA2:0, Attack3:0, Attack4:0, Attack7:0, Attack8:0, Attack9:0, Attack10:0, Attack11:0, SubPathC3:0, prop1:0, prop2:0}",
+        # PathB (second option) minimal set
+        attack_tree=attack_tree_mixed_gates
+    )
+
+    # One minimal set through PathC
+    assert do_layer1_check(
+        "MRS(Root)",
+        "{Attack7:1, Attack9:1, Attack10:1, SubPathC3:1, prop1:1, Attack1:0, Attack2:0, StepA2:0, Attack3:0, Attack4:0, Attack5:0, Attack6:0, Attack8:0, Attack11:0, prop2:0}",
+        # With conditions
+        attack_tree=attack_tree_mixed_gates
+    )
+
+    # Alternative through PathC using different OR choices
+    assert do_layer1_check(
+        "MRS(Root)",
+        "{Attack8:1, Attack9:1, Attack11:1, SubPathC3:1, prop2:1, Attack1:0, Attack2:0, StepA2:0, Attack3:0, Attack4:0, Attack5:0, Attack6:0, Attack7:0, Attack10:0, prop1:0}",
+        attack_tree=attack_tree_mixed_gates
+    )
+
+    # Multiple paths together is not minimal
+    assert not do_layer1_check(
+        "MRS(Root)",
+        "{Attack1:1, Attack2:1, StepA2:1, Attack3:1, Attack4:1, Attack5:0, Attack6:0, Attack7:0, Attack8:0, Attack9:0, Attack10:0, Attack11:0, SubPathC3:0, prop1:0, prop2:0}",
+        attack_tree=attack_tree_mixed_gates
+    )
+    assert not do_layer1_check(
+        "MRS(Root)",
+        "{Attack1:1, Attack2:1, StepA2:1, Attack3:1, Attack4:0, Attack5:0, Attack6:0, Attack7:0, Attack8:0, Attack9:0, Attack10:0, Attack11:0, SubPathC3:0, prop1:0, prop2:0}",
+        attack_tree=attack_tree_mixed_gates
+    )

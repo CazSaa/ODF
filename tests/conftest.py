@@ -116,6 +116,44 @@ def attack_tree1(attack_tree_str1, parse_rule):
 
 
 @pytest.fixture
+def attack_tree_mixed_gates(transform_disruption_tree_str):
+    """Create an attack tree with mixed AND/OR gates for interesting MRS patterns."""
+    return transform_disruption_tree_str("""
+    toplevel Root;
+    Root or PathA PathB PathC;
+
+    // Path A: Simple AND chain
+    PathA and StepA1 StepA2;
+    StepA1 and Attack1 Attack2;
+    StepA2;
+    Attack1;
+    Attack2;
+
+    // Path B: OR of ANDs - multiple minimal sets
+    PathB or SubPathB1 SubPathB2;
+    SubPathB1 and Attack3 Attack4;
+    SubPathB2 and Attack5 Attack6;
+    Attack3;
+    Attack4;
+    Attack5;
+    Attack6;
+
+    // Path C: Complex mix of gates with conditions
+    PathC and SubPathC1 SubPathC2 SubPathC3;
+    SubPathC1 or Attack7 Attack8;
+    SubPathC2 and Attack9 SubPathC2_1;
+    SubPathC2_1 or Attack10 Attack11;
+    SubPathC3;
+    SubPathC2_1;
+    Attack7 cond = (prop1);
+    Attack8 cond = (prop2);
+    Attack9;
+    Attack10;
+    Attack11;
+    """)
+
+
+@pytest.fixture
 def fault_tree1(fault_tree_str1, parse_rule):
     """Create a fault tree with a basic node."""
     tree = parse_rule(fault_tree_str1, "disruption_tree")
