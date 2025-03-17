@@ -55,7 +55,7 @@ def layer1_check(formula: Tree,
     if len(non_existing_vars) > 0:
         # todo caz
         print(
-            f"WARNING: You specified variables that do not exist in the model, these will be ignored: {non_existing_vars}")
+            f"WARNING: You specified variables that either do not exist (perhaps you made a typo?), or do not influence the outcome of the formula. These variables will be ignored, and are not necessary to satisfy the given formula: {non_existing_vars}")
         for var in non_existing_vars:
             del configuration[var]
 

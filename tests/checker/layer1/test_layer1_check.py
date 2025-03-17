@@ -54,7 +54,7 @@ def test_extra_variables(do_layer1_check, capsys):
 
     # Check that warning was printed
     captured = capsys.readouterr()
-    assert "You specified variables that do not exist" in captured.out
+    assert "You specified variables that either do not exist" in captured.out
     assert "NonexistentVar" in captured.out
     # Check that the formula was still evaluated correctly
     assert result == True
