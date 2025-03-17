@@ -77,14 +77,14 @@ def test_condition_transformer():
     assert bdd == expected
 
 
-def test_intermediate_node_bdd(attack_tree):
+def test_intermediate_node_bdd(attack_tree1):
     """Test intermediate_node_to_bdd function directly."""
     # Create BDD manager and test intermediate node conversion
     bdd_manager = cudd.BDD()
     bdd_manager.declare('SubAttack1', 'SubAttack2', 'obj_prop1', 'obj_prop2')
 
     # Test ComplexAttack node which has an AND gate and conditions
-    bdd = intermediate_node_to_bdd(bdd_manager, attack_tree, 'ComplexAttack')
+    bdd = intermediate_node_to_bdd(bdd_manager, attack_tree1, 'ComplexAttack')
     expected = (bdd_manager.var('SubAttack1') & bdd_manager.var('SubAttack2')) & \
                (bdd_manager.var('obj_prop1') & bdd_manager.var('obj_prop2'))
     assert bdd == expected

@@ -64,7 +64,7 @@ def parse_rule(make_parser):
 
 
 @pytest.fixture
-def attack_tree_str():
+def attack_tree_str1():
     """Create an attack tree with basic and non-basic nodes."""
     return """
     toplevel Root;
@@ -77,7 +77,7 @@ def attack_tree_str():
 
 
 @pytest.fixture
-def fault_tree_str():
+def fault_tree_str1():
     """Create a fault tree with basic and complex nodes."""
     return """
     toplevel Root;
@@ -90,7 +90,7 @@ def fault_tree_str():
 
 
 @pytest.fixture
-def object_graph_str():
+def object_graph_str1():
     """Create an object graph with properties."""
     return """
     toplevel Root;
@@ -109,33 +109,33 @@ def transform_disruption_tree_str(parse_rule):
 
 
 @pytest.fixture
-def attack_tree(attack_tree_str, parse_rule):
+def attack_tree1(attack_tree_str1, parse_rule):
     """Create an attack tree with basic and non-basic nodes."""
-    tree = parse_rule(attack_tree_str, "disruption_tree")
+    tree = parse_rule(attack_tree_str1, "disruption_tree")
     return DisruptionTreeTransformer().transform(tree)
 
 
 @pytest.fixture
-def fault_tree(fault_tree_str, parse_rule):
+def fault_tree1(fault_tree_str1, parse_rule):
     """Create a fault tree with a basic node."""
-    tree = parse_rule(fault_tree_str, "disruption_tree")
+    tree = parse_rule(fault_tree_str1, "disruption_tree")
     return DisruptionTreeTransformer().transform(tree)
 
 
 @pytest.fixture
-def object_graph(object_graph_str, parse_rule):
+def object_graph1(object_graph_str1, parse_rule):
     """Create an object graph with properties."""
-    tree = parse_rule(object_graph_str, "object_graph_tree")
+    tree = parse_rule(object_graph_str1, "object_graph_tree")
     return ObjectGraphTransformer().transform(tree)
 
 
 @pytest.fixture
-def parse_and_get_bdd(attack_tree, fault_tree, object_graph, parse_rule):
-    def _parse_and_get_bdd(formula, attack_tree_=attack_tree,
-                           fault_tree_=fault_tree, object_graph_=object_graph):
+def parse_and_get_bdd(attack_tree1, fault_tree1, object_graph1, parse_rule):
+    def _parse_and_get_bdd(formula, attack_tree=attack_tree1,
+                           fault_tree=fault_tree1, object_graph=object_graph1):
         tree = parse_rule(formula, "layer1_formula")
-        transformer = Layer1BDDTransformer(attack_tree_, fault_tree_,
-                                           object_graph_)
+        transformer = Layer1BDDTransformer(attack_tree, fault_tree,
+                                           object_graph)
         bdd = transformer.transform(tree)
         return transformer, bdd
 
@@ -143,13 +143,13 @@ def parse_and_get_bdd(attack_tree, fault_tree, object_graph, parse_rule):
 
 
 @pytest.fixture
-def do_layer1_check(attack_tree, fault_tree, object_graph, parse_rule):
-    def _do_layer1_check(formula, configuration, attack_tree_=attack_tree,
-                         fault_tree_=fault_tree, object_graph_=object_graph):
+def do_layer1_check(attack_tree1, fault_tree1, object_graph1, parse_rule):
+    def _do_layer1_check(formula, configuration, attack_tree=attack_tree1,
+                         fault_tree=fault_tree1, object_graph=object_graph1):
         formula_tree = parse_rule(formula, "layer1_formula")
         config_tree = parse_rule(configuration, "configuration")
         config = parse_configuration(config_tree)
-        return layer1_check(formula_tree, config, attack_tree_, fault_tree_,
-                            object_graph_)
+        return layer1_check(formula_tree, config, attack_tree, fault_tree,
+                            object_graph)
 
     return _do_layer1_check

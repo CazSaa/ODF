@@ -169,10 +169,10 @@ def test_eval():
         an.eval({'a': True})
 
 
-def test_mrs_vars(parse_rule, attack_tree, fault_tree, object_graph):
+def test_mrs_vars(parse_rule, attack_tree1, fault_tree1, object_graph1):
     formula_tree = parse_rule(
         "MRS(BasicAttack) && (ComplexFault || !ComplexFault)", "layer1_formula")
-    transformer = Layer1BDDTransformer(attack_tree, fault_tree, object_graph)
+    transformer = Layer1BDDTransformer(attack_tree1, fault_tree1, object_graph1)
     bdd = transformer.transform(formula_tree)
     manager = transformer.bdd
     manager.dump('mrs_vars_all_vars.dot', [bdd])

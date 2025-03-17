@@ -5,8 +5,8 @@ from odf.checker.layer1.layer1_bdd import Layer1FormulaVisitor
 
 
 @pytest.fixture
-def visitor(attack_tree, fault_tree, object_graph):
-    return Layer1FormulaVisitor(attack_tree, fault_tree, object_graph)
+def visitor(attack_tree1, fault_tree1, object_graph1):
+    return Layer1FormulaVisitor(attack_tree1, fault_tree1, object_graph1)
 
 
 def create_node_atom(name: str) -> Tree:
