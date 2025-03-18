@@ -4,13 +4,7 @@ from odf.checker.layer1.layer1_bdd import Layer1BDDTransformer
 from odf.core.types import Configuration
 from odf.models.disruption_tree import DisruptionTree
 from odf.models.object_graph import ObjectGraph
-from odf.transformers.configuration import ConfigurationTransformer
-
-
-def parse_configuration(configuration_tree: Tree) -> Configuration:
-    assert configuration_tree.data == "configuration"
-    transformer = ConfigurationTransformer()
-    return transformer.transform(configuration_tree)
+from odf.transformers.configuration import parse_configuration
 
 
 def check_layer1_query(formula: Tree,

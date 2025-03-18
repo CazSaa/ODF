@@ -6,9 +6,10 @@ from pathlib import Path
 import pytest
 from lark import Lark
 
-from odf.checker.layer1.check_layer1 import parse_configuration, layer1_check, \
+from odf.checker.layer1.check_layer1 import layer1_check, \
     layer1_compute_all
 from odf.checker.layer1.layer1_bdd import Layer1BDDTransformer
+from odf.transformers.configuration import parse_configuration
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
 from odf.transformers.object_graph import ObjectGraphTransformer
 
