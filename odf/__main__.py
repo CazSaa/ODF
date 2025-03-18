@@ -55,13 +55,16 @@ def execute_str(odl_text):
     except VisitError as e:
         raise MyVisitError(e, "object graph")
 
-    validate_unique_node_names(attack_tree, fault_tree, object_graph)
-
-    validate_disruption_tree_references(attack_tree, object_graph)
-    validate_disruption_tree_references(fault_tree, object_graph)
+    validate_models(attack_tree, fault_tree, object_graph)
 
     check_formulas(formulas_parse_tree, attack_tree, fault_tree,
                    object_graph)
+
+
+def validate_models(attack_tree, fault_tree, object_graph):
+    validate_unique_node_names(attack_tree, fault_tree, object_graph)
+    validate_disruption_tree_references(attack_tree, object_graph)
+    validate_disruption_tree_references(fault_tree, object_graph)
 
 
 def main(odl_text: str):

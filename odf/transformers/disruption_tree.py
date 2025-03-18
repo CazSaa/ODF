@@ -1,3 +1,5 @@
+from fractions import Fraction
+
 from lark import Transformer
 
 from odf.models.disruption_tree import DisruptionTree, DTNode
@@ -15,7 +17,7 @@ class DisruptionTreeTransformer(Transformer):
         self.intermediate_nodes = set()
 
     def probability(self, items):
-        return ("probability", float(items[0].value))
+        return ("probability", Fraction(items[0].value))
 
     def objects(self, items):
         # items[0] is node_list result with list of names

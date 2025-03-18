@@ -93,13 +93,16 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin,
     def __init__(self,
                  attack_tree: DisruptionTree,
                  fault_tree: DisruptionTree,
-                 object_graph: ObjectGraph):
+                 object_graph: ObjectGraph,
+                 reordering=None):
         super().__init__()
         self.attack_tree = attack_tree
         self.fault_tree = fault_tree
         self.object_graph = object_graph
         self.bdd_vars: list[str] = []
         self.bdd = cudd.BDD()
+        if reordering is not None:
+            self.bdd.configure(reordering=reordering)
         self.prime_count = 0
 
     def transform(self, tree: Tree[_Leaf_T]) -> cudd.Function:

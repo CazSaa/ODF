@@ -1,3 +1,5 @@
+from fractions import Fraction
+
 import pytest
 from lark.exceptions import VisitError
 
@@ -13,7 +15,7 @@ def test_basic_disruption_tree(parse_rule):
     result = transformer.transform(tree)
     node = result.nodes["A"]["data"]
     assert node.name == "A"
-    assert node.probability == 0.5
+    assert node.probability == Fraction("0.5")
     assert node.objects is None
     assert node.object_properties == set()
     assert node.gate_type is None
@@ -29,7 +31,7 @@ def test_disruption_tree_with_all_attributes(parse_rule):
     result = transformer.transform(tree)
     node = result.nodes["A"]["data"]
     assert node.name == "A"
-    assert node.probability == 0.5
+    assert node.probability == Fraction("0.5")
     assert node.objects == ["obj1", "obj2"]
     assert node.object_properties == {"x", "y"}
     assert node.gate_type is None
@@ -56,7 +58,7 @@ def test_disruption_tree_with_intermediate_node(parse_rule):
 
     # Check node attributes
     assert result.nodes["Root"]["data"].gate_type == "and"
-    assert result.nodes["A"]["data"].probability == 0.5
+    assert result.nodes["A"]["data"].probability == Fraction("0.5")
     assert result.nodes["B"]["data"].probability is None
     assert result.nodes["A"]["data"].gate_type is None
     assert result.nodes["B"]["data"].gate_type is None
@@ -102,7 +104,7 @@ def test_node_can_be_both_basic_and_child(parse_rule):
 
     # Check both structure and properties
     assert list(result.edges()) == [("Root", "A"), ("Root", "B")]
-    assert result.nodes["A"]["data"].probability == 0.5
+    assert result.nodes["A"]["data"].probability == Fraction("0.5")
     assert result.nodes["B"]["data"].objects == ["obj1"]
 
 
@@ -120,7 +122,7 @@ def test_node_can_be_both_basic_and_intermediate(parse_rule):
 
     # Check structure and properties are preserved
     assert list(result.edges()) == [("A", "B"), ("A", "C")]
-    assert result.nodes["A"]["data"].probability == 0.5
+    assert result.nodes["A"]["data"].probability == Fraction("0.5")
     assert result.nodes["A"]["data"].gate_type == "and"
     assert result.nodes["B"]["data"].objects == ["obj1"]
 
@@ -160,7 +162,7 @@ def test_complex_disruption_tree(parse_rule):
         assert result.nodes[node]["data"].gate_type is None
 
     # Check node attributes
-    assert result.nodes["A"]["data"].probability == 0.5
+    assert result.nodes["A"]["data"].probability == Fraction("0.5")
     assert result.nodes["A"]["data"].objects == ["obj1"]
 
     assert result.nodes["B"]["data"].probability is None
@@ -170,11 +172,11 @@ def test_complex_disruption_tree(parse_rule):
     assert result.nodes["D"]["data"].objects == ["obj2", "obj3"]
     assert result.nodes["D"]["data"].probability is None
 
-    assert result.nodes["E"]["data"].probability == 0.6
+    assert result.nodes["E"]["data"].probability == Fraction("0.6")
     assert result.nodes["E"]["data"].object_properties == {"x", "y"}
     assert result.nodes["E"]["data"].objects == ["obj2"]
 
-    assert result.nodes["F"]["data"].probability == 0.4
+    assert result.nodes["F"]["data"].probability == Fraction("0.4")
 
     assert result.nodes["G"]["data"].objects == ["obj4"]
 
@@ -214,7 +216,7 @@ def test_complex_disruption_tree_basic_nodes_first(parse_rule):
         assert result.nodes[node]["data"].gate_type is None
 
     # Check node attributes
-    assert result.nodes["A"]["data"].probability == 0.5
+    assert result.nodes["A"]["data"].probability == Fraction("0.5")
     assert result.nodes["A"]["data"].objects == ["obj1"]
 
     assert result.nodes["B"]["data"].probability is None
@@ -224,11 +226,11 @@ def test_complex_disruption_tree_basic_nodes_first(parse_rule):
     assert result.nodes["D"]["data"].objects == ["obj2", "obj3"]
     assert result.nodes["D"]["data"].probability is None
 
-    assert result.nodes["E"]["data"].probability == 0.6
+    assert result.nodes["E"]["data"].probability == Fraction("0.6")
     assert result.nodes["E"]["data"].object_properties == {"x", "y"}
     assert result.nodes["E"]["data"].objects == ["obj2"]
 
-    assert result.nodes["F"]["data"].probability == 0.4
+    assert result.nodes["F"]["data"].probability == Fraction("0.4")
 
     assert result.nodes["G"]["data"].objects == ["obj4"]
 
@@ -261,7 +263,7 @@ def test_attribute_combinations(parse_rule):
         node = result.nodes["Root"]["data"]
 
         if "prob = 0.5" in case:
-            assert node.probability == 0.5
+            assert node.probability == Fraction("0.5")
         else:
             assert node.probability is None
 

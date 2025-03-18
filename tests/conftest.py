@@ -6,9 +6,11 @@ from pathlib import Path
 import pytest
 from lark import Lark
 
+from odf.__main__ import validate_models
 from odf.checker.layer1.check_layer1 import layer1_check, \
     layer1_compute_all
 from odf.checker.layer1.layer1_bdd import Layer1BDDTransformer
+from odf.checker.layer2.check_layer2 import check_layer2_query
 from odf.transformers.configuration import parse_configuration
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
 from odf.transformers.object_graph import ObjectGraphTransformer
@@ -111,6 +113,15 @@ def transform_disruption_tree_str(parse_rule):
 
 
 @pytest.fixture
+def transform_object_graph_str(parse_rule):
+    def _transform_object_graph_str(graph_str):
+        tree = parse_rule(graph_str, "object_graph_tree")
+        return ObjectGraphTransformer().transform(tree)
+
+    return _transform_object_graph_str
+
+
+@pytest.fixture
 def attack_tree1(attack_tree_str1, parse_rule):
     """Create an attack tree with basic and non-basic nodes."""
     tree = parse_rule(attack_tree_str1, "disruption_tree")
@@ -152,6 +163,53 @@ def attack_tree_mixed_gates(transform_disruption_tree_str):
     Attack9;
     Attack10;
     Attack11;
+    """)
+
+
+@pytest.fixture
+def attack_tree_paper_example(transform_disruption_tree_str):
+    """Create the attack tree from the paper example."""
+    return transform_disruption_tree_str("""
+    toplevel Attacker_breaks_in_house;
+    Attacker_breaks_in_house or EDLU FD;
+    FD or PL DD;
+    
+    Attacker_breaks_in_house objects=[House,Inhabitant];
+    EDLU objects=[Door] prob=0.17;
+    FD objects=[Door];
+    PL objects=[Lock] cond=(LP) prob=0.10;
+    DD objects=[Door] cond=(DF) prob=0.13;
+    """)
+
+
+@pytest.fixture
+def fault_tree_paper_example(transform_disruption_tree_str):
+    """Create the fault tree from the paper example."""
+    return transform_disruption_tree_str("""
+    toplevel Fire_and_impossible_escape;
+    Fire_and_impossible_escape and FBO DGB;
+    DGB and DSL LGJ;
+    
+    Fire_and_impossible_escape objects=[House,Inhabitant] cond=(Inhab_in_House);
+    FBO objects=[House,Inhabitant] cond=(!HS && IU) prob=0.21;
+    DGB objects=[Door];
+    DSL objects=[Door] prob=0.20;
+    LGJ objects=[Lock] cond=(LJ) prob=0.70;
+    """)
+
+
+@pytest.fixture
+def object_graph_paper_example(transform_object_graph_str):
+    """Create the object graph from the paper example."""
+    return transform_object_graph_str("""
+    toplevel House;
+    House has Door;
+    Door has Lock;
+    Inhabitant properties=[Inhab_in_House,IU];
+    
+    House properties=[HS];
+    Door properties=[DF];
+    Lock properties=[LP,LJ];
     """)
 
 
@@ -207,3 +265,14 @@ def do_layer1_compute_all(attack_tree1, fault_tree1, object_graph1, parse_rule):
                                   object_graph)
 
     return _do_layer1_compute_all
+
+
+@pytest.fixture
+def do_check_layer2(parse_rule):
+    def _do_check_layer2(formula, attack_tree, fault_tree, object_graph):
+        validate_models(attack_tree, fault_tree, object_graph)
+        formula_tree = parse_rule(formula, "layer2_query")
+        return check_layer2_query(formula_tree, attack_tree, fault_tree,
+                                  object_graph)
+
+    return _do_check_layer2
