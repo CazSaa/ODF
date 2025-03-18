@@ -43,6 +43,38 @@ def test_valid_references():
     validate_disruption_tree_references(attack_tree, object_graph)
 
 
+def test_property_matches_node_name():
+    odl_text = """
+    [odg.attack_tree]
+    toplevel Root;
+    Root objects=[Door];
+
+    [odg.fault_tree]
+    toplevel FRoot;
+
+    [odg.object_graph]
+    toplevel House;
+    House has Door Window;
+    
+    Door properties=[Root];  // Property name matches node name
+    Window properties=[WF];
+    
+    [formulas]
+    {}Root;
+    """
+
+    parse_tree = parse(odl_text)
+    trees = parse_tree.children
+    attack_tree = DisruptionTreeTransformer().transform(trees[0])
+    fault_tree = DisruptionTreeTransformer().transform(trees[1])
+    object_graph = ObjectGraphTransformer().transform(trees[2])
+
+    with pytest.raises(CrossReferenceError) as exc_info:
+        validate_unique_node_names(attack_tree, fault_tree, object_graph)
+    assert "Property name 'Root' conflicts with existing node name" in str(
+        exc_info.value)
+
+
 def test_duplicate_node_names():
     odl_text = """
     [odg.attack_tree]

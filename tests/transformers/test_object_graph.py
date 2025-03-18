@@ -1,6 +1,7 @@
 import pytest
 from lark.exceptions import VisitError
 
+from odf.transformers.exceptions import DuplicateObjectPropertyError
 from odf.transformers.object_graph import ObjectGraphTransformer
 
 
@@ -67,6 +68,24 @@ def test_duplicate_intermediate_object_definition_raises_error(parse_rule):
         excinfo.value.orig_exc)
 
 
+def test_duplicate_object_properties(parse_rule):
+    transformer = ObjectGraphTransformer()
+    tree = parse_rule("""toplevel House;
+    House has Door Window;
+
+    Door properties=[DF,open];  // Both Door and Window have 'open' property
+    Window properties=[WF,open];
+    """, "object_graph_tree")
+
+    with pytest.raises(VisitError) as exc_info:
+        transformer.transform(tree)
+    assert isinstance(exc_info.value.orig_exc, DuplicateObjectPropertyError)
+    assert "Property 'open' is used by multiple objects" in str(
+        exc_info.value.orig_exc)
+    assert "Door" in str(exc_info.value.orig_exc)
+    assert "Window" in str(exc_info.value.orig_exc)
+
+
 def test_object_can_be_both_basic_and_child(parse_rule):
     """Test that an object can be both a basic object and appear as a child in relationships."""
     transformer = ObjectGraphTransformer()
@@ -114,9 +133,9 @@ def test_complex_object_graph(parse_rule):
     C has F G;
     A properties = [prop1];
     D properties = [prop2, prop3];
-    E properties = [prop2];
+    E properties = [prop4];
     F;
-    G properties = [prop4];
+    G properties = [prop5];
     """, "object_graph_tree")
 
     result = transformer.transform(tree)
@@ -137,9 +156,9 @@ def test_complex_object_graph(parse_rule):
     assert result.nodes["B"]["data"].properties is None
     assert result.nodes["C"]["data"].properties is None
     assert result.nodes["D"]["data"].properties == ["prop2", "prop3"]
-    assert result.nodes["E"]["data"].properties == ["prop2"]
+    assert result.nodes["E"]["data"].properties == ["prop4"]
     assert result.nodes["F"]["data"].properties is None
-    assert result.nodes["G"]["data"].properties == ["prop4"]
+    assert result.nodes["G"]["data"].properties == ["prop5"]
 
 
 def test_complex_object_graph_basic_nodes_first(parse_rule):
@@ -148,9 +167,9 @@ def test_complex_object_graph_basic_nodes_first(parse_rule):
     tree = parse_rule("""toplevel Root;
     A properties = [prop1];
     D properties = [prop2, prop3];
-    E properties = [prop2];
+    E properties = [prop4];
     F;
-    G properties = [prop4];
+    G properties = [prop5];
     B has D E;
     C has F G;
     Root has A B C;
@@ -174,9 +193,9 @@ def test_complex_object_graph_basic_nodes_first(parse_rule):
     assert result.nodes["B"]["data"].properties is None
     assert result.nodes["C"]["data"].properties is None
     assert result.nodes["D"]["data"].properties == ["prop2", "prop3"]
-    assert result.nodes["E"]["data"].properties == ["prop2"]
+    assert result.nodes["E"]["data"].properties == ["prop4"]
     assert result.nodes["F"]["data"].properties is None
-    assert result.nodes["G"]["data"].properties == ["prop4"]
+    assert result.nodes["G"]["data"].properties == ["prop5"]
 
 
 def test_cyclic_graph_raises_error(parse_rule):

@@ -9,7 +9,8 @@ def validate_unique_node_names(attack_tree: DisruptionTree,
     """Validate that all node names are unique across all trees.
     
     Names must be unique across attack tree nodes, fault tree nodes,
-    and object graph nodes to prevent ambiguity in references.
+    and object graph nodes to prevent ambiguity in references. Object
+    property names must also not conflict with node names.
     
     Args:
         attack_tree: The attack tree to validate
@@ -27,6 +28,12 @@ def validate_unique_node_names(attack_tree: DisruptionTree,
                 raise CrossReferenceError(f"Node name '{node_name}' is used in"
                                           f" multiple trees")
             node_names.add(node_name)
+
+    # Check for conflicts between node names and property names
+    for prop in object_graph.object_properties:
+        if prop in node_names:
+            raise CrossReferenceError(
+                f"Property name '{prop}' conflicts with existing node name")
 
 
 def validate_disruption_tree_references(dt: DisruptionTree,

@@ -58,3 +58,13 @@ class NotExactlyOneRootError(MalformedTreeError):
 
     def __init__(self):
         super().__init__("Graph has more than one root")
+
+
+class DuplicateObjectPropertyError(MalformedTreeError):
+    """Raised when the same property name is used on multiple objects."""
+
+    def __init__(self, property_name: str, objects: set[str]):
+        self.property_name = property_name
+        self.objects = objects
+        super().__init__(
+            f"Property '{property_name}' is used by multiple objects: {objects}")

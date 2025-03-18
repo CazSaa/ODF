@@ -1,7 +1,10 @@
+from collections import defaultdict
+
 from lark import Transformer
 
 from odf.models.object_graph import ObjectGraph, ObjectNode
-from odf.transformers.exceptions import DuplicateObjectDefinitionError
+from odf.transformers.exceptions import DuplicateObjectDefinitionError, \
+    DuplicateObjectPropertyError
 
 
 # noinspection PyMethodMayBeStatic
@@ -13,6 +16,8 @@ class ObjectGraphTransformer(Transformer):
         self.basic_objects = set()
         # Track which nodes have been defined as intermediate objects
         self.intermediate_objects = set()
+        # Track which objects use each property
+        self.property_objects: dict[str, set[str]] = defaultdict(set)
 
     # noinspection PyRedundantParentheses
     def properties(self, items):
@@ -32,6 +37,17 @@ class ObjectGraphTransformer(Transformer):
             assert len(items) == 2
             # Transformed properties list (key being "properties")
             attrs = dict([items[1]])
+
+            # Track which properties are used by this object
+            if "properties" in attrs:
+                properties = attrs["properties"]
+                for prop in properties:
+                    # Check if property is already used by another object
+                    if self.property_objects[prop] and name not in \
+                            self.property_objects[prop]:
+                        raise DuplicateObjectPropertyError(prop, (
+                                    self.property_objects[prop] | {name}))
+                    self.property_objects[prop].add(name)
 
         # Create node if it doesn't exist (might exist from intermediate object)
         if not self.graph.has_node(name):
