@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 from lark import Lark
 
-from odf.checker.layer1.check_layer1 import parse_configuration, layer1_check
+from odf.checker.layer1.check_layer1 import parse_configuration, layer1_check, \
+    layer1_compute_all
 from odf.checker.layer1.layer1_bdd import Layer1BDDTransformer
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
 from odf.transformers.object_graph import ObjectGraphTransformer
@@ -191,3 +192,17 @@ def do_layer1_check(attack_tree1, fault_tree1, object_graph1, parse_rule):
                             object_graph)
 
     return _do_layer1_check
+
+
+@pytest.fixture
+def do_layer1_compute_all(attack_tree1, fault_tree1, object_graph1, parse_rule):
+    def _do_layer1_compute_all(formula, configuration, attack_tree=attack_tree1,
+                               fault_tree=fault_tree1,
+                               object_graph=object_graph1):
+        formula_tree = parse_rule(formula, "layer1_formula")
+        config_tree = parse_rule(configuration, "configuration")
+        config = parse_configuration(config_tree)
+        return layer1_compute_all(formula_tree, config, attack_tree, fault_tree,
+                                  object_graph)
+
+    return _do_layer1_compute_all

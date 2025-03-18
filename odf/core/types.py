@@ -1,0 +1,1 @@
+Configuration = dict[str, bool]
