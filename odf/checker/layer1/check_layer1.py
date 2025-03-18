@@ -42,7 +42,6 @@ def layer1_check(formula: Tree,
                  object_graph: ObjectGraph) -> bool:
     transformer = Layer1BDDTransformer(attack_tree, fault_tree, object_graph)
     bdd = transformer.transform(formula)
-    manager = transformer.bdd
 
     needed_vars = bdd.support
     given_vars = set(configuration.keys())
@@ -51,7 +50,7 @@ def layer1_check(formula: Tree,
         # todo caz
         raise ValueError(f"Missing variables: {missing_vars}")
 
-    non_existing_vars = given_vars - manager.vars
+    non_existing_vars = given_vars - needed_vars
     if len(non_existing_vars) > 0:
         # todo caz
         print(
