@@ -63,7 +63,6 @@ layer2_query: configuration layer2_formula
                | _boolean_template{l2_atom_formula}
 
 ?l2_atom_formula: "(" layer2_formula ")"
-                | NODE_NAME -> node_atom
                 | _NEG l2_atom_formula -> neg_formula
                 | _P "(" layer1_formula ")" RELATION DECIMAL -> probability_formula
 
