@@ -404,19 +404,14 @@ def test_mrs_disjunction(parse_and_get_bdd):
 
 
 def test_mrs_with_object_properties(parse_and_get_bdd):
-    """Test MRS with a formula that includes object properties."""
+    """Test that MRS has no effect on object properties."""
     formula = "MRS(obj_prop1 || obj_prop2)"
     transformer, bdd = parse_and_get_bdd(formula)
 
     op1 = transformer.bdd.var('obj_prop1')
     op2 = transformer.bdd.var('obj_prop2')
 
-    disjunction = op1 | op2
-    proper_subset_1 = op1 & ~op2
-    proper_subset_2 = ~op1 & op2
-    proper_subsets = proper_subset_1 | proper_subset_2
-
-    expected = disjunction & proper_subsets
+    expected = op1 | op2
 
     assert bdd == expected
 
@@ -506,6 +501,7 @@ def test_mrs_complex_intermediate_node(complex_attack_tree, parse_and_get_bdd):
     combinations = [
         # For the left branch: (ba1 & ba2) & op1
         [ba1, ba2, op1, ~ba3, ~ba4, ~ba5, ~op2],
+        [ba1, ba2, op1, ~ba3, ~ba4, ~ba5, op2],  # op2 can have either value
 
         # For the right branch, with ba4: (ba3 & ba4 & op2) & op1
         [ba3, ba4, op2, op1, ~ba1, ~ba2, ~ba5],
@@ -533,8 +529,7 @@ def test_mrs_complex_intermediate_node(complex_attack_tree, parse_and_get_bdd):
 
     # Define primed variables (using prime_count=1 as in the first call to mrs)
     primed_vars = ["BasicAttack1'1", "BasicAttack2'1", "BasicAttack3'1",
-                   "BasicAttack4'1", "BasicAttack5'1", "obj_prop1'1",
-                   "obj_prop2'1"]
+                   "BasicAttack4'1", "BasicAttack5'1"]
 
     # Create implications part: (p'i => xi)
     implications = " & ".join([f"({pv} => {pv[:-2]})" for pv in primed_vars])
@@ -545,7 +540,7 @@ def test_mrs_complex_intermediate_node(complex_attack_tree, parse_and_get_bdd):
     # Create primed formula by replacing each variable with its primed version
     primed_formula = mixed_gate_expr
     for var in ["BasicAttack1", "BasicAttack2", "BasicAttack3", "BasicAttack4",
-                "BasicAttack5", "obj_prop1", "obj_prop2"]:
+                "BasicAttack5"]:
         primed_formula = primed_formula.replace(var, f"{var}'1")
 
     # Build the full MRS formula

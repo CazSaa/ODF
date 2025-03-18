@@ -181,7 +181,6 @@ def test_mrs_operator_compute_all(do_layer1_compute_all):
         frozenset()}  # BasicFault is already true, so minimal set is empty
 
 
-@pytest.mark.xfail(reason="Incorrect minimality handling for OPs")
 def test_mrs_mixed_gates_compute_all(do_layer1_compute_all,
                                      attack_tree_mixed_gates):
     """Test computing minimal configurations with mixed gate types."""
@@ -215,10 +214,14 @@ def test_mrs_mixed_gates_compute_all(do_layer1_compute_all,
         frozenset({"Attack1", "Attack2", "StepA2"}),  # Via PathA
         frozenset({"Attack3", "Attack4"}),  # Via PathB option 1
         frozenset({"Attack5", "Attack6"}),  # Via PathB option 2
-        frozenset({"Attack7", "Attack9", "Attack10", "SubPathC3"}),
         # Via PathC option 1
-        frozenset({"Attack8", "Attack9", "Attack11", "SubPathC3"})
+        frozenset({"Attack7", "Attack9", "Attack10", "SubPathC3"}),
         # Via PathC option 2
+        frozenset({"Attack7", "Attack9", "Attack11", "SubPathC3"}),
+        # Via PathC option 3
+        frozenset({"Attack8", "Attack9", "Attack10", "SubPathC3"}),
+        # Via PathC option 4
+        frozenset({"Attack8", "Attack9", "Attack11", "SubPathC3"})
     }
     assert result == expected
 
@@ -256,7 +259,6 @@ def test_tautologies_and_contradictions(do_layer1_compute_all):
     assert result == set()  # No satisfying assignment
 
 
-@pytest.mark.xfail(reason="Incorrect minimality handling for OPs")
 def test_complex_trees_compute_all(do_layer1_compute_all,
                                    attack_tree_mixed_gates):
     """Test computing results for complex tree structures."""
@@ -279,3 +281,27 @@ def test_complex_trees_compute_all(do_layer1_compute_all,
     }
 
     assert result == expected_results
+
+    assert do_layer1_compute_all(
+        "PathC",
+        "{prop1:0, prop2:1}",
+        attack_tree=attack_tree_mixed_gates
+    ) == {
+               frozenset({"Attack8", "Attack9", "Attack10", "SubPathC3"}),
+               frozenset({"Attack8", "Attack9", "Attack11", "SubPathC3"})
+           }
+
+    assert do_layer1_compute_all(
+        "PathC",
+        "{prop1:1, prop2:0}",
+        attack_tree=attack_tree_mixed_gates
+    ) == {
+               frozenset({"Attack7", "Attack9", "Attack10", "SubPathC3"}),
+               frozenset({"Attack7", "Attack9", "Attack11", "SubPathC3"})
+           }
+
+    assert do_layer1_compute_all(
+        "PathC",
+        "{prop1:0, prop2:0}",
+        attack_tree=attack_tree_mixed_gates
+    ) == set()

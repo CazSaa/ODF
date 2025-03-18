@@ -133,7 +133,7 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin,
             return f"{var}'{self.prime_count}"
 
         formula = items[0]
-        vars_ = formula.support
+        vars_ = formula.support - self.object_properties
         primed_vars = [p(var) for var in vars_]
         self.bdd.declare(*primed_vars)
 
