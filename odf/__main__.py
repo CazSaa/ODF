@@ -85,9 +85,9 @@ def main(odl_text: str):
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
         prog="python -m odf",
-        description="Executes a BFL file and prints the results.")
+        description="Executes an ODF file and prints the results.")
     argparser.add_argument("file",
-                           help="path to the BFL file you want to execute",
+                           help="path to the ODF file you want to execute",
                            type=argparse.FileType("r"))
     args = argparser.parse_args()
     try:
