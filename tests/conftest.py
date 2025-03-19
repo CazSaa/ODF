@@ -228,6 +228,14 @@ def object_graph_paper_example(transform_object_graph_str):
 
 
 @pytest.fixture
+def paper_example_models(attack_tree_paper_example, fault_tree_paper_example,
+                         object_graph_paper_example):
+    """Returns the paper example models as a list for unpacking with *."""
+    return [attack_tree_paper_example, fault_tree_paper_example,
+            object_graph_paper_example]
+
+
+@pytest.fixture
 def parse_and_get_bdd(attack_tree1, fault_tree1, object_graph1, parse_rule):
     def _parse_and_get_bdd(formula, attack_tree=attack_tree1,
                            fault_tree=fault_tree1, object_graph=object_graph1):
