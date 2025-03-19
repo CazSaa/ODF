@@ -104,6 +104,27 @@ def object_graph_str1():
 
 
 @pytest.fixture
+def attack_tree1(attack_tree_str1, parse_rule):
+    """Create an attack tree with basic and non-basic nodes."""
+    tree = parse_rule(attack_tree_str1, "disruption_tree")
+    return DisruptionTreeTransformer().transform(tree)
+
+
+@pytest.fixture
+def fault_tree1(fault_tree_str1, parse_rule):
+    """Create a fault tree with a basic node."""
+    tree = parse_rule(fault_tree_str1, "disruption_tree")
+    return DisruptionTreeTransformer().transform(tree)
+
+
+@pytest.fixture
+def object_graph1(object_graph_str1, parse_rule):
+    """Create an object graph with properties."""
+    tree = parse_rule(object_graph_str1, "object_graph_tree")
+    return ObjectGraphTransformer().transform(tree)
+
+
+@pytest.fixture
 def transform_disruption_tree_str(parse_rule):
     def _transform_disruption_tree_str(tree_str):
         tree = parse_rule(tree_str, "disruption_tree")
@@ -119,13 +140,6 @@ def transform_object_graph_str(parse_rule):
         return ObjectGraphTransformer().transform(tree)
 
     return _transform_object_graph_str
-
-
-@pytest.fixture
-def attack_tree1(attack_tree_str1, parse_rule):
-    """Create an attack tree with basic and non-basic nodes."""
-    tree = parse_rule(attack_tree_str1, "disruption_tree")
-    return DisruptionTreeTransformer().transform(tree)
 
 
 @pytest.fixture
@@ -211,20 +225,6 @@ def object_graph_paper_example(transform_object_graph_str):
     Door properties=[DF];
     Lock properties=[LP,LJ];
     """)
-
-
-@pytest.fixture
-def fault_tree1(fault_tree_str1, parse_rule):
-    """Create a fault tree with a basic node."""
-    tree = parse_rule(fault_tree_str1, "disruption_tree")
-    return DisruptionTreeTransformer().transform(tree)
-
-
-@pytest.fixture
-def object_graph1(object_graph_str1, parse_rule):
-    """Create an object graph with properties."""
-    tree = parse_rule(object_graph_str1, "object_graph_tree")
-    return ObjectGraphTransformer().transform(tree)
 
 
 @pytest.fixture
