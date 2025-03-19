@@ -23,7 +23,7 @@ attribute_list: probability ( objects condition? | condition objects? )?
               | objects ( probability condition? | condition probability? )?
               | condition ( probability objects? | objects probability? )?
 
-probability: "prob"i "=" DECIMAL
+probability: "prob"i "=" PROB_VALUE
 objects: "objects"i "=" "[" node_list? "]"
 condition: "cond"i "=" "(" boolean_formula ")"
 
@@ -64,7 +64,7 @@ layer2_query: configuration layer2_formula
 
 ?l2_atom_formula: "(" layer2_formula ")"
                 | _NEG l2_atom_formula -> neg_formula
-                | _P "(" layer1_formula ")" RELATION DECIMAL -> probability_formula
+                | _P "(" layer1_formula ")" RELATION PROB_VALUE -> probability_formula
 
 
 layer3_query: layer3_formula
@@ -83,7 +83,7 @@ boolean_evidence: "[" (boolean_mapping ",")* boolean_mapping "]"
 boolean_mapping: NODE_NAME ":" TRUTH_VALUE
 
 probability_evidence: "[" (probability_mapping ",")* probability_mapping "]"
-probability_mapping: NODE_NAME "=" DECIMAL
+probability_mapping: NODE_NAME "=" PROB_VALUE
 
 
 node_list: (NODE_NAME ",")* NODE_NAME
@@ -116,6 +116,7 @@ _DOUBLE_RIGHT_SQUARE_BRACKET: "]]"
 RELATION: "<" | "<=" | "==" | ">=" | ">"
 NODE_NAME: CNAME
 TRUTH_VALUE: "0" | "1"
+PROB_VALUE: DECIMAL | INT
 
 _NEG: "!" | "\\neg"
 _AND: "&&" | "\\land"
@@ -128,6 +129,7 @@ _MRS.2: "MRS" | "\\mrs"
 _P.2: "P"
 
 
+%import common.INT
 %import common.DECIMAL
 %import common.CNAME
 %import common.WS

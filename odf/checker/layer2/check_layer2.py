@@ -110,7 +110,7 @@ class Layer2Transformer(Transformer, BooleanEvalMixin):
             case _:
                 raise ValueError("Invalid relation")
 
-    def DECIMAL(self, items):
+    def PROB_VALUE(self, items):
         return Fraction(items.value)
 
 

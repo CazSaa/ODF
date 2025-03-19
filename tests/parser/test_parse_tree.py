@@ -8,7 +8,7 @@ def test_basic_node_tree(parse_rule):
         Token("NODE_NAME", "A"),
         Tree(Token("RULE", "attribute_list"), [
             Tree(Token("RULE", "probability"), [
-                Token("DECIMAL", "0.5")
+                Token("PROB_VALUE", "0.5")
             ])
         ])
     ])
@@ -23,7 +23,7 @@ def test_basic_node_full_attributes_tree(parse_rule):
         Token("NODE_NAME", "A"),
         Tree(Token("RULE", "attribute_list"), [
             Tree(Token("RULE", "probability"), [
-                Token("DECIMAL", "0.5")
+                Token("PROB_VALUE", "0.5")
             ]),
             Tree(Token("RULE", "objects"), [
                 Tree(Token("RULE", "node_list"), [
@@ -79,7 +79,7 @@ def test_disruption_tree_structure(parse_rule):
             Token("NODE_NAME", "A"),
             Tree(Token("RULE", "attribute_list"), [
                 Tree(Token("RULE", "probability"), [
-                    Token("DECIMAL", "0.5")
+                    Token("PROB_VALUE", "0.5")
                 ])
             ])
         ]),
@@ -155,7 +155,7 @@ def test_layer2_query_tree(parse_rule):
                 Token("NODE_NAME", "B")
             ]),
             Token("RELATION", ">="),
-            Token("DECIMAL", "0.5")
+            Token("PROB_VALUE", "0.5")
         ])
     ])
     assert result == expected
@@ -316,14 +316,14 @@ def test_complex_layer2_query_tree(parse_rule):
                     ])
                 ]),
                 Token("RELATION", "<"),
-                Token("DECIMAL", "0.3")
+                Token("PROB_VALUE", "0.3")
             ]),
             Tree("probability_formula", [
                 Tree("node_atom", [
                     Token("NODE_NAME", "Z")
                 ]),
                 Token("RELATION", ">="),
-                Token("DECIMAL", "0.7")
+                Token("PROB_VALUE", "0.7")
             ])
         ])
     ])
@@ -437,16 +437,16 @@ def test_layer2_with_probability_evidence_tree(parse_rule):
                     Token("NODE_NAME", "X")
                 ]),
                 Token("RELATION", ">="),
-                Token("DECIMAL", "0.5")
+                Token("PROB_VALUE", "0.5")
             ]),
             Tree(Token("RULE", "probability_evidence"), [
                 Tree(Token("RULE", "probability_mapping"), [
                     Token("NODE_NAME", "X"),
-                    Token("DECIMAL", "0.7")
+                    Token("PROB_VALUE", "0.7")
                 ]),
                 Tree(Token("RULE", "probability_mapping"), [
                     Token("NODE_NAME", "Y"),
-                    Token("DECIMAL", "0.3")
+                    Token("PROB_VALUE", "0.3")
                 ])
             ])
         ])
@@ -477,12 +477,12 @@ def test_layer2_with_more_probabilities(parse_rule):
                             Token("NODE_NAME", "X")
                         ]),
                         Token("RELATION", ">="),
-                        Token("DECIMAL", "0.3")
+                        Token("PROB_VALUE", "0.3")
                     ]),
                     Tree(Token("RULE", "probability_evidence"), [
                         Tree(Token("RULE", "probability_mapping"), [
                             Token("NODE_NAME", "X"),
-                            Token("DECIMAL", "0.8")
+                            Token("PROB_VALUE", "0.8")
                         ])
                     ])
                 ]),
@@ -492,12 +492,12 @@ def test_layer2_with_more_probabilities(parse_rule):
                             Token("NODE_NAME", "X")
                         ]),
                         Token("RELATION", "<"),
-                        Token("DECIMAL", "0.7")
+                        Token("PROB_VALUE", "0.7")
                     ]),
                     Tree(Token("RULE", "probability_evidence"), [
                         Tree(Token("RULE", "probability_mapping"), [
                             Token("NODE_NAME", "X"),
-                            Token("DECIMAL", "0.2")
+                            Token("PROB_VALUE", "0.2")
                         ])
                     ])
                 ])
@@ -505,7 +505,7 @@ def test_layer2_with_more_probabilities(parse_rule):
             Tree(Token("RULE", "probability_evidence"), [
                 Tree(Token("RULE", "probability_mapping"), [
                     Token("NODE_NAME", "Y"),
-                    Token("DECIMAL", "0.1")
+                    Token("PROB_VALUE", "0.1")
                 ])
             ])
         ])
@@ -526,7 +526,7 @@ def test_attribute_list_orderings_tree(parse_rule):
                      ])
                  ]),
                  Tree(Token("RULE", "probability"), [
-                     Token("DECIMAL", "0.5")
+                     Token("PROB_VALUE", "0.5")
                  ]),
                  Tree(Token("RULE", "condition"), [
                      Tree("node_atom", [
@@ -550,7 +550,7 @@ def test_attribute_list_orderings_tree(parse_rule):
                      ])
                  ]),
                  Tree(Token("RULE", "probability"), [
-                     Token("DECIMAL", "0.5")
+                     Token("PROB_VALUE", "0.5")
                  ])
              ])
          ])),
@@ -559,7 +559,7 @@ def test_attribute_list_orderings_tree(parse_rule):
              Token("NODE_NAME", "A"),
              Tree(Token("RULE", "attribute_list"), [
                  Tree(Token("RULE", "probability"), [
-                     Token("DECIMAL", "0.5")
+                     Token("PROB_VALUE", "0.5")
                  ]),
                  Tree(Token("RULE", "condition"), [
                      Tree("node_atom", [
@@ -598,7 +598,7 @@ def test_all_relations_tree(parse_rule):
                     Token("NODE_NAME", "X")
                 ]),
                 Token("RELATION", rel),
-                Token("DECIMAL", "0.5")
+                Token("PROB_VALUE", "0.5")
             ])
         ])
         assert result == expected
