@@ -742,3 +742,95 @@ def test_operator_associativity(parse_rule):
         ])
     ])
     assert result == expected
+
+
+def test_multiple_probability_evidences_tree(parse_rule):
+    """
+    Test a Layer 2 query tree with multiple probability evidences
+    on different levels.
+    """
+    input_str = "{A:1, B:0} (P(X) >= 0.3 [X=0.8]) && (P(Y) < 0.7 [Y=0.2]) [Z=0.1, W=0.9]"
+    result = parse_rule(input_str, "layer2_query")
+
+    # Expected parse tree:
+    # layer2_query
+    #   configuration
+    #     boolean_mapping: A:1
+    #     boolean_mapping: B:0
+    #   with_probability_evidence (outer evidence from [Z=0.1, W=0.9])
+    #     and_formula
+    #       with_probability_evidence (left subformula evidence)
+    #         probability_formula
+    #           node_atom: X
+    #           RELATION: >=
+    #           PROB_VALUE: 0.3
+    #         probability_evidence
+    #           probability_mapping: X=0.8
+    #       with_probability_evidence (right subformula evidence)
+    #         probability_formula
+    #           node_atom: Y
+    #           RELATION: <
+    #           PROB_VALUE: 0.7
+    #         probability_evidence
+    #           probability_mapping: Y=0.2
+    #     probability_evidence (outer evidence)
+    #       probability_mapping: Z=0.1
+    #       probability_mapping: W=0.9
+    expected = Tree(Token("RULE", "layer2_query"), [
+        Tree(Token("RULE", "configuration"), [
+            Tree(Token("RULE", "boolean_mapping"), [
+                Token("NODE_NAME", "A"),
+                Token("TRUTH_VALUE", "1")
+            ]),
+            Tree(Token("RULE", "boolean_mapping"), [
+                Token("NODE_NAME", "B"),
+                Token("TRUTH_VALUE", "0")
+            ])
+        ]),
+        Tree("with_probability_evidence", [
+            Tree("and_formula", [
+                Tree("with_probability_evidence", [
+                    Tree("probability_formula", [
+                        Tree("node_atom", [
+                            Token("NODE_NAME", "X")
+                        ]),
+                        Token("RELATION", ">="),
+                        Token("PROB_VALUE", "0.3")
+                    ]),
+                    Tree(Token("RULE", "probability_evidence"), [
+                        Tree(Token("RULE", "probability_mapping"), [
+                            Token("NODE_NAME", "X"),
+                            Token("PROB_VALUE", "0.8")
+                        ])
+                    ])
+                ]),
+                Tree("with_probability_evidence", [
+                    Tree("probability_formula", [
+                        Tree("node_atom", [
+                            Token("NODE_NAME", "Y")
+                        ]),
+                        Token("RELATION", "<"),
+                        Token("PROB_VALUE", "0.7")
+                    ]),
+                    Tree(Token("RULE", "probability_evidence"), [
+                        Tree(Token("RULE", "probability_mapping"), [
+                            Token("NODE_NAME", "Y"),
+                            Token("PROB_VALUE", "0.2")
+                        ])
+                    ])
+                ])
+            ]),
+            Tree(Token("RULE", "probability_evidence"), [
+                Tree(Token("RULE", "probability_mapping"), [
+                    Token("NODE_NAME", "Z"),
+                    Token("PROB_VALUE", "0.1")
+                ]),
+                Tree(Token("RULE", "probability_mapping"), [
+                    Token("NODE_NAME", "W"),
+                    Token("PROB_VALUE", "0.9")
+                ])
+            ])
+        ])
+    ])
+
+    assert result == expected

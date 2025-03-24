@@ -4,14 +4,15 @@ from typing import Iterator
 
 from dd import cudd
 from dd.cudd import Function
-from lark import Transformer, Tree
+from lark import Tree
+from lark.visitors import Interpreter, visit_children_decor
 
 from odf.checker.layer1.layer1_bdd import Layer1BDDTransformer
 from odf.core.types import Configuration
 from odf.models.disruption_tree import DisruptionTree
 from odf.models.object_graph import ObjectGraph
 from odf.transformers.configuration import parse_configuration
-from odf.transformers.mixins.boolean_eval import BooleanEvalMixin
+from odf.transformers.prob_evidence_prepass import PrePassEvidenceInterpreter
 
 
 def dfs_nodes_with_complement(
@@ -62,7 +63,8 @@ def dfs_nodes_with_complement(
 def l2_prob(attack_tree: DisruptionTree,
             fault_tree: DisruptionTree,
             bdd: cudd.Function,
-            configuration: Configuration) -> float:
+            configuration: Configuration,
+            prob_evidence: dict) -> Fraction:
     root = bdd
     complemented = root.negated
     while root.var in configuration:
@@ -72,13 +74,15 @@ def l2_prob(attack_tree: DisruptionTree,
             root = root.low
             complemented ^= root.negated
 
-    return calc_node_prob(attack_tree, fault_tree, root, complemented)
+    return calc_node_prob(attack_tree, fault_tree, root, complemented,
+                          prob_evidence)
 
 
 def calc_node_prob(attack_tree: DisruptionTree,
                    fault_tree: DisruptionTree,
                    root: cudd.Function,
-                   is_complement: bool) -> float:
+                   is_complement: bool,
+                   prob_evidence: dict) -> Fraction:
     manager = root.bdd
 
     probs = {
@@ -94,22 +98,29 @@ def calc_node_prob(attack_tree: DisruptionTree,
         if to_key(node, complemented) in probs:
             continue
 
+        # If we have evidence for this node, use it instead of the node's probability
         if node.var in fault_tree:
-            node_prob = fault_tree.nodes[node.var]["data"].probability
-            if node_prob is None:
-                # todo caz
-                raise ValueError(
-                    f"Node {node.var} has no probability in the fault tree")
+            if node.var in prob_evidence:
+                node_prob = prob_evidence[node.var]
+            else:
+                node_prob = fault_tree.nodes[node.var]["data"].probability
+                if node_prob is None:
+                    # todo caz
+                    raise ValueError(
+                        f"Node {node.var} has no probability in the fault tree")
             p_low = probs[to_key(node.low, complemented)] * (
                     Fraction(1) - node_prob)
             p_high = probs[to_key(node.high, complemented)] * node_prob
             probs[to_key(node, complemented)] = p_low + p_high
         elif node.var in attack_tree:
-            node_prob = attack_tree.nodes[node.var]["data"].probability
-            if node_prob is None:
-                # todo caz
-                raise ValueError(
-                    f"Node {node.var} has no probability in the attack tree")
+            if node.var in prob_evidence:
+                node_prob = prob_evidence[node.var]
+            else:
+                node_prob = attack_tree.nodes[node.var]["data"].probability
+                if node_prob is None:
+                    # todo caz
+                    raise ValueError(
+                        f"Node {node.var} has no probability in the attack tree")
             p_low = probs[to_key(node.low, complemented)]
             p_high = probs[to_key(node.high, complemented)] * node_prob
             probs[to_key(node, complemented)] = max(p_low, p_high)
@@ -119,24 +130,39 @@ def calc_node_prob(attack_tree: DisruptionTree,
     return probs[to_key(root.regular, is_complement)]
 
 
-# todo caz prob evidence
-
 # noinspection PyMethodMayBeStatic
-class Layer2Transformer(Transformer, BooleanEvalMixin):
+class Layer2Interpreter(Interpreter):
     def __init__(self,
                  configuration: Configuration,
                  attack_tree: DisruptionTree,
                  fault_tree: DisruptionTree,
-                 object_graph: ObjectGraph):
+                 object_graph: ObjectGraph,
+                 prob_evidence: dict[int, Fraction]):
         super().__init__()
         self.configuration = configuration
         self.attack_tree = attack_tree
         self.fault_tree = fault_tree
         self.object_graph = object_graph
         self.used_object_properties = set()
+        # Map formula node IDs to their evidence
+        self.prob_evidence_per_formula = prob_evidence
 
-    def probability_formula(self, items):
-        formula_tree, relation, threshold = items
+    def layer2_formula(self, tree):
+        self.visit_children(tree)
+
+    @visit_children_decor
+    def with_probability_evidence(self, items):
+        return items[0]
+
+    def probability_formula(self, tree: Tree):
+        formula_tree = tree.children[0]
+        relation = tree.children[1]
+        threshold = Fraction(tree.children[2])
+
+        formula_id = id(formula_tree)
+
+        # Get evidence for this formula, if any
+        evidence = self.prob_evidence_per_formula.get(formula_id, {})
 
         l1_transformer = Layer1BDDTransformer(
             self.attack_tree, self.fault_tree, self.object_graph,
@@ -153,9 +179,14 @@ class Layer2Transformer(Transformer, BooleanEvalMixin):
         self.used_object_properties.update(needed_vars)
 
         prob = l2_prob(self.attack_tree, self.fault_tree, bdd,
-                       self.configuration)
+                       self.configuration, evidence)
 
-        print(f"INFO: Probability: {prob}")  # todo caz reconstruct the formula
+        if evidence:
+            evidence_str = ", ".join(f"{k}={v}" for k, v in evidence.items())
+            print(f"INFO: Probability with evidence [{evidence_str}]: {prob}")
+        else:
+            print(
+                f"INFO: Probability: {prob}")  # todo caz reconstruct the formula
 
         match relation:
             case "<":
@@ -171,8 +202,29 @@ class Layer2Transformer(Transformer, BooleanEvalMixin):
             case _:
                 raise ValueError("Invalid relation")
 
-    def PROB_VALUE(self, items):
-        return Fraction(items.value)
+    def impl_formula(self, tree):
+        a, b = self.visit_children(tree)
+        return (not a) or b
+
+    def or_formula(self, tree):
+        a, b = self.visit_children(tree)
+        return a or b
+
+    def and_formula(self, tree):
+        a, b = self.visit_children(tree)
+        return a and b
+
+    def equiv_formula(self, tree):
+        a, b = self.visit_children(tree)
+        return a == b
+
+    def nequiv_formula(self, tree):
+        a, b = self.visit_children(tree)
+        return a != b
+
+    def neg_formula(self, tree):
+        a, = self.visit_children(tree)
+        return not a
 
 
 def check_layer2_query(formula: Tree,
@@ -192,9 +244,16 @@ def check_layer2_query(formula: Tree,
         for var in non_object_properties:
             del configuration[var]
 
-    transformer = Layer2Transformer(configuration, attack_tree, fault_tree,
-                                    object_graph)
-    res = transformer.transform(formula.children[1])
+    # First run a pre-pass to collect all probabilistic evidence from the parse tree
+    evidence_interpreter = PrePassEvidenceInterpreter()
+    evidence_interpreter.visit(formula.children[1])
+
+    # Create the transformer and pass the collected evidence
+    transformer = Layer2Interpreter(configuration, attack_tree, fault_tree,
+                                    object_graph,
+                                    evidence_interpreter.evidence_per_formula)
+
+    res = transformer.visit(formula.children[1])
 
     surplus_vars = set(
         configuration.keys()) - transformer.used_object_properties
