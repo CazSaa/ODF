@@ -339,3 +339,16 @@ def test_multiple_roots_raises_error(parse_rule):
     with pytest.raises(VisitError) as excinfo:
         transformer.transform(tree)
     assert "Graph has more than one root" in str(excinfo.value.orig_exc)
+
+
+def test_invalid_probability_values(parse_rule):
+    """Test validation of probability values in the trees."""
+    transformer = DisruptionTreeTransformer()
+    invalid_tree = parse_rule("""
+    toplevel Root;
+    Root and A B;
+    A prob=1.5;  // Invalid probability > 1
+    B prob=0.5;
+    """, "disruption_tree")
+    with pytest.raises(VisitError, match="Must be between 0 and 1"):
+        transformer.transform(invalid_tree)

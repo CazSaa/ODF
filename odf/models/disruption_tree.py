@@ -1,4 +1,5 @@
 import re
+from fractions import Fraction
 from typing import Optional, Literal
 
 from lark import Tree, Visitor
@@ -26,11 +27,12 @@ class ConditionVariablesVisitor(Visitor):
 
 class DTNode:
     def __init__(self, name: str,
-                 probability: Optional[float] = None,
+                 probability: Optional[Fraction] = None,
                  objects: Optional[list[str]] = None,
                  condition_tree: Optional[Tree] = None,
                  gate_type: Optional[GateType] = None):
         self.name = name
+        self.validate_probability(probability)
         self.probability = probability
         self.objects = objects
         self.condition_tree = condition_tree
@@ -44,6 +46,7 @@ class DTNode:
 
     def update_from_attrs(self, attrs: dict) -> None:
         if "probability" in attrs:
+            self.validate_probability(attrs["probability"])
             self.probability = attrs["probability"]
         if "objects" in attrs:
             self.objects = attrs["objects"]
@@ -54,6 +57,14 @@ class DTNode:
             self.object_properties = visitor.vars
         if "gate_type" in attrs:
             self.gate_type = attrs["gate_type"]
+
+    @staticmethod
+    def validate_probability(probability: Optional[Fraction]):
+        if probability is None:
+            return
+        if probability < 0 or probability > 1:
+            raise ValueError(
+                f"Invalid probability: {probability:f}. Must be between 0 and 1.")
 
 
 class DisruptionTree(TreeGraph[DTNode]):
