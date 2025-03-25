@@ -2,7 +2,7 @@ import pytest
 from dd import cudd
 from lark import Tree, Token
 
-from odf.checker.layer1.layer1_bdd import Layer1BDDTransformer, \
+from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter, \
     intermediate_node_to_bdd, ConditionTransformer
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
 
@@ -145,7 +145,7 @@ def test_deeply_nested_nodes(parse_rule):
         parse_rule(attack_tree_str, "attack_tree"))
 
     # Initialize transformer with empty trees/graph since we only need the BDD manager
-    transformer = Layer1BDDTransformer(None, None, None)
+    transformer = Layer1BDDInterpreter(None, None, None)
     bdd_manager = transformer.bdd
 
     # Declare all variables

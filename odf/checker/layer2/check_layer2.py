@@ -7,7 +7,7 @@ from dd.cudd import Function
 from lark import Tree
 from lark.visitors import Interpreter, visit_children_decor
 
-from odf.checker.layer1.layer1_bdd import Layer1BDDTransformer
+from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter
 from odf.core.types import Configuration
 from odf.models.disruption_tree import DisruptionTree
 from odf.models.object_graph import ObjectGraph
@@ -164,10 +164,10 @@ class Layer2Interpreter(Interpreter):
         # Get evidence for this formula, if any
         evidence = self.prob_evidence_per_formula.get(formula_id, {})
 
-        l1_transformer = Layer1BDDTransformer(
+        l1_transformer = Layer1BDDInterpreter(
             self.attack_tree, self.fault_tree, self.object_graph,
             reordering=False)
-        bdd = l1_transformer.transform(formula_tree)
+        bdd = l1_transformer.interpret(formula_tree)
 
         needed_vars = l1_transformer.object_properties.intersection(bdd.support)
         given_vars = set(self.configuration.keys())

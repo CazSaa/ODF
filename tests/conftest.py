@@ -9,7 +9,7 @@ from lark import Lark
 from odf.__main__ import validate_models
 from odf.checker.layer1.check_layer1 import layer1_check, \
     layer1_compute_all
-from odf.checker.layer1.layer1_bdd import Layer1BDDTransformer
+from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter
 from odf.checker.layer2.check_layer2 import check_layer2_query
 from odf.transformers.configuration import parse_configuration
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
@@ -240,9 +240,9 @@ def parse_and_get_bdd(attack_tree1, fault_tree1, object_graph1, parse_rule):
     def _parse_and_get_bdd(formula, attack_tree=attack_tree1,
                            fault_tree=fault_tree1, object_graph=object_graph1):
         tree = parse_rule(formula, "layer1_formula")
-        transformer = Layer1BDDTransformer(attack_tree, fault_tree,
+        transformer = Layer1BDDInterpreter(attack_tree, fault_tree,
                                            object_graph)
-        bdd = transformer.transform(tree)
+        bdd = transformer.interpret(tree)
         return transformer, bdd
 
     return _parse_and_get_bdd

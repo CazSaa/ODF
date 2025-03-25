@@ -1,6 +1,6 @@
 from dd import cudd
 from lark import Transformer, Visitor, Tree
-from lark.visitors import _Leaf_T
+from lark.visitors import _Leaf_T, visit_children_decor, Interpreter
 
 from odf.models.disruption_tree import DisruptionTree, DTNode
 from odf.models.object_graph import ObjectGraph
@@ -82,7 +82,7 @@ def intermediate_node_to_bdd(bdd: cudd.BDD, disruption_tree: DisruptionTree,
 
 
 # noinspection PyMethodMayBeStatic
-class Layer1BDDTransformer(Transformer, BooleanMappingMixin,
+class Layer1BDDInterpreter(Interpreter, BooleanMappingMixin,
                            BooleanFormulaMixin):
     """Transforms a layer 1 formula parse tree into a BDD."""
 
@@ -105,7 +105,7 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin,
             self.bdd.configure(reordering=reordering)
         self.prime_count = 0
 
-    def transform(self, tree: Tree[_Leaf_T]) -> cudd.Function:
+    def interpret(self, tree: Tree[_Leaf_T]) -> cudd.Function:
         visitor = Layer1FormulaVisitor(self.attack_tree, self.fault_tree,
                                        self.object_graph)
         visitor.visit(tree)
@@ -117,8 +117,9 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin,
         self.bdd_vars = [*visitor.object_properties, *visitor.fault_nodes,
                          *visitor.attack_nodes]
         self.bdd.declare(*self.bdd_vars)
-        return super().transform(tree)
+        return self.visit(tree)
 
+    @visit_children_decor
     def with_boolean_evidence(self, items):
         # TODO caz discuss how to handle OPs, and intermediate nodes. Also
         #  consider raising error if illegal thing has evidence set because
@@ -126,9 +127,11 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin,
         formula, evidence_dict = items
         return self.bdd.let(evidence_dict, formula)
 
+    @visit_children_decor
     def boolean_evidence(self, items):
         return self.mappings_to_dict(items)
 
+    @visit_children_decor
     def mrs(self, items):
         self.prime_count += 1
 
@@ -166,6 +169,7 @@ class Layer1BDDTransformer(Transformer, BooleanMappingMixin,
         return formula & ~self.bdd.exist(primed_vars,
                                          primes_subset & primed_formula)
 
+    @visit_children_decor
     def node_atom(self, items):
         node_name = items[0].value
 

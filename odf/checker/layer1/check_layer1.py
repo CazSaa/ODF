@@ -1,6 +1,6 @@
 from lark import Tree
 
-from odf.checker.layer1.layer1_bdd import Layer1BDDTransformer
+from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter
 from odf.core.types import Configuration
 from odf.models.disruption_tree import DisruptionTree
 from odf.models.object_graph import ObjectGraph
@@ -37,8 +37,8 @@ def layer1_check(formula: Tree,
                  attack_tree: DisruptionTree,
                  fault_tree: DisruptionTree,
                  object_graph: ObjectGraph) -> bool:
-    transformer = Layer1BDDTransformer(attack_tree, fault_tree, object_graph)
-    bdd = transformer.transform(formula)
+    transformer = Layer1BDDInterpreter(attack_tree, fault_tree, object_graph)
+    bdd = transformer.interpret(formula)
 
     needed_vars = bdd.support
     given_vars = set(configuration.keys())
@@ -71,8 +71,8 @@ def layer1_compute_all(formula: Tree,
     if formula.data != "mrs":
         formula = Tree("mrs", [formula])
 
-    transformer = Layer1BDDTransformer(attack_tree, fault_tree, object_graph)
-    bdd = transformer.transform(formula)
+    transformer = Layer1BDDInterpreter(attack_tree, fault_tree, object_graph)
+    bdd = transformer.interpret(formula)
     manager = transformer.bdd
 
     needed_vars = transformer.object_properties.intersection(bdd.support)
