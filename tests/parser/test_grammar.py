@@ -66,7 +66,7 @@ Component2;
 
 [formulas]
 {}A && B;
-{A:1} P(C) >= 0.5;
+{A: 1} P(C) >= 0.5;
 MostRiskyA(Root);"""
     # Should not raise an exception
     tree = parse(complete_odg)
@@ -150,7 +150,7 @@ def test_individual_formulas(parse_rule):
     formulas = """
 [formulas]
 {}A && B;
-{A:1} P(C) >= 0.5;
+{A: 1} P(C) >= 0.5;
 MostRiskyA(Root);"""
     result = parse_rule(formulas, "odglog")
     assert result is not None
@@ -204,7 +204,7 @@ C;
 
 def test_layer2_formula_configuration(parse_rule):
     """Test that layer 2 formulas require a configuration."""
-    valid_formula = "{A:1} P(C) >= 0.5"
+    valid_formula = "{A: 1} P(C) >= 0.5"
     result = parse_rule(valid_formula, "odglog_formula")
     assert result is not None
 
@@ -212,7 +212,7 @@ def test_layer2_formula_configuration(parse_rule):
     with pytest.raises(UnexpectedInput):
         parse_rule(invalid_formula, "odglog_formula")
 
-    complex_valid = "{A:0, B:1} !P(X && Y) < 0.3 && P(Z) >= 0.7"
+    complex_valid = "{A: 0, B: 1} !P(X && Y) < 0.3 && P(Z) >= 0.7"
     result = parse_rule(complex_valid, "odglog_formula")
     assert result is not None
 
@@ -232,38 +232,38 @@ def test_complex_nested_formulas(parse_rule):
         "{}!(A => B) || (C == !D) && (E || F)",
 
         # Layer 1 - Evidence
-        "{}A && B [X:1]",
-        "{}(A || B) && C [X:1, Y:0]",
+        "{}A && B [X: 1]",
+        "{}(A || B) && C [X: 1, Y: 0]",
 
         # Layer 1 - MRS with evidence
-        "{}MRS(A && B) [X:1]",
-        "{}MRS(A || B) [X:1, Y:0]",
+        "{}MRS(A && B) [X: 1]",
+        "{}MRS(A || B) [X: 1, Y: 0]",
 
         # Layer 1 - Evidence inside MRS
-        "{}MRS(A && B [X:1])",
-        "{}MRS((A || B) [X:1, Y:0])",
+        "{}MRS(A && B [X: 1])",
+        "{}MRS((A || B) [X: 1, Y: 0])",
 
         # Layer 1 - Multiple MRS/evidence combinations
-        "{}(MRS(A) [X:1]) && MRS(B) [Y:0]",
-        "{}((MRS((A))) [X:1]) && MRS(B) [Y:0]",
-        "{}MRS((A) [X:1]) || MRS(B [Y:0])",
-        "{}(MRS(A) && MRS(B)) [X:1, Y:0]",
-        "{}(MRS(A [X:1]) => MRS(B [Y:0]) [D:0]) && C [Z:1]",
+        "{}(MRS(A) [X: 1]) && MRS(B) [Y: 0]",
+        "{}((MRS((A))) [X: 1]) && MRS(B) [Y: 0]",
+        "{}MRS((A) [X: 1]) || MRS(B [Y: 0])",
+        "{}(MRS(A) && MRS(B)) [X: 1, Y: 0]",
+        "{}(MRS(A [X: 1]) => MRS(B [Y: 0]) [D: 0]) && C [Z: 1]",
 
         # Layer 2 with configurations
-        "{A:1} !P(X && Y) < 0.3 && P(Z) >= 0.7",
-        "{A:0} P(!X || Y) == 0.5 => P(Z) > 0.2",
-        "{A:1, B:0} (P(X) >= 0.3 && P(Y) < 0.7) || P(Z) == 0.5",
+        "{A: 1} !P(X && Y) < 0.3 && P(Z) >= 0.7",
+        "{A: 0} P(!X || Y) == 0.5 => P(Z) > 0.2",
+        "{A: 1, B: 0} (P(X) >= 0.3 && P(Y) < 0.7) || P(Z) == 0.5",
 
         # Layer 2 with probability evidence
-        "{A:1} P(X) >= 0.5 [X=0.7]",
-        "{A:0} P(X && Y) < 0.3 [X=0.4, Y=0.6]",
-        "{A:1, B:0} (P(X) >= 0.3 [X=0.8]) && (P(X) < 0.7 [X=0.2])",
+        "{A: 1} P(X) >= 0.5 [X=0.7]",
+        "{A: 0} P(X && Y) < 0.3 [X=0.4, Y=0.6]",
+        "{A: 1, B: 0} (P(X) >= 0.3 [X=0.8]) && (P(X) < 0.7 [X=0.2])",
 
         # Layer 3
-        "MostRiskyF(Door) [DF:1]",
-        "OptimalConf(House) [HS:1, IU:0]",
-        "OptimalConf(House) [HS:1][IU:0]",
+        "MostRiskyF(Door) [DF: 1]",
+        "OptimalConf(House) [HS: 1, IU: 0]",
+        "OptimalConf(House) [HS: 1][IU: 0]",
     ]
 
     for formula in formulas:
@@ -274,13 +274,13 @@ def test_complex_nested_formulas(parse_rule):
         # Layer 1 MRS without configuration
         "MRS(A)",
         # Layer 2 wrong probability evidence syntax
-        "{A:1, B:0} (P(X) >= 0.3 [X:0.8]) && (P(X) < 0.7 [X:0.2])",
-        "{A:1, B:0} (P(X) >= 0.3 {X=0.8}) && (P(X) < 0.7 {X=0.2})",
+        "{A: 1, B: 0} (P(X) >= 0.3 [X: 0.8]) && (P(X) < 0.7 [X: 0.2])",
+        "{A: 1, B: 0} (P(X) >= 0.3 {X=0.8}) && (P(X) < 0.7 {X=0.2})",
         # Layer 2 without configuration
         "P(X) >= 0.5",
         "P(X && Y) < 0.3 [X=0.4]",
         # Probability evidence inside probability formula
-        "{A:1} P(X [X=0.5]) >= 0.5",
+        "{A: 1} P(X [X=0.5]) >= 0.5",
         # Probability evidence on non-Layer 2 formula
         "A && B [X=0.5]",
         # Layer 3
@@ -324,7 +324,7 @@ System Has Component;
 Component Properties = [prop1];
 
 [FORMULAS]
-{A:1}
+{A: 1}
 MRS(A);"""
     tree = parse(case_variations)
     assert tree is not None

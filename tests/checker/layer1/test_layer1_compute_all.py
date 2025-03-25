@@ -14,12 +14,12 @@ def test_complex_formula_compute_all(do_layer1_compute_all):
     """Test computing all minimal configurations for complex formulas with gates and conditions."""
     # ComplexAttack requires its basic events and conditions
     result = do_layer1_compute_all("ComplexAttack",
-                                   "{obj_prop1:1, obj_prop2:1}")
+                                   "{obj_prop1: 1, obj_prop2: 1}")
     assert result == {frozenset({"SubAttack1", "SubAttack2"})}
 
     result = do_layer1_compute_all(
         "(BasicAttack || BasicFault) && ComplexAttack",
-        "{obj_prop1:1, obj_prop2:1}")
+        "{obj_prop1: 1, obj_prop2: 1}")
     assert result == {
         frozenset({"BasicAttack", "SubAttack1", "SubAttack2"}),
         frozenset({"BasicFault", "SubAttack1", "SubAttack2"})
@@ -35,14 +35,14 @@ def test_missing_object_properties(do_layer1_compute_all):
     # Partial configuration should still fail
     with pytest.raises(ValueError):
         do_layer1_compute_all("ComplexAttack",
-                              "{obj_prop1:1}")  # Missing obj_prop2
+                              "{obj_prop1: 1}")  # Missing obj_prop2
 
 
 def test_extra_object_properties(do_layer1_compute_all, capsys):
     """Test handling of extra variables in configuration."""
     result = do_layer1_compute_all(
         "BasicAttack",
-        "{NonexistentVar:1}"
+        "{NonexistentVar: 1}"
     )
 
     # Check that warning was printed
@@ -60,7 +60,7 @@ def test_extra_object_properties(do_layer1_compute_all, capsys):
 
     assert do_layer1_compute_all(
         "BasicAttack && (obj_prop1 || !obj_prop1)",
-        "{obj_prop1:1}"
+        "{obj_prop1: 1}"
     ) == {frozenset({"BasicAttack"})}
     captured = capsys.readouterr()
     assert "You specified object properties that either do not exist" in captured.out
@@ -71,20 +71,20 @@ def test_complex_conditions_compute_all(do_layer1_compute_all):
     """Test computing all configurations for formulas with complex conditions."""
     # Test ComplexFault which has nested conditions
     result = do_layer1_compute_all("ComplexFault",
-                                   "{obj_prop4:1, obj_prop5:1, obj_prop6:1}")
+                                   "{obj_prop4: 1, obj_prop5: 1, obj_prop6: 1}")
     assert result == {frozenset({"SubFault1", "SubFault2"})}
 
     # When one condition is false, there should be no valid configurations
     result = do_layer1_compute_all("ComplexFault",
-                                   "{obj_prop4:0, obj_prop5:1, obj_prop6:1}")
+                                   "{obj_prop4: 0, obj_prop5: 1, obj_prop6: 1}")
     assert result == set()
 
     result = do_layer1_compute_all("ComplexFault",
-                                   "{obj_prop4:1, obj_prop5:0, obj_prop6:1}")
+                                   "{obj_prop4: 1, obj_prop5: 0, obj_prop6: 1}")
     assert result == set()
 
     result = do_layer1_compute_all("ComplexFault",
-                                   "{obj_prop4:1, obj_prop5:1, obj_prop6:0}")
+                                   "{obj_prop4: 1, obj_prop5: 1, obj_prop6: 0}")
     assert result == set()
 
 
@@ -115,15 +115,15 @@ def test_boolean_operators_compute_all(do_layer1_compute_all):
 def test_object_property_compute_all(do_layer1_compute_all):
     """Test computing formulas with object properties."""
     # Test direct object property
-    result = do_layer1_compute_all("obj_prop1", "{obj_prop1:1}")
+    result = do_layer1_compute_all("obj_prop1", "{obj_prop1: 1}")
     assert result == {frozenset()}
 
     # Test object property in condition
-    result = do_layer1_compute_all("SubFault2", "{obj_prop6:1}")
+    result = do_layer1_compute_all("SubFault2", "{obj_prop6: 1}")
     assert result == {frozenset({"SubFault2"})}
 
     # False object property makes the node unreachable
-    result = do_layer1_compute_all("SubFault2", "{obj_prop6:0}")
+    result = do_layer1_compute_all("SubFault2", "{obj_prop6: 0}")
     assert result == set()
 
 
@@ -131,30 +131,30 @@ def test_evidence_in_compute_all(do_layer1_compute_all):
     """Test computing formulas with boolean evidence."""
     # Simple evidence
     result = do_layer1_compute_all(
-        "ComplexAttack [SubAttack1:1, SubAttack2:1]",
-        "{obj_prop1:1, obj_prop2:1}"
+        "ComplexAttack [SubAttack1: 1, SubAttack2: 1]",
+        "{obj_prop1: 1, obj_prop2: 1}"
     )
     assert result == {
         frozenset()}  # Empty set since all needed variables are in evidence
 
     # Evidence with partial definition
     result = do_layer1_compute_all(
-        "ComplexAttack [SubAttack1:1]",
-        "{obj_prop1:1, obj_prop2:1}"
+        "ComplexAttack [SubAttack1: 1]",
+        "{obj_prop1: 1, obj_prop2: 1}"
     )
     assert result == {frozenset({"SubAttack2"})}
 
     # Evidence affecting conditions
     result = do_layer1_compute_all(
-        "ComplexAttack [obj_prop1:1, obj_prop2:1]",
+        "ComplexAttack [obj_prop1: 1, obj_prop2: 1]",
         "{}"
     )
     assert result == {frozenset({"SubAttack1", "SubAttack2"})}
 
     # Evidence in complex formula
     result = do_layer1_compute_all(
-        "(ComplexAttack [SubAttack1:1]) && (ComplexFault [SubFault1:1])",
-        "{obj_prop1:1, obj_prop2:1, obj_prop4:1, obj_prop5:1, obj_prop6:1}"
+        "(ComplexAttack [SubAttack1: 1]) && (ComplexFault [SubFault1: 1])",
+        "{obj_prop1: 1, obj_prop2: 1, obj_prop4: 1, obj_prop5: 1, obj_prop6: 1}"
     )
     assert result == {frozenset({"SubAttack2", "SubFault2"})}
 
@@ -171,12 +171,12 @@ def test_mrs_operator_compute_all(do_layer1_compute_all):
 
     # MRS of complex expression
     result = do_layer1_compute_all("MRS(ComplexAttack)",
-                                   "{obj_prop1:1, obj_prop2:1}")
+                                   "{obj_prop1: 1, obj_prop2: 1}")
     assert result == {frozenset({"SubAttack1", "SubAttack2"})}
 
     # MRS with evidence
     result = do_layer1_compute_all(
-        "MRS(BasicAttack || BasicFault) [BasicFault:1]", "{}")
+        "MRS(BasicAttack || BasicFault) [BasicFault: 1]", "{}")
     assert result == {
         frozenset()}  # BasicFault is already true, so minimal set is empty
 
@@ -234,16 +234,16 @@ def test_nested_mrs_compute_all(do_layer1_compute_all):
 
     # Nested MRS with evidence
     result = do_layer1_compute_all(
-        "MRS(MRS(BasicAttack || BasicFault) [BasicFault:1])", "{}")
+        "MRS(MRS(BasicAttack || BasicFault) [BasicFault: 1])", "{}")
     assert result == {frozenset()}
     result = do_layer1_compute_all(
-        "MRS(MRS(BasicAttack && BasicFault) [BasicFault:1])", "{}")
+        "MRS(MRS(BasicAttack && BasicFault) [BasicFault: 1])", "{}")
     assert result == {frozenset({"BasicAttack"})}
 
     # MRS with partial evidence
     result = do_layer1_compute_all(
-        "MRS(ComplexAttack [SubAttack1:1])",
-        "{obj_prop1:1, obj_prop2:1}"
+        "MRS(ComplexAttack [SubAttack1: 1])",
+        "{obj_prop1: 1, obj_prop2: 1}"
     )
     assert result == {frozenset({"SubAttack2"})}
 
@@ -265,7 +265,7 @@ def test_complex_trees_compute_all(do_layer1_compute_all,
     # Test a path that combines multiple gate types
     result = do_layer1_compute_all(
         "PathC",
-        "{obj_prop1:1, obj_prop2:1}",
+        "{obj_prop1: 1, obj_prop2: 1}",
         attack_tree=attack_tree_mixed_gates
     )
 
@@ -284,7 +284,7 @@ def test_complex_trees_compute_all(do_layer1_compute_all,
 
     assert do_layer1_compute_all(
         "PathC",
-        "{obj_prop1:0, obj_prop2:1}",
+        "{obj_prop1: 0, obj_prop2: 1}",
         attack_tree=attack_tree_mixed_gates
     ) == {
                frozenset({"Attack8", "Attack9", "Attack10", "SubPathC3"}),
@@ -293,7 +293,7 @@ def test_complex_trees_compute_all(do_layer1_compute_all,
 
     assert do_layer1_compute_all(
         "PathC",
-        "{obj_prop1:1, obj_prop2:0}",
+        "{obj_prop1: 1, obj_prop2: 0}",
         attack_tree=attack_tree_mixed_gates
     ) == {
                frozenset({"Attack7", "Attack9", "Attack10", "SubPathC3"}),
@@ -302,6 +302,6 @@ def test_complex_trees_compute_all(do_layer1_compute_all,
 
     assert do_layer1_compute_all(
         "PathC",
-        "{obj_prop1:0, obj_prop2:0}",
+        "{obj_prop1: 0, obj_prop2: 0}",
         attack_tree=attack_tree_mixed_gates
     ) == set()

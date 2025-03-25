@@ -217,18 +217,18 @@ def test_basic_evidence_substitution(parse_and_get_bdd):
     """Test basic substitution of nodes with boolean evidence."""
     # Set BasicAttack to true
     transformer, bdd = parse_and_get_bdd(
-        "BasicAttack [BasicAttack:1]")
+        "BasicAttack [BasicAttack: 1]")
     assert bdd == transformer.bdd.true
 
     # Set BasicAttack to false
     transformer, bdd = parse_and_get_bdd(
-        "BasicAttack [BasicAttack:0]")
+        "BasicAttack [BasicAttack: 0]")
     assert bdd == transformer.bdd.false
 
 
 def test_complex_formula_with_evidence(parse_and_get_bdd):
     """Test evidence in a complex formula affecting multiple nodes."""
-    formula = "(BasicAttack || BasicFault) && ComplexAttack [BasicAttack:1, BasicFault:0]"
+    formula = "(BasicAttack || BasicFault) && ComplexAttack [BasicAttack: 1, BasicFault: 0]"
     transformer, bdd = parse_and_get_bdd(formula)
 
     # With BasicAttack=true and BasicFault=false, the formula reduces to just ComplexAttack
@@ -244,23 +244,23 @@ def test_complex_formula_with_evidence(parse_and_get_bdd):
 def test_intermediate_node_evidence(parse_and_get_bdd):
     """Test evidence on intermediate nodes affecting their basic events."""
     transformer, bdd = parse_and_get_bdd(
-        "ComplexAttack || BasicAttack [ComplexAttack:1]")
+        "ComplexAttack || BasicAttack [ComplexAttack: 1]")
     expected = transformer.bdd.true  # Formula is true regardless of BasicAttack
     assert bdd == expected
 
     transformer, bdd = parse_and_get_bdd(
-        "ComplexAttack || BasicAttack [ComplexAttack:0]")
+        "ComplexAttack || BasicAttack [ComplexAttack: 0]")
     expected = transformer.bdd.var(
         'BasicAttack')  # Formula reduces to just BasicAttack
     assert bdd == expected
 
     transformer, bdd = parse_and_get_bdd(
-        "ComplexAttack || BasicFault [ComplexAttack:1]")
+        "ComplexAttack || BasicFault [ComplexAttack: 1]")
     expected = transformer.bdd.true  # Formula is true regardless of BasicFault
     assert bdd == expected
 
     transformer, bdd = parse_and_get_bdd(
-        "ComplexAttack || BasicFault [ComplexAttack:0]")
+        "ComplexAttack || BasicFault [ComplexAttack: 0]")
     expected = transformer.bdd.var(
         'BasicFault')  # Formula reduces to just BasicFault
     assert bdd == expected
@@ -270,7 +270,7 @@ def test_object_property_evidence(parse_and_get_bdd):
     """Test evidence on object properties."""
     # Test with ComplexAttack which has object property conditions
     transformer, bdd = parse_and_get_bdd(
-        "ComplexAttack [obj_prop1:1, obj_prop2:1]")
+        "ComplexAttack [obj_prop1: 1, obj_prop2: 1]")
     # Only the gates and basic events remain, conditions are satisfied
     expected = transformer.bdd.var('SubAttack1') & transformer.bdd.var(
         'SubAttack2')
@@ -282,11 +282,11 @@ def test_object_property_evidence(parse_and_get_bdd):
 def test_multiple_evidence_combined(parse_and_get_bdd):
     """Test multiple pieces of evidence affecting different parts of the formula."""
     formula = "(ComplexAttack || BasicFault) && (BasicAttack || ComplexFault)"
-    evidence = "[ComplexAttack:1, BasicFault:0, obj_prop4:1, obj_prop5:1]"
+    evidence = "[ComplexAttack: 1, BasicFault: 0, obj_prop4: 1, obj_prop5: 1]"
 
     transformer, bdd = parse_and_get_bdd(f"{formula} {evidence}")
 
-    # First part reduces to true (ComplexAttack:1), second part becomes (BasicAttack || (SubFault1 && SubFault2))
+    # First part reduces to true (ComplexAttack: 1), second part becomes (BasicAttack || (SubFault1 && SubFault2))
     expected = transformer.bdd.var('BasicAttack') | \
                (transformer.bdd.var('SubFault1') &
                 (transformer.bdd.var('SubFault2') & transformer.bdd.var(
@@ -296,12 +296,12 @@ def test_multiple_evidence_combined(parse_and_get_bdd):
 
 def test_multiple_intermediate_evidence(parse_and_get_bdd):
     """Test evidence applied on multiple intermediate nodes in different branches.
-    In the formula "ComplexAttack || ComplexFault [ComplexAttack:1, ComplexFault:0]",
+    In the formula "ComplexAttack || ComplexFault [ComplexAttack: 1, ComplexFault: 0]",
     forcing ComplexAttack to true makes the overall formula evaluate to true even if 
     ComplexFault is forced to false.
     """
     transformer, bdd = parse_and_get_bdd(
-        "ComplexAttack && !ComplexFault [ComplexAttack:1, ComplexFault:0]")
+        "ComplexAttack && !ComplexFault [ComplexAttack: 1, ComplexFault: 0]")
     # Here, forcing ComplexAttack to 1 should make the OR resolve to true.
     assert bdd == transformer.bdd.true
 
@@ -311,13 +311,13 @@ def test_object_property_with_condition_evidence(parse_and_get_bdd):
     For instance, if ComplexAttack uses conditions on obj_prop1 and obj_prop2,
     forcing obj_prop1 to false (with evidence) should make the overall condition unsatisfied.
     """
-    transformer, bdd = parse_and_get_bdd("ComplexAttack [obj_prop1:0]")
+    transformer, bdd = parse_and_get_bdd("ComplexAttack [obj_prop1: 0]")
     expected = transformer.bdd.false
     assert bdd == expected
 
 
 def test_conflicting_nested_evidence(parse_and_get_bdd):
-    formula = "ComplexAttack [SubAttack1:1] [SubAttack1:0, SubAttack2:1]"
+    formula = "ComplexAttack [SubAttack1: 1] [SubAttack1: 0, SubAttack2: 1]"
     transformer, bdd = parse_and_get_bdd(formula)
     expected = transformer.bdd.var("obj_prop1") & transformer.bdd.var(
         "obj_prop2")
@@ -325,7 +325,7 @@ def test_conflicting_nested_evidence(parse_and_get_bdd):
 
 
 def test_vice_versa_nested_evidence(parse_and_get_bdd):
-    formula = "(ComplexAttack [SubAttack1:0]) [SubAttack1:1, SubAttack2:1]"
+    formula = "(ComplexAttack [SubAttack1: 0]) [SubAttack1: 1, SubAttack2: 1]"
     transformer, bdd = parse_and_get_bdd(formula)
     expected = transformer.bdd.false
     assert bdd == expected
@@ -333,26 +333,26 @@ def test_vice_versa_nested_evidence(parse_and_get_bdd):
 
 def test_evidence_on_mixed_gates_tree(parse_and_get_bdd,
                                       attack_tree_mixed_gates):
-    transformer, bdd = parse_and_get_bdd("RootA [PathA:1]",
+    transformer, bdd = parse_and_get_bdd("RootA [PathA: 1]",
                                          attack_tree=attack_tree_mixed_gates)
     assert bdd == transformer.bdd.true
-    transformer, bdd = parse_and_get_bdd("RootA [PathB:1]",
+    transformer, bdd = parse_and_get_bdd("RootA [PathB: 1]",
                                          attack_tree=attack_tree_mixed_gates)
     assert bdd == transformer.bdd.true
 
-    transformer, bdd = parse_and_get_bdd("PathC [SubPathC1:0]",
+    transformer, bdd = parse_and_get_bdd("PathC [SubPathC1: 0]",
                                          attack_tree=attack_tree_mixed_gates)
     assert bdd == transformer.bdd.false
-    transformer, bdd = parse_and_get_bdd("PathC [SubPathC2:0]",
+    transformer, bdd = parse_and_get_bdd("PathC [SubPathC2: 0]",
                                          attack_tree=attack_tree_mixed_gates)
     assert bdd == transformer.bdd.false
-    transformer, bdd = parse_and_get_bdd("PathC [SubPathC2:1]",
+    transformer, bdd = parse_and_get_bdd("PathC [SubPathC2: 1]",
                                          attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert bdd == (
             manager.var('Attack7') & manager.var('obj_prop1') | manager.var(
         'Attack8') & manager.var('obj_prop2')) & manager.var('SubPathC3')
-    transformer, bdd = parse_and_get_bdd("PathC [SubPathC1:1]",
+    transformer, bdd = parse_and_get_bdd("PathC [SubPathC1: 1]",
                                          attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert bdd == (
@@ -363,32 +363,32 @@ def test_evidence_on_mixed_gates_tree(parse_and_get_bdd,
 
 def test_evidence_mixed_gates_and_mrs(parse_and_get_bdd,
                                       attack_tree_mixed_gates):
-    transformer, bdd = parse_and_get_bdd("MRS(PathC) [SubPathC1:1]",
+    transformer, bdd = parse_and_get_bdd("MRS(PathC) [SubPathC1: 1]",
                                          attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert bdd == manager.var("Attack9") & manager.var("SubPathC3") & \
            manager.apply('xor', manager.var("Attack10"),
                          manager.var("Attack11"))
 
-    transformer, bdd = parse_and_get_bdd("MRS(PathC) [SubPathC1:0]",
+    transformer, bdd = parse_and_get_bdd("MRS(PathC) [SubPathC1: 0]",
                                          attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert bdd == manager.false  # PathC requires SubPathC1 which is forced to 0
 
-    transformer, bdd = parse_and_get_bdd("MRS(PathC [SubPathC1:1])",
+    transformer, bdd = parse_and_get_bdd("MRS(PathC [SubPathC1: 1])",
                                          attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert bdd == manager.var("Attack9") & manager.var("SubPathC3") & \
            manager.apply('xor', manager.var("Attack10"),
                          manager.var("Attack11"))
 
-    transformer, bdd = parse_and_get_bdd("MRS(PathC [SubPathC1:0])",
+    transformer, bdd = parse_and_get_bdd("MRS(PathC [SubPathC1: 0])",
                                          attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert bdd == manager.false  # SubPathC1=0 makes PathC unsatisfiable
 
     transformer, complex_neg = parse_and_get_bdd(
-        "MRS(PathA && !PathB) [StepA1:1, SubPathB1:0]",
+        "MRS(PathA && !PathB) [StepA1: 1, SubPathB1: 0]",
         attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert complex_neg == (
@@ -396,40 +396,40 @@ def test_evidence_mixed_gates_and_mrs(parse_and_get_bdd,
         'Attack6'))
 
     transformer, complex_neg = parse_and_get_bdd(
-        "MRS(PathA && !PathB) [StepA1:1, SubPathB1:1]",
+        "MRS(PathA && !PathB) [StepA1: 1, SubPathB1: 1]",
         attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert complex_neg == manager.false  # PathB becomes true via SubPathB1
 
     transformer, complex_neg = parse_and_get_bdd(
-        "MRS(PathA && PathB) [StepA1:1, SubPathB1:0]",
+        "MRS(PathA && PathB) [StepA1: 1, SubPathB1: 0]",
         attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert complex_neg == (manager.var('StepA2') & (
             manager.var('Attack5') & manager.var('Attack6')))
 
     transformer, complex_neg = parse_and_get_bdd(
-        "MRS(PathA && PathB) [StepA1:1, SubPathB1:1]",
+        "MRS(PathA && PathB) [StepA1: 1, SubPathB1: 1]",
         attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert complex_neg == (manager.var('StepA2') & (
             ~manager.var('Attack5') & ~manager.var('Attack6')))
 
     transformer, complex_neg = parse_and_get_bdd(
-        "MRS(PathA || !PathB) [StepA1:1, SubPathB1:0]",
+        "MRS(PathA || !PathB) [StepA1: 1, SubPathB1: 0]",
         attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert complex_neg == manager.false
 
     transformer, complex_neg = parse_and_get_bdd(
-        "MRS(PathA || !PathB) [StepA1:0, SubPathB1:0]",
+        "MRS(PathA || !PathB) [StepA1: 0, SubPathB1: 0]",
         attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert complex_neg == ~manager.var('StepA2') & (
             ~manager.var('Attack5') & ~manager.var('Attack6'))
 
     transformer, complex_neg = parse_and_get_bdd(
-        "MRS(PathA || PathB [StepA1:1, SubPathB1:0])",
+        "MRS(PathA || PathB [StepA1: 1, SubPathB1: 0])",
         attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert complex_neg == manager.apply(
@@ -440,7 +440,7 @@ def test_evidence_mixed_gates_and_mrs(parse_and_get_bdd,
             'Attack6'))
 
     transformer, complex_neg = parse_and_get_bdd(
-        "MRS(PathA || PathB) [StepA1:1, SubPathB1:0]",
+        "MRS(PathA || PathB) [StepA1: 1, SubPathB1: 0]",
         attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert complex_neg == manager.var('StepA2') & ~manager.var(
@@ -448,7 +448,7 @@ def test_evidence_mixed_gates_and_mrs(parse_and_get_bdd,
         'Attack6')
 
     transformer, complex_neg = parse_and_get_bdd(
-        "MRS(PathA || PathB) [StepA1:1, SubPathB1:1]",
+        "MRS(PathA || PathB) [StepA1: 1, SubPathB1: 1]",
         attack_tree=attack_tree_mixed_gates)
     manager = transformer.bdd
     assert complex_neg == manager.false
@@ -457,13 +457,13 @@ def test_evidence_mixed_gates_and_mrs(parse_and_get_bdd,
 def test_nested_contradicting_evidence(parse_and_get_bdd):
     """Test handling of nested contradicting evidence."""
     # Inner evidence should override outer evidence
-    formula = "(ComplexAttack [SubAttack1:0]) [SubAttack1:1, SubAttack2:1]"
+    formula = "(ComplexAttack [SubAttack1: 0]) [SubAttack1: 1, SubAttack2: 1]"
     transformer, bdd = parse_and_get_bdd(formula)
     # Inner evidence makes SubAttack1 false
     expected = transformer.bdd.false  # ComplexAttack is false because SubAttack1 is false
     assert bdd == expected
 
-    formula = "ComplexAttack [SubAttack1:1, SubAttack2:1]"
+    formula = "ComplexAttack [SubAttack1: 1, SubAttack2: 1]"
     transformer, bdd = parse_and_get_bdd(formula)
     expected = transformer.bdd.var('obj_prop1') & transformer.bdd.var(
         'obj_prop2')
@@ -471,11 +471,11 @@ def test_nested_contradicting_evidence(parse_and_get_bdd):
 
     # Multiple layers of contradicting evidence
     formula = """
-        (((ComplexAttack [SubAttack1:1, SubAttack2:1]) [SubAttack1:0]) || 
-         (BasicAttack [BasicAttack:0])) [BasicAttack:1]
+        (((ComplexAttack [SubAttack1: 1, SubAttack2: 1]) [SubAttack1: 0]) || 
+         (BasicAttack [BasicAttack: 0])) [BasicAttack: 1]
     """
     transformer, bdd = parse_and_get_bdd(formula)
-    # For ComplexAttack: innermost makes both subs true, then SubAttack1:0 takes precedence
+    # For ComplexAttack: innermost makes both subs true, then SubAttack1: 0 takes precedence
     # For BasicAttack: inner false overrides outer true
     # obj_prop1 && obj_prop2 still required for ComplexAttack
     expected = transformer.bdd.var('obj_prop1') & transformer.bdd.var(
@@ -483,11 +483,11 @@ def test_nested_contradicting_evidence(parse_and_get_bdd):
     assert bdd == expected
 
     formula = """
-        (((ComplexAttack [SubAttack1:1, SubAttack2:1]) [SubAttack1:0]) && 
-         (BasicAttack [BasicAttack:0])) [BasicAttack:1]
+        (((ComplexAttack [SubAttack1: 1, SubAttack2: 1]) [SubAttack1: 0]) && 
+         (BasicAttack [BasicAttack: 0])) [BasicAttack: 1]
     """
     transformer, bdd = parse_and_get_bdd(formula)
-    # For ComplexAttack: innermost makes both subs true, then SubAttack1:0 takes precedence
+    # For ComplexAttack: innermost makes both subs true, then SubAttack1: 0 takes precedence
     # For BasicAttack: inner false overrides outer true
     # obj_prop1 && obj_prop2 still required for ComplexAttack
     expected = transformer.bdd.false
@@ -499,12 +499,12 @@ def test_nested_contradicting_evidence(parse_and_get_bdd):
 def test_evidence_node_condition_contradiction(parse_and_get_bdd):
     # Evidence contradicting node conditions and descendants
     formula = """ComplexFault [
-        SubFault1:1,             // Set basic event true
-        obj_prop4:0,             // Contradict parent condition (obj_prop4 && obj_prop5)
-        ComplexFault:1           // Override everything to true
+        SubFault1: 1,             // Set basic event true
+        obj_prop4: 0,             // Contradict parent condition (obj_prop4 && obj_prop5)
+        ComplexFault: 1           // Override everything to true
     ]"""
     transformer, bdd = parse_and_get_bdd(formula)
-    # Direct evidence on ComplexFault:1 should override everything else
+    # Direct evidence on ComplexFault: 1 should override everything else
     expected = transformer.bdd.true
     assert bdd == expected
 
@@ -514,7 +514,7 @@ def test_evidence_with_node_conditions(parse_and_get_bdd):
     # ComplexFault has condition (obj_prop4 && obj_prop5)
     # SubFault2 has condition (obj_prop6)
     transformer, bdd = parse_and_get_bdd(
-        "ComplexFault [SubFault1:1, obj_prop4:1]")
+        "ComplexFault [SubFault1: 1, obj_prop4: 1]")
 
     # Still need SubFault2 and obj_prop5 to be true
     expected = transformer.bdd.var('SubFault2') & \
@@ -529,7 +529,7 @@ def test_evidence_overrides_conditions(parse_and_get_bdd):
     """Test that evidence on a node overrides its conditions."""
     # ComplexFault has conditions but we set it directly to true
     transformer, bdd = parse_and_get_bdd(
-        "(SubFault2 && BasicAttack) || BasicFault [SubFault2:1]")
+        "(SubFault2 && BasicAttack) || BasicFault [SubFault2: 1]")
 
     # Formula reduces to (true && BasicAttack) || BasicFault
     expected = transformer.bdd.var('BasicAttack') | transformer.bdd.var(
@@ -611,7 +611,7 @@ def test_mrs_nested(parse_and_get_bdd):
 
 def test_mrs_with_evidence(parse_and_get_bdd):
     """Test MRS with boolean evidence."""
-    formula = "MRS(BasicAttack || BasicFault) [BasicFault:1]"
+    formula = "MRS(BasicAttack || BasicFault) [BasicFault: 1]"
     transformer, bdd = parse_and_get_bdd(formula)
 
     # With BasicFault=1, the formula MRS(BasicAttack || BasicFault) becomes MRS(BasicAttack || True)

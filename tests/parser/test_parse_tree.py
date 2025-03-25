@@ -142,7 +142,7 @@ def test_layer1_query_tree(parse_rule):
 
 def test_layer2_query_tree(parse_rule):
     """Test exact tree structure of a Layer 2 formula."""
-    result = parse_rule("{A:1} P(B) >= 0.5", "layer2_query")
+    result = parse_rule("{A: 1} P(B) >= 0.5", "layer2_query")
     expected = Tree(Token("RULE", "layer2_query"), [
         Tree(Token("RULE", "configuration"), [
             Tree(Token("RULE", "boolean_mapping"), [
@@ -236,7 +236,8 @@ def test_complete_odg_tree(parse):
 
 def test_complex_layer1_query_tree(parse_rule):
     """Test exact tree structure of a complex Layer 1 formula with nested operations and evidence."""
-    result = parse_rule("{}MRS(!A && B || ((C [ZZ:1]) => D) [Z:0]) [X:1, Y:0]",
+    result = parse_rule(
+        "{}MRS(!A && B || ((C [ZZ: 1]) => D) [Z: 0]) [X: 1, Y: 0]",
                         "layer1_query")
     expected = Tree("check", [
         Tree(Token("RULE", "configuration"), []),
@@ -297,7 +298,7 @@ def test_complex_layer1_query_tree(parse_rule):
 
 def test_complex_layer2_query_tree(parse_rule):
     """Test exact tree structure of a complex Layer 2 formula with multiple probability formulas."""
-    result = parse_rule("{A:1} P(X && Y) < 0.3 && P(Z) >= 0.7", "layer2_query")
+    result = parse_rule("{A: 1} P(X && Y) < 0.3 && P(Z) >= 0.7", "layer2_query")
     expected = Tree(Token("RULE", "layer2_query"), [
         Tree(Token("RULE", "configuration"), [
             Tree(Token("RULE", "boolean_mapping"), [
@@ -332,7 +333,7 @@ def test_complex_layer2_query_tree(parse_rule):
 
 def test_layer3_formula_with_evidence_tree(parse_rule):
     """Test exact tree structure of a Layer 3 formula with evidence."""
-    result = parse_rule("OptimalConf(System) [A:1, B:0]", "layer3_formula")
+    result = parse_rule("OptimalConf(System) [A: 1, B: 0]", "layer3_formula")
     expected = Tree("with_boolean_evidence", [
         Tree("optimal_conf", [
             Token("NODE_NAME", "System")
@@ -353,7 +354,7 @@ def test_layer3_formula_with_evidence_tree(parse_rule):
 
 def test_compute_all_layer1_query_tree(parse_rule):
     """Test exact tree structure of a compute_all (double brackets) Layer 1 formula."""
-    result = parse_rule("{A:1} [[MRS(B) [X:1]]]", "layer1_query")
+    result = parse_rule("{A: 1} [[MRS(B) [X: 1]]]", "layer1_query")
     expected = Tree("compute_all", [
         Tree(Token("RULE", "configuration"), [
             Tree(Token("RULE", "boolean_mapping"), [
@@ -423,7 +424,7 @@ def test_all_layer3_formulas_tree(parse_rule):
 
 def test_layer2_with_probability_evidence_tree(parse_rule):
     """Test exact tree structure of Layer 2 formula with probability evidence."""
-    result = parse_rule("{A:1} P(X) >= 0.5 [X=0.7, Y=0.3]", "layer2_query")
+    result = parse_rule("{A: 1} P(X) >= 0.5 [X=0.7, Y=0.3]", "layer2_query")
     expected = Tree(Token("RULE", "layer2_query"), [
         Tree(Token("RULE", "configuration"), [
             Tree(Token("RULE", "boolean_mapping"), [
@@ -456,7 +457,7 @@ def test_layer2_with_probability_evidence_tree(parse_rule):
 
 def test_layer2_with_more_probabilities(parse_rule):
     result = parse_rule(
-        "{A:1, B:0} (P(X) >= 0.3 [X=0.8]) && (P(X) < 0.7 [X=0.2]) [Y=0.1]",
+        "{A: 1, B: 0} (P(X) >= 0.3 [X=0.8]) && (P(X) < 0.7 [X=0.2]) [Y=0.1]",
         "layer2_query")
     expected = Tree(Token("RULE", "layer2_query"), [
         Tree(Token("RULE", "configuration"), [
@@ -585,7 +586,7 @@ def test_all_relations_tree(parse_rule):
     relations = ["<", "<=", "==", ">=", ">"]
 
     for rel in relations:
-        result = parse_rule(f"{{A:1}} P(X) {rel} 0.5", "layer2_query")
+        result = parse_rule(f"{{A: 1}} P(X) {rel} 0.5", "layer2_query")
         expected = Tree(Token("RULE", "layer2_query"), [
             Tree(Token("RULE", "configuration"), [
                 Tree(Token("RULE", "boolean_mapping"), [
@@ -749,14 +750,14 @@ def test_multiple_probability_evidences_tree(parse_rule):
     Test a Layer 2 query tree with multiple probability evidences
     on different levels.
     """
-    input_str = "{A:1, B:0} (P(X) >= 0.3 [X=0.8]) && (P(Y) < 0.7 [Y=0.2]) [Z=0.1, W=0.9]"
+    input_str = "{A: 1, B: 0} (P(X) >= 0.3 [X=0.8]) && (P(Y) < 0.7 [Y=0.2]) [Z=0.1, W=0.9]"
     result = parse_rule(input_str, "layer2_query")
 
     # Expected parse tree:
     # layer2_query
     #   configuration
-    #     boolean_mapping: A:1
-    #     boolean_mapping: B:0
+    #     boolean_mapping: A: 1
+    #     boolean_mapping: B: 0
     #   with_probability_evidence (outer evidence from [Z=0.1, W=0.9])
     #     and_formula
     #       with_probability_evidence (left subformula evidence)
