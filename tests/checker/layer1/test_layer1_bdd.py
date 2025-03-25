@@ -3,7 +3,7 @@ from dd import cudd
 from lark import Tree, Token
 
 from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter, \
-    intermediate_node_to_bdd, ConditionTransformer
+    ConditionTransformer
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
 
 
@@ -80,11 +80,12 @@ def test_condition_transformer():
 def test_intermediate_node_bdd(attack_tree1):
     """Test intermediate_node_to_bdd function directly."""
     # Create BDD manager and test intermediate node conversion
-    bdd_manager = cudd.BDD()
+    transformer = Layer1BDDInterpreter(attack_tree1, None, None)
+    bdd_manager = transformer.bdd
     bdd_manager.declare('SubAttack1', 'SubAttack2', 'obj_prop1', 'obj_prop2')
 
     # Test ComplexAttack node which has an AND gate and conditions
-    bdd = intermediate_node_to_bdd(bdd_manager, attack_tree1, 'ComplexAttack')
+    bdd = transformer.intermediate_node_to_bdd(attack_tree1, 'ComplexAttack')
     expected = (bdd_manager.var('SubAttack1') & bdd_manager.var('SubAttack2')) & \
                (bdd_manager.var('obj_prop1') & bdd_manager.var('obj_prop2'))
     assert bdd == expected
@@ -154,7 +155,7 @@ def test_deeply_nested_nodes(parse_rule):
     bdd_manager.declare(*basic_nodes, *props)
 
     # Test the root node which should combine everything
-    bdd = intermediate_node_to_bdd(bdd_manager, attack_tree, 'Root')
+    bdd = transformer.intermediate_node_to_bdd(attack_tree, 'Root')
 
     # Build expected BDD bottom-up following the tree structure
     def v(name): return bdd_manager.var(name)
@@ -446,7 +447,6 @@ def test_mrs_with_evidence(parse_and_get_bdd):
     # With BasicFault=1, the formula MRS(BasicAttack || BasicFault) becomes MRS(BasicAttack || True)
     # Since MRS checks for minimal sets, and BasicFault=True is already sufficient,
     # BasicAttack would need to be False for a minimal set
-    # Expected result: ~BasicAttack
     expected = ~transformer.bdd.var('BasicAttack')
 
     assert bdd == expected

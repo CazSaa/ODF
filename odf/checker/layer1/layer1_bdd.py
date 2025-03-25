@@ -41,44 +41,27 @@ class Layer1FormulaVisitor(Visitor):
 
         raise ValueError(f"Unknown node: {node_name}")
 
+    def with_boolean_evidence(self, tree: Tree):
+        for mapping in tree.children[1].children:
+            node_name = mapping.children[0].value
+
+            if self.attack_tree.has_node(node_name):
+                self.attack_nodes.add(node_name)
+            elif self.fault_tree.has_node(node_name):
+                self.fault_nodes.add(node_name)
+            elif self.object_graph.has_object_property(node_name):
+                self.object_properties.add(node_name)
+            # todo caz blacklist children here
+            # todo caz check that node is a module
+            else:
+                raise ValueError(
+                    f"Cannot set evidence for non-existent element: {node_name}")
+
 
 class ConditionTransformer(Transformer, BooleanFormulaMixin):
     def __init__(self, bdd: cudd.BDD):
         super().__init__()
         self.bdd = bdd
-
-
-def basic_node_to_bdd(bdd: cudd.BDD, node: DTNode):
-    if node.condition_tree is None:
-        return bdd.var(node.name)
-    condition_bdd = ConditionTransformer(bdd).transform(node.condition_tree)
-    return bdd.var(node.name) & condition_bdd
-
-
-def intermediate_node_to_bdd(bdd: cudd.BDD, disruption_tree: DisruptionTree,
-                             node_name: str) -> cudd.Function:
-    node = disruption_tree.nodes[node_name]["data"]
-    if disruption_tree.out_degree(node_name) == 0:
-        return basic_node_to_bdd(bdd, node)
-
-    children = list(disruption_tree.successors(node_name))
-
-    if len(children) == 1:
-        return intermediate_node_to_bdd(bdd, disruption_tree, children[0])
-
-    assert node.gate_type is not None
-    apply = node.gate_type
-
-    result = intermediate_node_to_bdd(bdd, disruption_tree, children[0])
-    for child in children[1:]:
-        result = bdd.apply(apply, result,
-                           intermediate_node_to_bdd(bdd, disruption_tree,
-                                                    child))
-
-    if node.condition_tree is None:
-        return result
-    condition_bdd = ConditionTransformer(bdd).transform(node.condition_tree)
-    return result & condition_bdd
 
 
 # noinspection PyMethodMayBeStatic
@@ -89,6 +72,7 @@ class Layer1BDDInterpreter(Interpreter, BooleanMappingMixin,
     attack_nodes: set[str]
     fault_nodes: set[str]
     object_properties: set[str]
+    current_evidence: dict[str, bool]
 
     def __init__(self,
                  attack_tree: DisruptionTree,
@@ -104,6 +88,7 @@ class Layer1BDDInterpreter(Interpreter, BooleanMappingMixin,
         if reordering is not None:
             self.bdd.configure(reordering=reordering)
         self.prime_count = 0
+        self.current_evidence = {}
 
     def interpret(self, tree: Tree[_Leaf_T]) -> cudd.Function:
         visitor = Layer1FormulaVisitor(self.attack_tree, self.fault_tree,
@@ -119,13 +104,18 @@ class Layer1BDDInterpreter(Interpreter, BooleanMappingMixin,
         self.bdd.declare(*self.bdd_vars)
         return self.visit(tree)
 
-    @visit_children_decor
-    def with_boolean_evidence(self, items):
-        # TODO caz discuss how to handle OPs, and intermediate nodes. Also
-        #  consider raising error if illegal thing has evidence set because
-        #  currently cudd.pyx will throw a cryptic ValueError
-        formula, evidence_dict = items
-        return self.bdd.let(evidence_dict, formula)
+    def with_boolean_evidence(self, tree):
+        old_evidence = self.current_evidence.copy()
+
+        local_evidence = self.visit(tree.children[1])
+        self.current_evidence.update(local_evidence)
+
+        result = self.visit(tree.children[0])
+        result = self.bdd.let(self.current_evidence, result)
+
+        self.current_evidence = old_evidence
+
+        return result
 
     @visit_children_decor
     def boolean_evidence(self, items):
@@ -173,23 +163,71 @@ class Layer1BDDInterpreter(Interpreter, BooleanMappingMixin,
     def node_atom(self, items):
         node_name = items[0].value
 
+        if node_name in self.current_evidence:
+            return self.node_from_evidence(node_name)
+
         if node_name in self.bdd.vars:
             if node_name in self.object_properties:
                 return self.bdd.var(node_name)
 
             if node_name in self.attack_nodes:
                 node = self.attack_tree.nodes[node_name]["data"]
-                return basic_node_to_bdd(self.bdd, node)
+                return self.basic_node_to_bdd(node)
             if node_name in self.fault_nodes:
                 node = self.fault_tree.nodes[node_name]["data"]
-                return basic_node_to_bdd(self.bdd, node)
+                return self.basic_node_to_bdd(node)
 
             raise ValueError(f"Unknown node: {node_name}")
 
         for disruption_tree in [self.attack_tree, self.fault_tree]:
             if disruption_tree.has_intermediate_node(node_name):
-                return intermediate_node_to_bdd(self.bdd, disruption_tree,
-                                                node_name)
+                return self.intermediate_node_to_bdd(disruption_tree,
+                                                     node_name)
 
         if node_name not in self.bdd.vars:
             raise ValueError(f"Unknown node: {node_name}")
+
+    def basic_node_to_bdd(self, node: DTNode):
+        if node.name in self.current_evidence:
+            return self.node_from_evidence(node.name)
+
+        if node.condition_tree is None:
+            return self.bdd.var(node.name)
+
+        condition_bdd = ConditionTransformer(self.bdd).transform(
+            node.condition_tree)
+        return self.bdd.var(node.name) & condition_bdd
+
+    def intermediate_node_to_bdd(self, disruption_tree: DisruptionTree,
+                                 node_name: str) -> cudd.Function:
+        node = disruption_tree.nodes[node_name]["data"]
+
+        if node.name in self.current_evidence:
+            return self.node_from_evidence(node.name)
+
+        if disruption_tree.out_degree(node_name) == 0:
+            return self.basic_node_to_bdd(node)
+
+        children = list(disruption_tree.successors(node_name))
+
+        if len(children) == 1:
+            return self.intermediate_node_to_bdd(disruption_tree, children[0])
+
+        assert node.gate_type is not None
+        apply = node.gate_type
+
+        result = self.intermediate_node_to_bdd(disruption_tree, children[0])
+        for child in children[1:]:
+            result = self.bdd.apply(
+                apply, result,
+                self.intermediate_node_to_bdd(disruption_tree, child))
+
+        if node.condition_tree is None:
+            return result
+
+        condition_bdd = ConditionTransformer(self.bdd).transform(
+            node.condition_tree)
+        return result & condition_bdd
+
+    def node_from_evidence(self, node_name):
+        return self.bdd.var(node_name)
