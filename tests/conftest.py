@@ -71,11 +71,11 @@ def parse_rule(make_parser):
 def attack_tree_str1():
     """Create an attack tree with basic and non-basic nodes."""
     return """
-    toplevel Root;
-    Root and BasicAttack ComplexAttack;
+    toplevel RootA;
+    RootA and BasicAttack ComplexAttack;
     BasicAttack prob = 0.5;
     ComplexAttack and SubAttack1 SubAttack2;
-    ComplexAttack cond = (obj_prop1 && obj_prop2);
+    ComplexAttack cond = (obj_prop1 && obj_prop2) objects=[Object1];
     SubAttack1 prob = 0.3;
     SubAttack2 prob = 0.4;"""
 
@@ -84,23 +84,23 @@ def attack_tree_str1():
 def fault_tree_str1():
     """Create a fault tree with basic and complex nodes."""
     return """
-    toplevel Root;
-    Root and BasicFault ComplexFault;
+    toplevel RootF;
+    RootF and BasicFault ComplexFault;
     BasicFault prob = 0.3;
     ComplexFault and SubFault1 SubFault2;
-    ComplexFault cond = (obj_prop4 && obj_prop5);
+    ComplexFault cond = (obj_prop4 && obj_prop5) objects=[Object2];
     SubFault1 prob = 0.2;
-    SubFault2 prob = 0.1 cond = (obj_prop6);"""
+    SubFault2 prob = 0.1 cond = (obj_prop6) objects=[Object2];"""
 
 
 @pytest.fixture
 def object_graph_str1():
     """Create an object graph with properties."""
     return """
-    toplevel Root;
-    Root has Object1 Object2;
+    toplevel RootO;
+    RootO has Object1 Object2;
     Object1 properties = [obj_prop1, obj_prop2];
-    Object2 properties = [obj_prop3];"""
+    Object2 properties = [obj_prop3, obj_prop4, obj_prop5, obj_prop6];"""
 
 
 @pytest.fixture
@@ -146,8 +146,8 @@ def transform_object_graph_str(parse_rule):
 def attack_tree_mixed_gates(transform_disruption_tree_str):
     """Create an attack tree with mixed AND/OR gates for interesting MRS patterns."""
     return transform_disruption_tree_str("""
-    toplevel Root;
-    Root or PathA PathB PathC;
+    toplevel RootA;
+    RootA or PathA PathB PathC;
 
     // Path A: Simple AND chain
     PathA and StepA1 StepA2;
@@ -172,8 +172,8 @@ def attack_tree_mixed_gates(transform_disruption_tree_str):
     SubPathC2_1 or Attack10 Attack11;
     SubPathC3;
     SubPathC2_1;
-    Attack7 cond = (prop1);
-    Attack8 cond = (prop2);
+    Attack7 cond = (obj_prop1) objects=[Object1];
+    Attack8 cond = (obj_prop2) objects=[Object1];
     Attack9;
     Attack10;
     Attack11;
@@ -240,6 +240,7 @@ def parse_and_get_bdd(attack_tree1, fault_tree1, object_graph1, parse_rule):
     def _parse_and_get_bdd(formula, attack_tree=attack_tree1,
                            fault_tree=fault_tree1, object_graph=object_graph1):
         tree = parse_rule(formula, "layer1_formula")
+        validate_models(attack_tree, fault_tree, object_graph)
         transformer = Layer1BDDInterpreter(attack_tree, fault_tree,
                                            object_graph)
         bdd = transformer.interpret(tree)

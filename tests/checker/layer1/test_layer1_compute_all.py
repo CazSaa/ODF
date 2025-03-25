@@ -206,8 +206,8 @@ def test_mrs_mixed_gates_compute_all(do_layer1_compute_all,
 
     # Test root level with complex conditions
     result = do_layer1_compute_all(
-        "Root",
-        "{prop1:1, prop2:1}",
+        "RootA",
+        "{obj_prop1: 1, obj_prop2: 1}",
         attack_tree=attack_tree_mixed_gates
     )
     expected = {
@@ -265,7 +265,7 @@ def test_complex_trees_compute_all(do_layer1_compute_all,
     # Test a path that combines multiple gate types
     result = do_layer1_compute_all(
         "PathC",
-        "{prop1:1, prop2:1}",
+        "{obj_prop1:1, obj_prop2:1}",
         attack_tree=attack_tree_mixed_gates
     )
 
@@ -284,7 +284,7 @@ def test_complex_trees_compute_all(do_layer1_compute_all,
 
     assert do_layer1_compute_all(
         "PathC",
-        "{prop1:0, prop2:1}",
+        "{obj_prop1:0, obj_prop2:1}",
         attack_tree=attack_tree_mixed_gates
     ) == {
                frozenset({"Attack8", "Attack9", "Attack10", "SubPathC3"}),
@@ -293,7 +293,7 @@ def test_complex_trees_compute_all(do_layer1_compute_all,
 
     assert do_layer1_compute_all(
         "PathC",
-        "{prop1:1, prop2:0}",
+        "{obj_prop1:1, obj_prop2:0}",
         attack_tree=attack_tree_mixed_gates
     ) == {
                frozenset({"Attack7", "Attack9", "Attack10", "SubPathC3"}),
@@ -302,6 +302,6 @@ def test_complex_trees_compute_all(do_layer1_compute_all,
 
     assert do_layer1_compute_all(
         "PathC",
-        "{prop1:0, prop2:0}",
+        "{obj_prop1:0, obj_prop2:0}",
         attack_tree=attack_tree_mixed_gates
     ) == set()

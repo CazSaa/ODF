@@ -472,8 +472,8 @@ def complex_attack_tree(transform_disruption_tree_str):
     BasicAttack6 prob = 0.6;
     BasicAttack7 prob = 0.7;
     
-    MixedGateNode cond = (obj_prop1);
-    AndGateNode2 cond = (obj_prop2);
+    MixedGateNode cond = (obj_prop1) objects=[Object1];
+    AndGateNode2 cond = (obj_prop2) objects=[Object1];
     """)
 
 
