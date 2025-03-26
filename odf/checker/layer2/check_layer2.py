@@ -16,6 +16,7 @@ from odf.models.object_graph import ObjectGraph
 from odf.transformers.configuration import parse_configuration
 from odf.transformers.prob_evidence_prepass import PrePassEvidenceInterpreter
 from odf.utils.logger import logger
+from odf.utils.reconstructor import reconstruct
 
 
 def dfs_nodes_with_complement(
@@ -181,9 +182,11 @@ class Layer2Interpreter(Interpreter):
 
         if evidence:
             evidence_str = ", ".join(f"{k}={v}" for k, v in evidence.items())
-            logger.info(f"Probability with evidence [{evidence_str}]: {prob}")
+            logger.info(
+                f"Probability for formula `{reconstruct(formula_tree)}` with evidence [{evidence_str}]: {prob} (~{prob:f})")
         else:
-            logger.info(f"Probability: {prob}")
+            logger.info(
+                f"Probability for formula `{reconstruct(formula_tree)}`: {prob} (~{prob:f})")
 
         match relation:
             case "<":
@@ -258,4 +261,5 @@ def check_layer2_query(formula: Tree,
             "You provided object properties in the configuration that"
             f" are not used in the formula, these can be removed: {surplus_vars}")
 
+    print(f"Result: {res}")
     return res
