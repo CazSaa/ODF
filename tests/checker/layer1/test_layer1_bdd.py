@@ -4,7 +4,8 @@ from lark import Tree, Token
 
 from odf.checker.exceptions import (NodeAncestorEvidenceError,
                                     EvidenceAncestorEvidenceError,
-                                    NonModuleNodeError)
+                                    NonModuleNodeError,
+                                    InvalidNodeEvidenceError)
 from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter, \
     ConditionTransformer
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
@@ -874,3 +875,21 @@ def test_evidence_on_non_module_nodes(parse_and_get_bdd,
                        match=r".*F.*not a module.*"):
         parse_and_get_bdd("(Root && F [F: 1]) [Root: 1]",
                           attack_tree=complex_tree)
+
+
+def test_invalid_node_evidence(parse_and_get_bdd):
+    """Test that providing evidence for a non-existent node raises an error."""
+    with pytest.raises(InvalidNodeEvidenceError, match=r".*NonExistentNode.*"):
+        parse_and_get_bdd("ComplexAttack [NonExistentNode: 1]")
+
+    with pytest.raises(InvalidNodeEvidenceError, match=r".*FakeNode.*"):
+        parse_and_get_bdd("ComplexAttack && BasicAttack [FakeNode: 0]")
+
+    # Test with nested evidence
+    with pytest.raises(InvalidNodeEvidenceError, match=r".*NonExistentNode.*"):
+        parse_and_get_bdd("(ComplexAttack [NonExistentNode: 1]) && BasicAttack")
+
+    # Test with multiple pieces of evidence including an invalid one
+    with pytest.raises(InvalidNodeEvidenceError, match=r".*InvalidNode.*"):
+        parse_and_get_bdd(
+            "ComplexAttack [BasicAttack: 1, InvalidNode: 0, SubAttack1: 1]")
