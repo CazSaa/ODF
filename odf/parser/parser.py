@@ -7,7 +7,7 @@ from lark import Token, Tree, Lark
 @cache
 def parser():
     with open(Path(__file__).parent / "grammar.lark") as grammar:
-        return Lark(grammar, maybe_placeholders=False)
+        return Lark(grammar, maybe_placeholders=False, strict=True)
 
 
 def parse(text: str) -> Tree[Token]:
