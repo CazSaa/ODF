@@ -60,6 +60,9 @@ class Layer1FormulaInterpreter(Interpreter):
                 self.attack_nodes.add(node_name)
                 evidence_nodes.add(node_name)
                 if self.attack_tree.has_intermediate_node(node_name):
+                    if not self.attack_tree.is_module(node_name):
+                        raise ValueError(
+                            f"Evidence can only be set on module nodes. {node_name} is not a module because some of its descendants can be reached through other nodes")
                     local_blacklist[node_name] = set(
                         self.attack_tree.get_strict_descendants(node_name))
 
@@ -67,6 +70,9 @@ class Layer1FormulaInterpreter(Interpreter):
                 self.fault_nodes.add(node_name)
                 evidence_nodes.add(node_name)
                 if self.fault_tree.has_intermediate_node(node_name):
+                    if not self.fault_tree.is_module(node_name):
+                        raise ValueError(
+                            f"Evidence can only be set on module nodes. {node_name} is not a module because some of its descendants can be reached through other nodes")
                     local_blacklist[node_name] = set(
                         self.fault_tree.get_strict_descendants(node_name))
 

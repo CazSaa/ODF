@@ -787,3 +787,79 @@ def test_evidence_on_children(parse_and_get_bdd):
             obj_prop4: 0,             
             ComplexFault: 1           // Override everything to true
         ]""")
+
+
+def test_evidence_on_non_module_nodes(parse_and_get_bdd,
+                                      transform_disruption_tree_str):
+    """Test that setting evidence on non-module nodes raises appropriate errors."""
+    # Create a DAG where some nodes are not modules:
+    #      Root
+    #     /   \
+    #    A     B
+    #   / \   / \
+    #  C   D E   F
+    #       \   /
+    #        G
+    tree_str = """
+    toplevel Root;
+    Root and A B;
+    A and C D;
+    B and E F;
+    D or G;
+    F or G;
+
+    A cond=(obj_prop1) objects=[Object1];
+    B cond=(obj_prop2) objects=[Object1];
+    C prob=0.1;
+    D prob=0.2;
+    E prob=0.3;
+    F prob=0.4;
+    G prob=0.5;
+    """
+    complex_tree = transform_disruption_tree_str(tree_str)
+
+    # Test valid module nodes (Root, C, E, G)
+    transformer, bdd = parse_and_get_bdd("Root [Root: 1]",
+                                         attack_tree=complex_tree)
+    assert bdd == transformer.bdd.true
+
+    transformer, bdd = parse_and_get_bdd("C [C: 1]", attack_tree=complex_tree)
+    assert bdd == transformer.bdd.true
+
+    transformer, bdd = parse_and_get_bdd("E [E: 1]", attack_tree=complex_tree)
+    assert bdd == transformer.bdd.true
+
+    transformer, bdd = parse_and_get_bdd("G [G: 1]", attack_tree=complex_tree)
+    assert bdd == transformer.bdd.true
+
+    # Test invalid module nodes (A, B, D, F)
+    with pytest.raises(ValueError,
+                       match="Evidence can only be set on module nodes. A is not a module because some of its descendants can be reached through other nodes"):
+        parse_and_get_bdd("A || C [A: 1]", attack_tree=complex_tree)
+
+    with pytest.raises(ValueError,
+                       match="Evidence can only be set on module nodes. B is not a module because some of its descendants can be reached through other nodes"):
+        parse_and_get_bdd("B || E [B: 1]", attack_tree=complex_tree)
+
+    with pytest.raises(ValueError,
+                       match="Evidence can only be set on module nodes. D is not a module because some of its descendants can be reached through other nodes"):
+        parse_and_get_bdd("D || G [D: 1]", attack_tree=complex_tree)
+
+    with pytest.raises(ValueError,
+                       match="Evidence can only be set on module nodes. F is not a module because some of its descendants can be reached through other nodes"):
+        parse_and_get_bdd("F || G [F: 1]", attack_tree=complex_tree)
+
+    # Test that the error is raised even when evidence on the non-module node
+    # is combined with evidence on other valid nodes
+    with pytest.raises(ValueError,
+                       match="Evidence can only be set on module nodes. D is not a module because some of its descendants can be reached through other nodes"):
+        parse_and_get_bdd("Root && D [Root: 1, D: 1]", attack_tree=complex_tree)
+
+    with pytest.raises(ValueError,
+                       match="Evidence can only be set on module nodes. F is not a module because some of its descendants can be reached through other nodes"):
+        parse_and_get_bdd("(Root && F [Root: 1]) [F: 1]",
+                          attack_tree=complex_tree)
+    with pytest.raises(ValueError,
+                       match="Evidence can only be set on module nodes. F is not a module because some of its descendants can be reached through other nodes"):
+        parse_and_get_bdd("(Root && F [F: 1]) [Root: 1]",
+                          attack_tree=complex_tree)

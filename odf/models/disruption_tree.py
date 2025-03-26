@@ -99,3 +99,34 @@ class DisruptionTree(TreeGraph[DTNode]):
     def get_strict_descendants(self, node_name: str) -> set[str]:
         """Get all descendants of the given node (excluding itself). """
         return {node for node in descendants(self, node_name)}
+
+    def is_module(self, node_name: str) -> bool:
+        r"""Check if a node is a module.
+        
+        A node is a module if all paths from its descendants to the rest of the
+        tree must pass through this node. In other words, no descendant can have
+        a parent that is not also a descendant of this node (except for the node
+        itself).
+        
+        Example non-module:
+             Root
+             /  \
+            B    D
+           / \  /
+          C   A
+
+        Here B is not a module because while it has descendants A and C,
+        its descendant A has a parent D that is not a descendant of B.
+
+        Args:
+            node_name: The name of the node to check.
+
+        Returns:
+            True if the node is a module, False otherwise.
+        """
+        descendants_ = self.get_strict_descendants(node_name)
+        for descendant in descendants_:
+            for predecessor in self.predecessors(descendant):
+                if predecessor != node_name and predecessor not in descendants_:
+                    return False
+        return True
