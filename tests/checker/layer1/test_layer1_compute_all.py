@@ -45,7 +45,7 @@ def test_missing_object_properties(do_layer1_compute_all):
     assert "obj_prop2" in str(excinfo.value)
 
 
-def test_extra_object_properties(do_layer1_compute_all, capsys):
+def test_extra_object_properties(do_layer1_compute_all, caplog):
     """Test handling of extra variables in configuration."""
     result = do_layer1_compute_all(
         "BasicAttack",
@@ -53,9 +53,9 @@ def test_extra_object_properties(do_layer1_compute_all, capsys):
     )
 
     # Check that warning was printed
-    captured = capsys.readouterr()
-    assert "You specified object properties that either do not exist" in captured.out
-    assert "NonexistentVar" in captured.out
+    assert "You specified object properties that either do not exist" in caplog.text
+    assert "NonexistentVar" in caplog.text
+    caplog.clear()
 
     # Check that the formula was still evaluated correctly
     assert result == {frozenset({"BasicAttack"})}
@@ -69,9 +69,8 @@ def test_extra_object_properties(do_layer1_compute_all, capsys):
         "BasicAttack && (obj_prop1 || !obj_prop1)",
         "{obj_prop1: 1}"
     ) == {frozenset({"BasicAttack"})}
-    captured = capsys.readouterr()
-    assert "You specified object properties that either do not exist" in captured.out
-    assert "obj_prop1" in captured.out
+    assert "You specified object properties that either do not exist" in caplog.text
+    assert "obj_prop1" in caplog.text
 
 
 def test_complex_conditions_compute_all(do_layer1_compute_all):

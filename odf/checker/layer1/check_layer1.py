@@ -6,6 +6,7 @@ from odf.core.types import Configuration
 from odf.models.disruption_tree import DisruptionTree
 from odf.models.object_graph import ObjectGraph
 from odf.transformers.configuration import parse_configuration
+from odf.utils.logger import logger
 
 
 def check_layer1_query(formula: Tree,
@@ -49,12 +50,10 @@ def layer1_check(formula: Tree,
 
     non_existing_vars = given_vars - needed_vars
     if len(non_existing_vars) > 0:
-        # todo caz
-        print(
-            f"WARNING: You specified variables that either do not exist"
-            f" (perhaps you made a typo?), or do not influence the outcome of"
-            f" the formula. These variables will be ignored, and are not"
-            f" necessary to satisfy the given formula: {non_existing_vars}")
+        logger.warning("You specified variables that either do not exist"
+                       " (perhaps you made a typo?), or do not influence the outcome of"
+                       " the formula. These variables will be ignored, and are not"
+                       f" necessary to satisfy the given formula: {non_existing_vars}")
         for var in non_existing_vars:
             del configuration[var]
 
@@ -84,11 +83,10 @@ def layer1_compute_all(formula: Tree,
 
     non_existing_vars = given_vars - needed_vars
     if len(non_existing_vars) > 0:
-        # todo caz
-        print(
-            f"WARNING: You specified object properties that either do not exist"
-            f" (perhaps you made a typo?), or do not influence the outcome of"
-            f" the formula. These object properties will be ignored, and are"
+        logger.warning(
+            "You specified object properties that either do not exist"
+            " (perhaps you made a typo?), or do not influence the outcome of"
+            " the formula. These object properties will be ignored, and are"
             f" not necessary to satisfy the given formula: {non_existing_vars}")
         for var in non_existing_vars:
             del configuration[var]

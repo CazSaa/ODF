@@ -76,15 +76,14 @@ def test_missing_object_properties(do_check_layer2, paper_example_models):
     assert "LJ" in str(exc_info.value)
 
 
-def test_unused_object_properties(capsys, do_check_layer2,
+def test_unused_object_properties(caplog, do_check_layer2,
                                   paper_example_models):
     """Test warning when configuration contains unused object properties."""
     do_check_layer2(
         "{LP: 1,LJ: 0,HS: 1} P(PL) > 0.05",  # HS is not used in formula
         *paper_example_models)
-    captured = capsys.readouterr()
-    assert "not used in the formula" in captured.out
-    assert "HS" in captured.out
+    assert "not used in the formula" in caplog.text
+    assert "HS" in caplog.text
 
 
 def test_undefined_node(do_check_layer2, paper_example_models):

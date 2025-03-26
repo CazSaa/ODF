@@ -15,6 +15,7 @@ from odf.models.disruption_tree import DisruptionTree
 from odf.models.object_graph import ObjectGraph
 from odf.transformers.configuration import parse_configuration
 from odf.transformers.prob_evidence_prepass import PrePassEvidenceInterpreter
+from odf.utils.logger import logger
 
 
 def dfs_nodes_with_complement(
@@ -180,10 +181,9 @@ class Layer2Interpreter(Interpreter):
 
         if evidence:
             evidence_str = ", ".join(f"{k}={v}" for k, v in evidence.items())
-            print(f"INFO: Probability with evidence [{evidence_str}]: {prob}")
+            logger.info(f"Probability with evidence [{evidence_str}]: {prob}")
         else:
-            print(
-                f"INFO: Probability: {prob}")  # todo caz reconstruct the formula
+            logger.info(f"Probability: {prob}")
 
         match relation:
             case "<":
@@ -230,14 +230,13 @@ def check_layer2_query(formula: Tree,
                        object_graph: ObjectGraph):
     assert formula.data == "layer2_query"
     assert formula.children[0].data == "configuration"
+
     configuration = parse_configuration(formula.children[0])
     non_object_properties = set(configuration.keys()) - set(
         object_graph.object_properties)
     if len(non_object_properties) > 0:
-        # todo caz
-        print(
-            f"WARNING: The following variables of the configuration are not"
-            f" object properties and will be ignored: {non_object_properties}")
+        logger.warning("The following variables of the configuration are not"
+                       f" object properties and will be ignored: {non_object_properties}")
         for var in non_object_properties:
             del configuration[var]
 
@@ -255,9 +254,8 @@ def check_layer2_query(formula: Tree,
     surplus_vars = set(
         configuration.keys()) - transformer.used_object_properties
     if len(surplus_vars) > 0:
-        # todo caz
-        print(
-            f"WARNING: You provided object properties in the configuration that"
+        logger.warning(
+            "You provided object properties in the configuration that"
             f" are not used in the formula, these can be removed: {surplus_vars}")
 
     return res

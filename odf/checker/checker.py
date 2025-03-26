@@ -14,7 +14,7 @@ def check_formulas(formulas_parse_tree: Tree, attack_tree: DisruptionTree,
                 check_layer1_query(formula, attack_tree,
                                    fault_tree, object_graph)
             case "layer2_query":
-                check_layer2_query(formula, attack_tree,
+                check_layer2_query(formula.children[0], attack_tree,
                                    fault_tree, object_graph)
             case "layer3_query":
                 raise NotImplementedError()
