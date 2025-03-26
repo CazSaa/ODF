@@ -1,5 +1,7 @@
 import pytest
 
+from odf.checker.exceptions import MissingConfigurationError
+
 
 def test_paper_example(do_check_layer2, paper_example_models):
     assert do_check_layer2(
@@ -65,10 +67,12 @@ def test_and_gate_attack_nodes(do_check_layer2, paper_example_models):
 
 def test_missing_object_properties(do_check_layer2, paper_example_models):
     """Test error when required object properties are missing."""
-    with pytest.raises(ValueError, match="Missing object properties"):
+    with pytest.raises(MissingConfigurationError,
+                       match="Missing object properties") as exc_info:
         do_check_layer2(
             "{LP: 1} P(PL && LGJ) > 0.5",  # Missing LJ property
             *paper_example_models)
+    assert "LJ" in str(exc_info.value)
 
 
 def test_unused_object_properties(capsys, do_check_layer2,

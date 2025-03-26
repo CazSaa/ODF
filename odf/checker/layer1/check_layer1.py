@@ -1,5 +1,6 @@
 from lark import Tree
 
+from odf.checker.exceptions import MissingConfigurationError
 from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter
 from odf.core.types import Configuration
 from odf.models.disruption_tree import DisruptionTree
@@ -44,8 +45,7 @@ def layer1_check(formula: Tree,
     given_vars = set(configuration.keys())
     missing_vars = needed_vars - given_vars
     if len(missing_vars) > 0:
-        # todo caz
-        raise ValueError(f"Missing variables: {missing_vars}")
+        raise MissingConfigurationError(missing_vars)
 
     non_existing_vars = given_vars - needed_vars
     if len(non_existing_vars) > 0:
@@ -79,9 +79,8 @@ def layer1_compute_all(formula: Tree,
     given_vars = set(configuration.keys())
     missing_vars = needed_vars - given_vars
     if len(missing_vars) > 0:
-        # todo caz
-        raise ValueError(
-            f"Missing object properties in configuration: {missing_vars}")
+        raise MissingConfigurationError(missing_vars,
+                                        type_name="object properties")
 
     non_existing_vars = given_vars - needed_vars
     if len(non_existing_vars) > 0:

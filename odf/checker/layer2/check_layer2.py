@@ -7,6 +7,8 @@ from dd.cudd import Function
 from lark import Tree
 from lark.visitors import Interpreter, visit_children_decor
 
+from odf.checker.exceptions import MissingNodeProbabilityError, \
+    MissingConfigurationError
 from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter
 from odf.core.types import Configuration
 from odf.models.disruption_tree import DisruptionTree
@@ -105,9 +107,7 @@ def calc_node_prob(attack_tree: DisruptionTree,
             else:
                 node_prob = fault_tree.nodes[node.var]["data"].probability
                 if node_prob is None:
-                    # todo caz
-                    raise ValueError(
-                        f"Node {node.var} has no probability in the fault tree")
+                    raise MissingNodeProbabilityError(node.var, "fault tree")
             p_low = probs[to_key(node.low, complemented)] * (
                     Fraction(1) - node_prob)
             p_high = probs[to_key(node.high, complemented)] * node_prob
@@ -118,9 +118,7 @@ def calc_node_prob(attack_tree: DisruptionTree,
             else:
                 node_prob = attack_tree.nodes[node.var]["data"].probability
                 if node_prob is None:
-                    # todo caz
-                    raise ValueError(
-                        f"Node {node.var} has no probability in the attack tree")
+                    raise MissingNodeProbabilityError(node.var, "attack tree")
             p_low = probs[to_key(node.low, complemented)]
             p_high = probs[to_key(node.high, complemented)] * node_prob
             probs[to_key(node, complemented)] = max(p_low, p_high)
@@ -173,9 +171,8 @@ class Layer2Interpreter(Interpreter):
         given_vars = set(self.configuration.keys())
         missing_vars = needed_vars - given_vars
         if len(missing_vars) > 0:
-            # todo caz
-            raise ValueError(
-                f"Missing object properties in configuration: {missing_vars}")
+            raise MissingConfigurationError(missing_vars,
+                                            type_name="object properties")
         self.used_object_properties.update(needed_vars)
 
         prob = l2_prob(self.attack_tree, self.fault_tree, bdd,

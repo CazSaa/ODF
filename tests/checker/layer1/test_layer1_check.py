@@ -1,5 +1,7 @@
 import pytest
 
+from odf.checker.exceptions import MissingConfigurationError
+
 
 def test_basic_check(do_layer1_check):
     """Test checking a basic formula with complete configuration."""
@@ -38,11 +40,15 @@ def test_complex_formula_check(do_layer1_check):
 
 def test_missing_variables(do_layer1_check):
     """Test error handling when configuration is missing required variables."""
-    with pytest.raises(ValueError, match="Missing variables:"):
+    with pytest.raises(MissingConfigurationError,
+                       match="Missing variables") as exc_info:
         do_layer1_check(
             "ComplexAttack",
             "{SubAttack1: 1}"  # Missing SubAttack2 and object properties
         )
+    assert "obj_prop1" in str(exc_info.value)
+    assert "obj_prop2" in str(exc_info.value)
+    assert "SubAttack2" in str(exc_info.value)
 
 
 def test_extra_variables(do_layer1_check, capsys):
@@ -263,11 +269,13 @@ def test_evidence_configuration_interaction(do_layer1_check):
         }"""
     )
 
-    with pytest.raises(ValueError, match="Missing variables"):
+    with pytest.raises(MissingConfigurationError,
+                       match="Missing variables") as exc_info:
         do_layer1_check(
             "ComplexAttack [SubAttack1: 1, SubAttack2: 1]",
             "{obj_prop1: 1}"  # Missing obj_prop2
         )
+    assert "obj_prop2" in str(exc_info.value)
 
 
 def test_mrs_with_mixed_gates(do_layer1_check, attack_tree_mixed_gates, capsys):

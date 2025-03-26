@@ -1,5 +1,7 @@
 import pytest
 
+from odf.checker.exceptions import MissingConfigurationError
+
 
 def test_basic_compute_all(do_layer1_compute_all):
     """Test computing all minimal configurations for basic formulas."""
@@ -28,14 +30,19 @@ def test_complex_formula_compute_all(do_layer1_compute_all):
 
 def test_missing_object_properties(do_layer1_compute_all):
     """Test error handling when configuration is missing required variables."""
-    with pytest.raises(ValueError, match="Missing object properties"):
+    with pytest.raises(MissingConfigurationError,
+                       match="Missing object properties") as excinfo:
         do_layer1_compute_all("ComplexAttack",
                               "{}")  # Missing required object properties
+    assert "obj_prop1" in str(excinfo.value)
+    assert "obj_prop2" in str(excinfo.value)
 
     # Partial configuration should still fail
-    with pytest.raises(ValueError):
+    with pytest.raises(MissingConfigurationError,
+                       match="Missing object properties") as excinfo:
         do_layer1_compute_all("ComplexAttack",
                               "{obj_prop1: 1}")  # Missing obj_prop2
+    assert "obj_prop2" in str(excinfo.value)
 
 
 def test_extra_object_properties(do_layer1_compute_all, capsys):
