@@ -92,15 +92,12 @@ def test_disruption_tree_structure(parse_rule):
 
 def test_object_graph_tree_structure(parse_rule):
     """Test exact tree structure of an object graph."""
-    graph_text = """toplevel System;
+    graph_text = """
     System has Comp1 Comp2;
     Comp1 properties = [prop1];
     Comp2;"""
     result = parse_rule(graph_text, "object_graph_tree")
     expected = Tree(Token("RULE", "object_graph_tree"), [
-        Tree(Token("RULE", "tln"), [
-            Token("NODE_NAME", "System")
-        ]),
         Tree(Token("RULE", "intermediate_object"), [
             Token("NODE_NAME", "System"),
             Token("NODE_NAME", "Comp1"),
@@ -183,7 +180,6 @@ def test_complete_odg_tree(parse):
     B;
 
     [odg.object_graph]
-    toplevel C;
     C;
 
     [formulas]
@@ -212,9 +208,6 @@ def test_complete_odg_tree(parse):
         ]),
         Tree(Token("RULE", "object_graph"), [
             Tree(Token("RULE", "object_graph_tree"), [
-                Tree(Token("RULE", "tln"), [
-                    Token("NODE_NAME", "C")
-                ]),
                 Tree(Token("RULE", "basic_object"), [
                     Token("NODE_NAME", "C")
                 ])

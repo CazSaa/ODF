@@ -22,7 +22,6 @@ def test_valid_references():
     toplevel FRoot;
     
     [odg.object_graph]
-    toplevel House;
     House has Door;
     Door has Lock;
 
@@ -53,7 +52,6 @@ def test_property_matches_node_name():
     toplevel FRoot;
 
     [odg.object_graph]
-    toplevel House;
     House has Door Window;
     
     Door properties=[Root];  // Property name matches node name
@@ -90,7 +88,6 @@ def test_duplicate_node_names():
     DuplicateName;
 
     [odg.object_graph]
-    toplevel House;
     House has Door;
     Door has Lock;
     
@@ -120,7 +117,6 @@ def test_invalid_object_reference():
     toplevel FRoot;
 
     [odg.object_graph]
-    toplevel House;
     House properties=[HS];
     
     [formulas]
@@ -148,7 +144,6 @@ def test_property_without_object():
     toplevel FRoot;
 
     [odg.object_graph]
-    toplevel House;
     House properties=[HS];
     
     [formulas]
@@ -175,7 +170,6 @@ def test_invalid_property_reference():
     toplevel FRoot;
 
     [odg.object_graph]
-    toplevel House;
     House properties=[HS];
     
     [formulas]
@@ -203,7 +197,6 @@ def test_property_from_wrong_object():
     toplevel FRoot;
 
     [odg.object_graph]
-    toplevel House;
     House properties=[HS];
     Lock properties=[LP];
     
@@ -233,7 +226,6 @@ def test_complex_conditions():
     toplevel FRoot;
 
     [odg.object_graph]
-    toplevel House;
     House has Door;
     Door has Lock;
 

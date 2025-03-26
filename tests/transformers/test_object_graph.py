@@ -8,7 +8,7 @@ from odf.transformers.object_graph import ObjectGraphTransformer
 def test_basic_object_graph(parse_rule):
     """Test transforming a basic object graph with a single node."""
     transformer = ObjectGraphTransformer()
-    tree = parse_rule("""toplevel A;
+    tree = parse_rule("""
     A properties = [prop1];""", "object_graph_tree")
 
     result = transformer.transform(tree)
@@ -20,7 +20,7 @@ def test_basic_object_graph(parse_rule):
 def test_object_graph_with_intermediate_node(parse_rule):
     """Test transforming an object graph with has relationships."""
     transformer = ObjectGraphTransformer()
-    tree = parse_rule("""toplevel Root;
+    tree = parse_rule("""
     Root has A B;
     A properties = [prop1];
     B;
@@ -44,7 +44,7 @@ def test_object_graph_with_intermediate_node(parse_rule):
 def test_duplicate_basic_object_definition_raises_error(parse_rule):
     """Test that defining a basic object multiple times raises an error."""
     transformer = ObjectGraphTransformer()
-    tree = parse_rule("""toplevel A;
+    tree = parse_rule("""
     A;
     A properties = [prop1, prop2];
     """, "object_graph_tree")
@@ -57,7 +57,7 @@ def test_duplicate_basic_object_definition_raises_error(parse_rule):
 def test_duplicate_intermediate_object_definition_raises_error(parse_rule):
     """Test that defining an intermediate object multiple times raises an error."""
     transformer = ObjectGraphTransformer()
-    tree = parse_rule("""toplevel Root;
+    tree = parse_rule("""
     A has B C;
     A has D E;
     """, "object_graph_tree")
@@ -70,7 +70,7 @@ def test_duplicate_intermediate_object_definition_raises_error(parse_rule):
 
 def test_duplicate_object_properties(parse_rule):
     transformer = ObjectGraphTransformer()
-    tree = parse_rule("""toplevel House;
+    tree = parse_rule("""
     House has Door Window;
 
     Door properties=[DF,open];  // Both Door and Window have 'open' property
@@ -89,7 +89,7 @@ def test_duplicate_object_properties(parse_rule):
 def test_object_can_be_both_basic_and_child(parse_rule):
     """Test that an object can be both a basic object and appear as a child in relationships."""
     transformer = ObjectGraphTransformer()
-    tree = parse_rule("""toplevel Root;
+    tree = parse_rule("""
     Root has A B;
     A properties = [prop1];
     B properties = [prop2];
@@ -106,7 +106,7 @@ def test_object_can_be_both_basic_and_child(parse_rule):
 def test_object_can_be_both_basic_and_intermediate(parse_rule):
     """Test that an object can be both a basic object and an intermediate object."""
     transformer = ObjectGraphTransformer()
-    tree = parse_rule("""toplevel A;
+    tree = parse_rule("""
     A has B C;
     A properties = [prop1];
     B properties = [prop2];
@@ -127,7 +127,7 @@ def test_object_can_be_both_basic_and_intermediate(parse_rule):
 def test_complex_object_graph(parse_rule):
     """Test transforming a complex object graph with multiple nodes and properties."""
     transformer = ObjectGraphTransformer()
-    tree = parse_rule("""toplevel Root;
+    tree = parse_rule("""
     Root has A B C;
     B has D E;
     C has F G;
@@ -164,7 +164,7 @@ def test_complex_object_graph(parse_rule):
 def test_complex_object_graph_basic_nodes_first(parse_rule):
     """Test transforming a complex object graph with nodes defined before relationships."""
     transformer = ObjectGraphTransformer()
-    tree = parse_rule("""toplevel Root;
+    tree = parse_rule("""Root;
     A properties = [prop1];
     D properties = [prop2, prop3];
     E properties = [prop4];
@@ -201,7 +201,7 @@ def test_complex_object_graph_basic_nodes_first(parse_rule):
 def test_cyclic_graph_raises_error(parse_rule):
     """Test that a cyclic graph raises NotAcyclicError."""
     transformer = ObjectGraphTransformer()
-    tree = parse_rule("""toplevel A;
+    tree = parse_rule("""
     A has B C;
     B has C D;
     C has A E;
@@ -217,7 +217,7 @@ def test_cyclic_graph_raises_error(parse_rule):
 def test_disconnected_graph_is_allowed(parse_rule):
     """Test that a disconnected graph raises NotConnectedError."""
     transformer = ObjectGraphTransformer()
-    tree = parse_rule("""toplevel A;
+    tree = parse_rule("""
     A has B C;
     D has E F;  // Disconnected subgraph
     """, "object_graph_tree")
@@ -230,7 +230,7 @@ def test_multiple_roots_is_allowed(parse_rule):
     """Test that multiple root nodes raise NotExactlyOneRootError."""
     transformer = ObjectGraphTransformer()
     # Both A and D have no parents
-    tree = parse_rule("""toplevel A;
+    tree = parse_rule("""
     A has B C;
     D has B C;
     """, "object_graph_tree")

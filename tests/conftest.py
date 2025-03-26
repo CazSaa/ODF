@@ -97,7 +97,6 @@ def fault_tree_str1():
 def object_graph_str1():
     """Create an object graph with properties."""
     return """
-    toplevel RootO;
     RootO has Object1 Object2;
     Object1 properties = [obj_prop1, obj_prop2];
     Object2 properties = [obj_prop3, obj_prop4, obj_prop5, obj_prop6];"""
@@ -216,7 +215,6 @@ def fault_tree_paper_example(transform_disruption_tree_str):
 def object_graph_paper_example(transform_object_graph_str):
     """Create the object graph from the paper example."""
     return transform_object_graph_str("""
-    toplevel House;
     House has Door;
     Door has Lock;
     Inhabitant properties=[Inhab_in_House,IU];

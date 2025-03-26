@@ -81,12 +81,6 @@ class ObjectGraphTransformer(Transformer):
         self.intermediate_objects.add(parent)
         return parent
 
-    def tln(self, items):
-        name = items[0].value
-        if not self.graph.has_node(name):
-            self.graph.add_node(name, data=ObjectNode(name))
-        return name
-
     def object_graph_tree(self, _):
         self.graph.validate_tree()
         return self.graph

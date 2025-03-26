@@ -29,7 +29,7 @@ condition: "cond"i "=" "(" boolean_formula ")"
 
 
 object_graph: _OBJECT_GRAPH_SECTION object_graph_tree
-object_graph_tree: tln _object*
+object_graph_tree: _object*
 
 _object: (intermediate_object | basic_object) ";"
 

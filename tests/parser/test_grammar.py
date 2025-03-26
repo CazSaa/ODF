@@ -15,7 +15,6 @@ B;
 """
 
 OBJ = """[odg.object_graph]
-toplevel C;
 C;
 """
 
@@ -34,7 +33,7 @@ toplevel A;
 toplevel B;
 
 [odg.object_graph]
-toplevel C;
+C;
 
 [formulas]
 {}A;"""
@@ -59,7 +58,6 @@ C;
 D prob = 0.3;
 
 [odg.object_graph]
-toplevel System;
 System has Component1 Component2;
 Component1 properties = [prop1, prop2];
 Component2;
@@ -137,7 +135,6 @@ def test_individual_object_graph(parse_rule):
     """Test parsing just an object graph."""
     graph = """
 [odg.object_graph]
-toplevel System;
 System has Component1 Component2;
 Component1 properties = [prop1];
 Component2;"""
@@ -169,7 +166,6 @@ def test_whitespace_handling(parse):
             B;
     
     [odg.object_graph]
-        toplevel C;
             C;
     
     [formulas]
@@ -191,7 +187,6 @@ toplevel B;
 B;  // Another comment
 
 [odg.object_graph]
-toplevel C;
 C;
 
 [formulas]
@@ -319,7 +314,6 @@ E;
 F PROB = 0.3 oBjects=[obj1, obj2] conD=(a || b);
 
 [ODG.OBJECT_GRAPH]
-Toplevel System;
 System Has Component;
 Component Properties = [prop1];
 

@@ -21,7 +21,6 @@ LGJ prob=0.70 objects=[Lock] cond=(LJ);
 DSL prob=0.20 objects=[Door];
 
 [odg.object_graph]
-toplevel House;
 House has Door;
 Door has Lock;
 
