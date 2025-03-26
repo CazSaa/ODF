@@ -494,21 +494,6 @@ def test_nested_contradicting_evidence(parse_and_get_bdd):
     assert bdd == expected
 
 
-@pytest.mark.xfail(
-    reason="Currently failing due to incorrect handling of intermediate nodes")
-def test_evidence_node_condition_contradiction(parse_and_get_bdd):
-    # Evidence contradicting node conditions and descendants
-    formula = """ComplexFault [
-        SubFault1: 1,             // Set basic event true
-        obj_prop4: 0,             // Contradict parent condition (obj_prop4 && obj_prop5)
-        ComplexFault: 1           // Override everything to true
-    ]"""
-    transformer, bdd = parse_and_get_bdd(formula)
-    # Direct evidence on ComplexFault: 1 should override everything else
-    expected = transformer.bdd.true
-    assert bdd == expected
-
-
 def test_evidence_with_node_conditions(parse_and_get_bdd):
     """Test evidence affecting nodes that have conditions."""
     # ComplexFault has condition (obj_prop4 && obj_prop5)
@@ -720,3 +705,85 @@ def test_mrs_complex_intermediate_node(complex_attack_tree, parse_and_get_bdd):
     expected_literal = transformer.bdd.add_expr(mrs_expr)
 
     assert bdd == expected_literal
+
+
+def test_intermediate_evidence_with_direct_descendant(parse_and_get_bdd):
+    with pytest.raises(ValueError,
+                       match="Cannot reference descendant node SubAttack1 when evidence is set on ComplexAttack"):
+        parse_and_get_bdd("ComplexAttack && SubAttack1 [ComplexAttack: 1]")
+    with pytest.raises(ValueError,
+                       match="Cannot reference descendant node SubAttack2 when evidence is set on ComplexAttack"):
+        parse_and_get_bdd(
+            "ComplexAttack || (SubAttack2 && obj_prop1) [ComplexAttack: 0]")
+
+
+def test_intermediate_evidence_with_nested_descendant(parse_and_get_bdd,
+                                                      attack_tree_mixed_gates):
+    with pytest.raises(ValueError,
+                       match="Cannot reference descendant node Attack11 when evidence is set on PathC"):
+        parse_and_get_bdd("RootA || !Attack11 [PathC: 1]",
+                          attack_tree=attack_tree_mixed_gates)
+    with pytest.raises(ValueError,
+                       match="Cannot reference descendant node Attack11 when evidence is set on PathC"):
+        parse_and_get_bdd("RootA || !Attack11 [PathC: 0]",
+                          attack_tree=attack_tree_mixed_gates)
+
+
+def test_multiple_descendants_in_formula(parse_and_get_bdd,
+                                         attack_tree_mixed_gates):
+    """
+    When evidence is provided for the intermediate node but more than one of its descendant nodes
+    occur in the same formula, the parser should raise an error.
+    """
+    with pytest.raises(ValueError,
+                       match="Cannot reference descendant node SubAttack1 when evidence is set on ComplexAttack"):
+        parse_and_get_bdd(
+            "ComplexAttack && (SubAttack1 || SubAttack2) [ComplexAttack: 1]")
+    with pytest.raises(ValueError,
+                       match="Cannot reference descendant node Attack7 when evidence is set on SubPathC1"):
+        parse_and_get_bdd("PathC && (SubPathC1 || Attack7) [SubPathC1: 1]",
+                          attack_tree=attack_tree_mixed_gates)
+    with pytest.raises(ValueError,
+                       match="Cannot reference descendant node Attack10 when evidence is set on SubPathC2"):
+        parse_and_get_bdd("PathC || (SubPathC1 && Attack10) [SubPathC2: 1]",
+                          attack_tree=attack_tree_mixed_gates)
+
+
+def test_evidence_intermediate_child_in_other_part(parse_and_get_bdd):
+    transformer, bdd = parse_and_get_bdd(
+        "(ComplexAttack [ComplexAttack:1]) && SubAttack1")
+    assert bdd == transformer.bdd.var('SubAttack1')
+    transformer, bdd = parse_and_get_bdd(
+        "(RootA [ComplexAttack:1]) || SubAttack1")
+    assert bdd == transformer.bdd.var('SubAttack1') | transformer.bdd.var(
+        'BasicAttack')
+    transformer, bdd = parse_and_get_bdd("""
+        ((ComplexAttack [ComplexAttack:1]) && 
+         (SubAttack1 [SubAttack1:1]))
+        """)
+    assert bdd == transformer.bdd.true
+
+
+def test_evidence_on_children(parse_and_get_bdd):
+    with pytest.raises(ValueError,
+                       match="Cannot set evidence on descendant node SubAttack1 when evidence is set on ComplexAttack"):
+        parse_and_get_bdd("ComplexAttack [ComplexAttack: 1, SubAttack1: 1]")
+    with pytest.raises(ValueError,
+                       match="Cannot set evidence on descendant node SubAttack1 when evidence is set on RootA"):
+        parse_and_get_bdd("RootA [RootA: 1, SubAttack1: 1]")
+    with pytest.raises(ValueError,
+                       match="Cannot set evidence on descendant node SubAttack1 when evidence is set on ComplexAttack"):
+        parse_and_get_bdd("RootA [ComplexAttack: 1, SubAttack1: 1]")
+    transformer, bdd = parse_and_get_bdd(
+        "(RootA [ComplexAttack: 1]) [SubAttack1: 1]")
+    assert bdd == transformer.bdd.var('BasicAttack')
+    with pytest.raises(ValueError,
+                       match="Cannot set evidence on descendant node SubAttack1 when evidence is set on ComplexAttack"):
+        parse_and_get_bdd("(RootA [SubAttack1: 1]) [ComplexAttack: 1]")
+    with pytest.raises(ValueError,
+                       match="Cannot set evidence on descendant node SubFault1 when evidence is set on ComplexFault"):
+        parse_and_get_bdd("""ComplexFault [
+            SubFault1: 1,             // Set basic event true
+            obj_prop4: 0,             
+            ComplexFault: 1           // Override everything to true
+        ]""")

@@ -1,12 +1,12 @@
 import pytest
 from lark import Tree, Token
 
-from odf.checker.layer1.layer1_bdd import Layer1FormulaVisitor
+from odf.checker.layer1.layer1_bdd import Layer1FormulaInterpreter
 
 
 @pytest.fixture
 def visitor(attack_tree1, fault_tree1, object_graph1):
-    return Layer1FormulaVisitor(attack_tree1, fault_tree1, object_graph1)
+    return Layer1FormulaInterpreter(attack_tree1, fault_tree1, object_graph1)
 
 
 def create_node_atom(name: str) -> Tree:

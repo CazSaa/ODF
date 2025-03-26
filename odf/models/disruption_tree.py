@@ -95,3 +95,7 @@ class DisruptionTree(TreeGraph[DTNode]):
     def get_descendants(self, node_name: str) -> set[str]:
         """Get all descendants of the given node (including itself). """
         return {node for node in (descendants(self, node_name) | {node_name})}
+
+    def get_strict_descendants(self, node_name: str) -> set[str]:
+        """Get all descendants of the given node (excluding itself). """
+        return {node for node in descendants(self, node_name)}

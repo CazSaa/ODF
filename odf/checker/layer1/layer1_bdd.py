@@ -1,5 +1,5 @@
 from dd import cudd
-from lark import Transformer, Visitor, Tree
+from lark import Transformer, Tree
 from lark.visitors import _Leaf_T, visit_children_decor, Interpreter
 
 from odf.models.disruption_tree import DisruptionTree, DTNode
@@ -8,7 +8,7 @@ from odf.transformers.mixins.boolean_formula import BooleanFormulaMixin
 from odf.transformers.mixins.mappings import BooleanMappingMixin
 
 
-class Layer1FormulaVisitor(Visitor):
+class Layer1FormulaInterpreter(Interpreter):
     def __init__(self,
                  attack_tree: DisruptionTree,
                  fault_tree: DisruptionTree,
@@ -18,9 +18,16 @@ class Layer1FormulaVisitor(Visitor):
         self.fault_tree = fault_tree
         self.object_graph = object_graph
         self.attack_nodes, self.fault_nodes, self.object_properties = set(), set(), set()
+        self.current_blacklist = {}  # Maps evidence nodes to their descendants
 
-    def node_atom(self, node_atom):
-        node_name = node_atom.children[0].value
+    def node_atom(self, tree):
+        node_name = tree.children[0].value
+
+        # Check if node is blacklisted by any evidence
+        for evidence_node, blacklist in self.current_blacklist.items():
+            if node_name in blacklist:
+                raise ValueError(
+                    f"Cannot reference descendant node {node_name} when evidence is set on {evidence_node}")
 
         for disruption_tree, collection in [
             (self.attack_tree, self.attack_nodes),
@@ -41,21 +48,47 @@ class Layer1FormulaVisitor(Visitor):
 
         raise ValueError(f"Unknown node: {node_name}")
 
-    def with_boolean_evidence(self, tree: Tree):
+    def with_boolean_evidence(self, tree):
+        old_blacklist = self.current_blacklist.copy()
+        local_blacklist = {}
+        evidence_nodes = set()
+
         for mapping in tree.children[1].children:
             node_name = mapping.children[0].value
 
             if self.attack_tree.has_node(node_name):
                 self.attack_nodes.add(node_name)
+                evidence_nodes.add(node_name)
+                if self.attack_tree.has_intermediate_node(node_name):
+                    local_blacklist[node_name] = set(
+                        self.attack_tree.get_strict_descendants(node_name))
+
             elif self.fault_tree.has_node(node_name):
                 self.fault_nodes.add(node_name)
+                evidence_nodes.add(node_name)
+                if self.fault_tree.has_intermediate_node(node_name):
+                    local_blacklist[node_name] = set(
+                        self.fault_tree.get_strict_descendants(node_name))
+
             elif self.object_graph.has_object_property(node_name):
                 self.object_properties.add(node_name)
-            # todo caz blacklist children here
-            # todo caz check that node is a module
+
             else:
                 raise ValueError(
                     f"Cannot set evidence for non-existent element: {node_name}")
+
+        self.current_blacklist.update(local_blacklist)
+
+        # Check no evidence node is in a blacklist
+        for node_name in evidence_nodes:
+            for evidence_node, blacklist in self.current_blacklist.items():
+                if node_name in blacklist:
+                    raise ValueError(
+                        f"Cannot set evidence on descendant node {node_name} when evidence is set on {evidence_node}")
+
+        self.visit(tree.children[0])
+
+        self.current_blacklist = old_blacklist
 
 
 class ConditionTransformer(Transformer, BooleanFormulaMixin):
@@ -91,7 +124,7 @@ class Layer1BDDInterpreter(Interpreter, BooleanMappingMixin,
         self.current_evidence = {}
 
     def interpret(self, tree: Tree[_Leaf_T]) -> cudd.Function:
-        visitor = Layer1FormulaVisitor(self.attack_tree, self.fault_tree,
+        visitor = Layer1FormulaInterpreter(self.attack_tree, self.fault_tree,
                                        self.object_graph)
         visitor.visit(tree)
 
