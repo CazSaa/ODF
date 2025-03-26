@@ -1,6 +1,7 @@
 import pytest
 
-from odf.checker.exceptions import MissingConfigurationError
+from odf.checker.exceptions import MissingConfigurationError, \
+    MissingNodeProbabilityError
 
 
 def test_paper_example(do_check_layer2, paper_example_models):
@@ -383,3 +384,55 @@ def test_fault_tree_independent(do_check_layer2, paper_example_models):
     assert do_check_layer2(
         "{LP: 1,DF: 1} P((LGJ && !LGJ) || ((PL && !DD) || (DD && !PL) || EDLU)) == 0.17",
         *paper_example_models)
+
+
+def test_missing_probability_attack_tree(do_check_layer2,
+                                         transform_disruption_tree_str,
+                                         fault_tree_paper_example,
+                                         object_graph_paper_example):
+    """Test error when an attack tree node is missing its probability."""
+    # Create attack tree with PL node missing probability
+    attack_tree = transform_disruption_tree_str("""
+    toplevel Attacker_breaks_in_house;
+    Attacker_breaks_in_house or EDLU FD;
+    FD or PL DD;
+    
+    Attacker_breaks_in_house objects=[House,Inhabitant];
+    EDLU objects=[Door] prob=0.17;
+    FD objects=[Door];
+    PL objects=[Lock] cond=(LP);  // Missing probability
+    DD objects=[Door] cond=(DF) prob=0.13;
+    """)
+
+    with pytest.raises(MissingNodeProbabilityError) as exc_info:
+        do_check_layer2(
+            "{LP: 1,DF: 1} P(PL) > 0.5",
+            attack_tree, fault_tree_paper_example, object_graph_paper_example)
+    assert "PL" in str(exc_info.value)
+    assert "attack tree" in str(exc_info.value)
+
+
+def test_missing_probability_fault_tree(do_check_layer2,
+                                        attack_tree_paper_example,
+                                        transform_disruption_tree_str,
+                                        object_graph_paper_example):
+    """Test error when a fault tree node is missing its probability."""
+    # Create fault tree with LGJ node missing probability
+    fault_tree = transform_disruption_tree_str("""
+    toplevel Fire_and_impossible_escape;
+    Fire_and_impossible_escape and FBO DGB;
+    DGB and DSL LGJ;
+    
+    Fire_and_impossible_escape objects=[House,Inhabitant] cond=(Inhab_in_House);
+    FBO objects=[House,Inhabitant] cond=(!HS && IU) prob=0.21;
+    DGB objects=[Door];
+    DSL objects=[Door] prob=0.20;
+    LGJ objects=[Lock] cond=(LJ);  // Missing probability
+    """)
+
+    with pytest.raises(MissingNodeProbabilityError) as exc_info:
+        do_check_layer2(
+            "{LP: 1,LJ: 1} P(LGJ) > 0.5",
+            attack_tree_paper_example, fault_tree, object_graph_paper_example)
+    assert "LGJ" in str(exc_info.value)
+    assert "fault tree" in str(exc_info.value)
