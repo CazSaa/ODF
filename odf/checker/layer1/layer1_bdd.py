@@ -2,6 +2,10 @@ from dd import cudd
 from lark import Transformer, Tree
 from lark.visitors import _Leaf_T, visit_children_decor, Interpreter
 
+from odf.checker.exceptions import (UnknownNodeError, NonModuleNodeError,
+                                    NodeAncestorEvidenceError,
+                                    EvidenceAncestorEvidenceError,
+                                    InvalidNodeEvidenceError)
 from odf.models.disruption_tree import DisruptionTree, DTNode
 from odf.models.object_graph import ObjectGraph
 from odf.transformers.mixins.boolean_formula import BooleanFormulaMixin
@@ -26,8 +30,7 @@ class Layer1FormulaInterpreter(Interpreter):
         # Check if node is blacklisted by any evidence
         for evidence_node, blacklist in self.current_blacklist.items():
             if node_name in blacklist:
-                raise ValueError(
-                    f"Cannot reference descendant node {node_name} when evidence is set on {evidence_node}")
+                raise NodeAncestorEvidenceError(node_name, evidence_node)
 
         for disruption_tree, collection in [
             (self.attack_tree, self.attack_nodes),
@@ -46,7 +49,7 @@ class Layer1FormulaInterpreter(Interpreter):
             self.object_properties.add(node_name)
             return
 
-        raise ValueError(f"Unknown node: {node_name}")
+        raise UnknownNodeError(node_name)
 
     def with_boolean_evidence(self, tree):
         old_blacklist = self.current_blacklist.copy()
@@ -61,8 +64,7 @@ class Layer1FormulaInterpreter(Interpreter):
                 evidence_nodes.add(node_name)
                 if self.attack_tree.has_intermediate_node(node_name):
                     if not self.attack_tree.is_module(node_name):
-                        raise ValueError(
-                            f"Evidence can only be set on module nodes. {node_name} is not a module because some of its descendants can be reached through other nodes")
+                        raise NonModuleNodeError(node_name, "attack tree")
                     local_blacklist[node_name] = set(
                         self.attack_tree.get_strict_descendants(node_name))
 
@@ -71,8 +73,7 @@ class Layer1FormulaInterpreter(Interpreter):
                 evidence_nodes.add(node_name)
                 if self.fault_tree.has_intermediate_node(node_name):
                     if not self.fault_tree.is_module(node_name):
-                        raise ValueError(
-                            f"Evidence can only be set on module nodes. {node_name} is not a module because some of its descendants can be reached through other nodes")
+                        raise NonModuleNodeError(node_name, "fault tree")
                     local_blacklist[node_name] = set(
                         self.fault_tree.get_strict_descendants(node_name))
 
@@ -80,8 +81,7 @@ class Layer1FormulaInterpreter(Interpreter):
                 self.object_properties.add(node_name)
 
             else:
-                raise ValueError(
-                    f"Cannot set evidence for non-existent element: {node_name}")
+                raise InvalidNodeEvidenceError(node_name)
 
         self.current_blacklist.update(local_blacklist)
 
@@ -89,8 +89,8 @@ class Layer1FormulaInterpreter(Interpreter):
         for node_name in evidence_nodes:
             for evidence_node, blacklist in self.current_blacklist.items():
                 if node_name in blacklist:
-                    raise ValueError(
-                        f"Cannot set evidence on descendant node {node_name} when evidence is set on {evidence_node}")
+                    raise EvidenceAncestorEvidenceError(node_name,
+                                                        evidence_node)
 
         self.visit(tree.children[0])
 
@@ -216,7 +216,7 @@ class Layer1BDDInterpreter(Interpreter, BooleanMappingMixin,
                 node = self.fault_tree.nodes[node_name]["data"]
                 return self.basic_node_to_bdd(node)
 
-            raise ValueError(f"Unknown node: {node_name}")
+            raise UnknownNodeError(node_name)
 
         for disruption_tree in [self.attack_tree, self.fault_tree]:
             if disruption_tree.has_intermediate_node(node_name):
@@ -224,7 +224,7 @@ class Layer1BDDInterpreter(Interpreter, BooleanMappingMixin,
                                                      node_name)
 
         if node_name not in self.bdd.vars:
-            raise ValueError(f"Unknown node: {node_name}")
+            raise UnknownNodeError(node_name)
 
     def basic_node_to_bdd(self, node: DTNode):
         if node.name in self.current_evidence:

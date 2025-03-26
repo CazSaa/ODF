@@ -2,6 +2,9 @@ import pytest
 from dd import cudd
 from lark import Tree, Token
 
+from odf.checker.exceptions import (NodeAncestorEvidenceError,
+                                    EvidenceAncestorEvidenceError,
+                                    NonModuleNodeError)
 from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter, \
     ConditionTransformer
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
@@ -708,23 +711,24 @@ def test_mrs_complex_intermediate_node(complex_attack_tree, parse_and_get_bdd):
 
 
 def test_intermediate_evidence_with_direct_descendant(parse_and_get_bdd):
-    with pytest.raises(ValueError,
-                       match="Cannot reference descendant node SubAttack1 when evidence is set on ComplexAttack"):
+    with pytest.raises(NodeAncestorEvidenceError,
+                       match=r".*SubAttack1.*ComplexAttack.*"):
         parse_and_get_bdd("ComplexAttack && SubAttack1 [ComplexAttack: 1]")
-    with pytest.raises(ValueError,
-                       match="Cannot reference descendant node SubAttack2 when evidence is set on ComplexAttack"):
+
+    with pytest.raises(NodeAncestorEvidenceError,
+                       match=r".*SubAttack2.*ComplexAttack.*"):
         parse_and_get_bdd(
             "ComplexAttack || (SubAttack2 && obj_prop1) [ComplexAttack: 0]")
 
 
 def test_intermediate_evidence_with_nested_descendant(parse_and_get_bdd,
                                                       attack_tree_mixed_gates):
-    with pytest.raises(ValueError,
-                       match="Cannot reference descendant node Attack11 when evidence is set on PathC"):
+    with pytest.raises(NodeAncestorEvidenceError,
+                       match=r".*Attack11.*PathC.*"):
         parse_and_get_bdd("RootA || !Attack11 [PathC: 1]",
                           attack_tree=attack_tree_mixed_gates)
-    with pytest.raises(ValueError,
-                       match="Cannot reference descendant node Attack11 when evidence is set on PathC"):
+    with pytest.raises(NodeAncestorEvidenceError,
+                       match=r".*Attack11.*PathC.*"):
         parse_and_get_bdd("RootA || !Attack11 [PathC: 0]",
                           attack_tree=attack_tree_mixed_gates)
 
@@ -735,16 +739,18 @@ def test_multiple_descendants_in_formula(parse_and_get_bdd,
     When evidence is provided for the intermediate node but more than one of its descendant nodes
     occur in the same formula, the parser should raise an error.
     """
-    with pytest.raises(ValueError,
-                       match="Cannot reference descendant node SubAttack1 when evidence is set on ComplexAttack"):
+    with pytest.raises(NodeAncestorEvidenceError,
+                       match=r".*SubAttack1.*ComplexAttack.*"):
         parse_and_get_bdd(
             "ComplexAttack && (SubAttack1 || SubAttack2) [ComplexAttack: 1]")
-    with pytest.raises(ValueError,
-                       match="Cannot reference descendant node Attack7 when evidence is set on SubPathC1"):
+
+    with pytest.raises(NodeAncestorEvidenceError,
+                       match=r".*Attack7.*SubPathC1.*"):
         parse_and_get_bdd("PathC && (SubPathC1 || Attack7) [SubPathC1: 1]",
                           attack_tree=attack_tree_mixed_gates)
-    with pytest.raises(ValueError,
-                       match="Cannot reference descendant node Attack10 when evidence is set on SubPathC2"):
+
+    with pytest.raises(NodeAncestorEvidenceError,
+                       match=r".*Attack10.*SubPathC2.*"):
         parse_and_get_bdd("PathC || (SubPathC1 && Attack10) [SubPathC2: 1]",
                           attack_tree=attack_tree_mixed_gates)
 
@@ -765,23 +771,28 @@ def test_evidence_intermediate_child_in_other_part(parse_and_get_bdd):
 
 
 def test_evidence_on_children(parse_and_get_bdd):
-    with pytest.raises(ValueError,
-                       match="Cannot set evidence on descendant node SubAttack1 when evidence is set on ComplexAttack"):
+    with pytest.raises(EvidenceAncestorEvidenceError,
+                       match=r".*SubAttack1.*ComplexAttack.*"):
         parse_and_get_bdd("ComplexAttack [ComplexAttack: 1, SubAttack1: 1]")
-    with pytest.raises(ValueError,
-                       match="Cannot set evidence on descendant node SubAttack1 when evidence is set on RootA"):
+
+    with pytest.raises(EvidenceAncestorEvidenceError,
+                       match=r".*SubAttack1.*RootA.*"):
         parse_and_get_bdd("RootA [RootA: 1, SubAttack1: 1]")
-    with pytest.raises(ValueError,
-                       match="Cannot set evidence on descendant node SubAttack1 when evidence is set on ComplexAttack"):
+
+    with pytest.raises(EvidenceAncestorEvidenceError,
+                       match=r".*SubAttack1.*ComplexAttack.*"):
         parse_and_get_bdd("RootA [ComplexAttack: 1, SubAttack1: 1]")
+
     transformer, bdd = parse_and_get_bdd(
         "(RootA [ComplexAttack: 1]) [SubAttack1: 1]")
     assert bdd == transformer.bdd.var('BasicAttack')
-    with pytest.raises(ValueError,
-                       match="Cannot set evidence on descendant node SubAttack1 when evidence is set on ComplexAttack"):
+
+    with pytest.raises(EvidenceAncestorEvidenceError,
+                       match=r".*SubAttack1.*ComplexAttack.*"):
         parse_and_get_bdd("(RootA [SubAttack1: 1]) [ComplexAttack: 1]")
-    with pytest.raises(ValueError,
-                       match="Cannot set evidence on descendant node SubFault1 when evidence is set on ComplexFault"):
+
+    with pytest.raises(EvidenceAncestorEvidenceError,
+                       match=r".*SubFault1.*ComplexFault.*"):
         parse_and_get_bdd("""ComplexFault [
             SubFault1: 1,             // Set basic event true
             obj_prop4: 0,             
@@ -833,33 +844,33 @@ def test_evidence_on_non_module_nodes(parse_and_get_bdd,
     assert bdd == transformer.bdd.true
 
     # Test invalid module nodes (A, B, D, F)
-    with pytest.raises(ValueError,
-                       match="Evidence can only be set on module nodes. A is not a module because some of its descendants can be reached through other nodes"):
+    with pytest.raises(NonModuleNodeError,
+                       match=r".*A.*not a module.*"):
         parse_and_get_bdd("A || C [A: 1]", attack_tree=complex_tree)
 
-    with pytest.raises(ValueError,
-                       match="Evidence can only be set on module nodes. B is not a module because some of its descendants can be reached through other nodes"):
+    with pytest.raises(NonModuleNodeError,
+                       match=r".*B.*not a module.*"):
         parse_and_get_bdd("B || E [B: 1]", attack_tree=complex_tree)
 
-    with pytest.raises(ValueError,
-                       match="Evidence can only be set on module nodes. D is not a module because some of its descendants can be reached through other nodes"):
+    with pytest.raises(NonModuleNodeError,
+                       match=r".*D.*not a module.*"):
         parse_and_get_bdd("D || G [D: 1]", attack_tree=complex_tree)
 
-    with pytest.raises(ValueError,
-                       match="Evidence can only be set on module nodes. F is not a module because some of its descendants can be reached through other nodes"):
+    with pytest.raises(NonModuleNodeError,
+                       match=r".*F.*not a module.*"):
         parse_and_get_bdd("F || G [F: 1]", attack_tree=complex_tree)
 
     # Test that the error is raised even when evidence on the non-module node
     # is combined with evidence on other valid nodes
-    with pytest.raises(ValueError,
-                       match="Evidence can only be set on module nodes. D is not a module because some of its descendants can be reached through other nodes"):
+    with pytest.raises(NonModuleNodeError,
+                       match=r".*D.*not a module.*"):
         parse_and_get_bdd("Root && D [Root: 1, D: 1]", attack_tree=complex_tree)
 
-    with pytest.raises(ValueError,
-                       match="Evidence can only be set on module nodes. F is not a module because some of its descendants can be reached through other nodes"):
+    with pytest.raises(NonModuleNodeError,
+                       match=r".*F.*not a module.*"):
         parse_and_get_bdd("(Root && F [Root: 1]) [F: 1]",
                           attack_tree=complex_tree)
-    with pytest.raises(ValueError,
-                       match="Evidence can only be set on module nodes. F is not a module because some of its descendants can be reached through other nodes"):
+    with pytest.raises(NonModuleNodeError,
+                       match=r".*F.*not a module.*"):
         parse_and_get_bdd("(Root && F [F: 1]) [Root: 1]",
                           attack_tree=complex_tree)

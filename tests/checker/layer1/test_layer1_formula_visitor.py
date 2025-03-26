@@ -1,6 +1,7 @@
 import pytest
 from lark import Tree, Token
 
+from odf.checker.exceptions import UnknownNodeError
 from odf.checker.layer1.layer1_bdd import Layer1FormulaInterpreter
 
 
@@ -67,7 +68,8 @@ def test_visit_object_property(visitor):
 
 def test_visit_unknown_node(visitor):
     """Test visiting an unknown node raises ValueError."""
-    with pytest.raises(ValueError, match="Unknown node: UnknownNode"):
+    with pytest.raises(UnknownNodeError,
+                       match="You referenced an unknown node: UnknownNode"):
         visitor.node_atom(create_node_atom("UnknownNode"))
 
 

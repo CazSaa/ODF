@@ -3,6 +3,7 @@ from fractions import Fraction
 import pytest
 from lark.exceptions import VisitError
 
+from odf.checker.exceptions import InvalidProbabilityError
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
 
 
@@ -350,5 +351,7 @@ def test_invalid_probability_values(parse_rule):
     A prob=1.5;  // Invalid probability > 1
     B prob=0.5;
     """, "disruption_tree")
-    with pytest.raises(VisitError, match="Must be between 0 and 1"):
+    with pytest.raises(VisitError,
+                       match=r"Probability for node 'A' must be between 0 and 1 \(got 1\.5") as excinfo:
         transformer.transform(invalid_tree)
+    assert isinstance(excinfo.value.orig_exc, InvalidProbabilityError)

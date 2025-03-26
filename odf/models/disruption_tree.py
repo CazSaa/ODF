@@ -6,6 +6,7 @@ from lark import Tree, Visitor
 from networkx.algorithms.components import is_weakly_connected
 from networkx.algorithms.dag import descendants
 
+from odf.checker.exceptions import InvalidProbabilityError
 from odf.models.tree_graph import TreeGraph
 from odf.transformers.exceptions import NotConnectedError, \
     NotExactlyOneRootError
@@ -58,13 +59,11 @@ class DTNode:
         if "gate_type" in attrs:
             self.gate_type = attrs["gate_type"]
 
-    @staticmethod
-    def validate_probability(probability: Optional[Fraction]):
+    def validate_probability(self, probability: Optional[Fraction]):
         if probability is None:
             return
         if probability < 0 or probability > 1:
-            raise ValueError(
-                f"Invalid probability: {probability:f}. Must be between 0 and 1.")
+            raise InvalidProbabilityError(self.name, probability)
 
 
 class DisruptionTree(TreeGraph[DTNode]):

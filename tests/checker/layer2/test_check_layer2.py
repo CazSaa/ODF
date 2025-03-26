@@ -1,7 +1,7 @@
 import pytest
 
 from odf.checker.exceptions import MissingConfigurationError, \
-    MissingNodeProbabilityError
+    MissingNodeProbabilityError, UnknownNodeError
 
 
 def test_paper_example(do_check_layer2, paper_example_models):
@@ -89,12 +89,11 @@ def test_unused_object_properties(capsys, do_check_layer2,
 
 def test_undefined_node(do_check_layer2, paper_example_models):
     """Test error when using undefined node in formula."""
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(UnknownNodeError,
+                       match="You referenced an unknown node: UndefinedNode"):
         do_check_layer2(
             "{} P(UndefinedNode) > 0.5",
             *paper_example_models)
-    assert "Unknown node" in str(exc_info.value)
-    assert "UndefinedNode" in str(exc_info.value)
 
 
 def test_complex_nested_formula(do_check_layer2, paper_example_models):
