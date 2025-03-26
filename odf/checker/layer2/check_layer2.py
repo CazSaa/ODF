@@ -136,7 +136,7 @@ class Layer2Interpreter(Interpreter):
                  attack_tree: DisruptionTree,
                  fault_tree: DisruptionTree,
                  object_graph: ObjectGraph,
-                 prob_evidence: dict[int, Fraction]):
+                 prob_evidence: dict[int, dict[str, Fraction]]):
         super().__init__()
         self.configuration = configuration
         self.attack_tree = attack_tree

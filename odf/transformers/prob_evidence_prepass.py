@@ -1,3 +1,5 @@
+from fractions import Fraction
+
 from lark import Tree
 from lark.visitors import Interpreter
 
@@ -8,8 +10,8 @@ class PrePassEvidenceInterpreter(Interpreter, BooleanMappingMixin):
     def __init__(self):
         super().__init__()
         # Maps each probability_formula node (using its id) to its inherited evidence.
-        self.evidence_per_formula = {}
-        self.current_evidence = {}
+        self.evidence_per_formula: dict[int, dict[str, Fraction]] = {}
+        self.current_evidence: dict[str, Fraction] = {}
 
     def probability_evidence(self, tree: Tree):
         return self.mappings_to_dict(self.visit_children(tree))
