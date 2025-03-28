@@ -42,6 +42,15 @@ def test_probability_bounds(do_check_layer2, paper_example_models):
         *paper_example_models)
 
 
+def test_non_object_properties(caplog, do_check_layer2, paper_example_models):
+    """Test warning when configuration contains variables that are not object properties."""
+    do_check_layer2(
+        "{LP: 1,NOT_PROP: 1} P(PL) == 0.10",
+        *paper_example_models)
+    assert "are not object properties" in caplog.text
+    assert "NOT_PROP" in caplog.text
+
+
 def test_attack_fault_combination(do_check_layer2, paper_example_models):
     """Test probability calculation combining attack and fault tree nodes."""
     # Attack node PL (0.10) AND fault node LGJ (0.70)
