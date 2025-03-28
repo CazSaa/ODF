@@ -200,7 +200,7 @@ class Layer2Interpreter(Interpreter):
             case ">":
                 return prob > threshold
             case _:
-                raise ValueError("Invalid relation")
+                raise AssertionError("Invalid relation")
 
     def impl_formula(self, tree):
         a, b = self.visit_children(tree)

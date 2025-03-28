@@ -21,5 +21,5 @@ def check_formulas(formulas_parse_tree: Tree, attack_tree: DisruptionTree,
             case "layer3_query":
                 raise NotImplementedError()
             case _:
-                raise ValueError(f"Unexpected formula type: {formula.data}")
+                raise AssertionError(f"Unexpected formula type: {formula.data}")
     pass

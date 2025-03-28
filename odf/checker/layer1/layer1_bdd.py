@@ -216,15 +216,14 @@ class Layer1BDDInterpreter(Interpreter, BooleanMappingMixin,
                 node = self.fault_tree.nodes[node_name]["data"]
                 return self.basic_node_to_bdd(node)
 
-            raise UnknownNodeError(node_name)
+            raise UnknownNodeError(node_name)  # Should be unreachable
 
         for disruption_tree in [self.attack_tree, self.fault_tree]:
             if disruption_tree.has_intermediate_node(node_name):
                 return self.intermediate_node_to_bdd(disruption_tree,
                                                      node_name)
 
-        if node_name not in self.bdd.vars:
-            raise UnknownNodeError(node_name)
+        raise UnknownNodeError(node_name)  # Should be unreachable
 
     def basic_node_to_bdd(self, node: DTNode):
         if node.name in self.current_evidence:
