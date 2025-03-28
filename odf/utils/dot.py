@@ -2,7 +2,7 @@ import pathlib
 
 from dd.cudd import Function
 
-from odf.checker.layer2.check_layer2 import dfs_nodes_with_complement
+from odf.utils.dfs import dfs_nodes_with_complement
 
 
 def write_bdd_to_dot_file(root: Function, path: str | pathlib.Path) -> None:
