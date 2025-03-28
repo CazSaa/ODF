@@ -893,3 +893,44 @@ def test_invalid_node_evidence(parse_and_get_bdd):
     with pytest.raises(InvalidNodeEvidenceError, match=r".*InvalidNode.*"):
         parse_and_get_bdd(
             "ComplexAttack [BasicAttack: 1, InvalidNode: 0, SubAttack1: 1]")
+
+
+def test_single_child_intermediate_node(transform_disruption_tree_str,
+                                        parse_and_get_bdd):
+    """Test BDD creation for an intermediate node with a single child."""
+    # Create a tree where SingleParent has only one child
+    tree_str = """
+    toplevel Root;
+    Root and SingleParent;
+    SingleParent and BasicNode;
+    
+    Root cond = (obj_prop1 && !obj_prop2) objects=[Object1];
+    SingleParent cond = (obj_prop3 && obj_prop4) objects=[Object2];
+    BasicNode prob = 0.1 cond = (obj_prop5 && obj_prop6) objects=[Object2];
+    """
+    attack_tree = transform_disruption_tree_str(tree_str)
+
+    # Test SingleParent node through a formula
+    transformer, bdd = parse_and_get_bdd("SingleParent",
+                                         attack_tree=attack_tree)
+
+    # SingleParent should inherit its child's BDD and combine with its own condition
+    expected = transformer.bdd.var('BasicNode') & \
+               transformer.bdd.var('obj_prop3') & \
+               transformer.bdd.var('obj_prop4') & \
+               transformer.bdd.var('obj_prop5') & \
+               transformer.bdd.var('obj_prop6')
+    assert bdd == expected
+
+    # Test the full formula with Root to verify complete tree processing
+    transformer, bdd = parse_and_get_bdd("Root",
+                                         attack_tree=attack_tree)
+    # Root should also recursively process its single child and combine with its own condition
+    expected_root = transformer.bdd.var('BasicNode') & \
+                    transformer.bdd.var('obj_prop3') & \
+                    transformer.bdd.var('obj_prop4') & \
+                    transformer.bdd.var('obj_prop5') & \
+                    transformer.bdd.var('obj_prop6') & \
+                    transformer.bdd.var('obj_prop1') & \
+                    ~transformer.bdd.var('obj_prop2')
+    assert bdd == expected_root

@@ -248,9 +248,7 @@ class Layer1BDDInterpreter(Interpreter, BooleanMappingMixin,
             return self.basic_node_to_bdd(node)
 
         children = list(disruption_tree.successors(node_name))
-
-        if len(children) == 1:
-            return self.intermediate_node_to_bdd(disruption_tree, children[0])
+        assert len(children) > 0
 
         assert node.gate_type is not None
         apply = node.gate_type
