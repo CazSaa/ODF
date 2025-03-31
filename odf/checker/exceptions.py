@@ -4,13 +4,23 @@ from odf.core.exceptions import ODFError
 
 
 class MissingNodeProbabilityError(ODFError):
-    """Raised when a node is missing required probability information."""
+    """Raised when a node is missing required probability attribute."""
 
     def __init__(self, node_name: str, tree_type: str):
         self.node_name = node_name
         self.tree_type = tree_type
         super().__init__(
-            f"Node '{node_name}' in the {tree_type} has no probability")
+            f"Node '{node_name}' in the {tree_type} has no probability value")
+
+
+class MissingNodeImpactError(ODFError):
+    """Raised when a node is missing required impact attribute."""
+
+    def __init__(self, node_name: str, tree_type: str):
+        self.node_name = node_name
+        self.tree_type = tree_type
+        super().__init__(
+            f"Node '{node_name}' in the {tree_type} tree has no impact value")
 
 
 class ConfigurationError(ODFError):

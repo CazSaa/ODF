@@ -180,33 +180,33 @@ def attack_tree_mixed_gates(transform_disruption_tree_str):
 
 @pytest.fixture
 def attack_tree_paper_example(transform_disruption_tree_str):
-    """Create the attack tree from the paper example."""
+    """Create the attack tree from the paper example with impact values."""
     return transform_disruption_tree_str("""
     toplevel Attacker_breaks_in_house;
     Attacker_breaks_in_house or EDLU FD;
     FD or PL DD;
     
-    Attacker_breaks_in_house objects=[House,Inhabitant];
-    EDLU objects=[Door] prob=0.17;
-    FD objects=[Door];
-    PL objects=[Lock] cond=(LP) prob=0.10;
-    DD objects=[Door] cond=(DF) prob=0.13;
+    Attacker_breaks_in_house objects=[House,Inhabitant] impact=3.47;
+    EDLU objects=[Door] prob=0.17 impact=1.27;
+    FD objects=[Door] impact=2.57;
+    PL objects=[Lock] cond=(LP) prob=0.10 impact=2.51;
+    DD objects=[Door] cond=(DF) prob=0.13 impact=1.81;
     """)
 
 
 @pytest.fixture
 def fault_tree_paper_example(transform_disruption_tree_str):
-    """Create the fault tree from the paper example."""
+    """Create the fault tree from the paper example with impact values."""
     return transform_disruption_tree_str("""
     toplevel Fire_and_impossible_escape;
     Fire_and_impossible_escape and FBO DGB;
     DGB and DSL LGJ;
     
     Fire_and_impossible_escape objects=[House,Inhabitant] cond=(Inhab_in_House);
-    FBO objects=[House,Inhabitant] cond=(!HS && IU) prob=0.21;
-    DGB objects=[Door];
-    DSL objects=[Door] prob=0.20;
-    LGJ objects=[Lock] cond=(LJ) prob=0.70;
+    FBO objects=[House,Inhabitant] cond=(!HS && IU) prob=0.21 impact=1.09;
+    DGB objects=[Door] impact=1.67;
+    DSL objects=[Door] prob=0.20 impact=1.31;
+    LGJ objects=[Lock] cond=(LJ) prob=0.70 impact=0.83;
     """)
 
 
@@ -221,6 +221,21 @@ def object_graph_paper_example(transform_object_graph_str):
     House properties=[HS];
     Door properties=[DF];
     Lock properties=[LP,LJ];
+    """)
+
+
+@pytest.fixture
+def object_graph_paper_example_with_extra(transform_object_graph_str):
+    """Create the object graph from the paper example."""
+    return transform_object_graph_str("""
+    House has Door;
+    Door has Lock;
+    Inhabitant properties=[Inhab_in_House,IU];
+
+    House properties=[HS];
+    Door properties=[DF];
+    Lock properties=[LP,LJ];
+    ExtraObject properties=[ExtraProp];
     """)
 
 

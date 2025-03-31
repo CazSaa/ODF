@@ -111,6 +111,11 @@ class DisruptionTree(TreeGraph[DTNode]):
         """Get all descendants of the given node (excluding itself). """
         return {node for node in descendants(self, node_name)}
 
+    def participant_nodes(self, object_name: str) -> set[DTNode]:
+        """Get all nodes in which the object participates."""
+        return {node for node in self.nodes_obj() if
+                object_name in (node.objects or set())}
+
     def is_module(self, node_name: str) -> bool:
         r"""Check if a node is a module.
         

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from dd import cudd
 from lark import Transformer, Tree
 from lark.visitors import _Leaf_T, visit_children_decor, Interpreter
@@ -117,6 +119,7 @@ class Layer1BDDInterpreter(Interpreter, BooleanMappingMixin,
                  attack_tree: DisruptionTree,
                  fault_tree: DisruptionTree,
                  object_graph: ObjectGraph,
+                 evidence: Optional[dict[str, bool]] = None,
                  reordering=None):
         super().__init__()
         self.attack_tree = attack_tree
@@ -127,7 +130,7 @@ class Layer1BDDInterpreter(Interpreter, BooleanMappingMixin,
         if reordering is not None:
             self.bdd.configure(reordering=reordering)
         self.prime_count = 0
-        self.current_evidence = {}
+        self.current_evidence = evidence if evidence is not None else {}
 
     def interpret(self, tree: Tree[_Leaf_T]) -> cudd.Function:
         visitor = Layer1FormulaInterpreter(self.attack_tree, self.fault_tree,
