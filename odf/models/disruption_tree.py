@@ -29,7 +29,7 @@ class ConditionVariablesVisitor(Visitor):
 class DTNode:
     def __init__(self, name: str,
                  probability: Optional[Fraction] = None,
-                 objects: Optional[list[str]] = None,
+                 objects: Optional[set[str]] = None,
                  condition_tree: Optional[Tree] = None,
                  gate_type: Optional[GateType] = None):
         self.name = name

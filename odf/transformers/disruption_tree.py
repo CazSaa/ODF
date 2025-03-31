@@ -25,7 +25,7 @@ class DisruptionTreeTransformer(Transformer):
 
     def node_list(self, items):
         # Each item is a NODE_NAME token
-        return [item.value for item in items]
+        return {item.value for item in items}
 
     def condition(self, items):
         return ("condition_tree", items[0])
