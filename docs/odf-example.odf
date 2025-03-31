@@ -4,10 +4,10 @@ Attacker_breaks_in or EDLU FD;
 FD or PL DD;
 
 Attacker_breaks_in objects=[House,Inhabitant];
-EDLU prob=0.17 objects=[Door];
-FD objects=[Door];
-PL prob=0.10 objects=[Lock] cond=(LP);
-DD prob=0.13 objects=[Door] cond=(DF);
+EDLU prob=0.17 objects=[Door] impact=1.27;
+FD objects=[Door] impact=2.57;
+PL prob=0.10 objects=[Lock] cond=(LP) impact=2.51;
+DD prob=0.13 objects=[Door] cond=(DF) impact=1.81;
 
 [odg.fault_tree]
 toplevel Fire_impossible_escape;
@@ -15,10 +15,10 @@ Fire_impossible_escape and FBO DGB;
 DGB and LGJ DSL;
 
 Fire_impossible_escape objects=[House,Inhabitant] cond=(Inhab_in_House);
-FBO prob=0.21 objects=[House,Inhabitant] cond=(!HS && IU);
-DGB objects=[Door];
-LGJ prob=0.70 objects=[Lock] cond=(LJ);
-DSL prob=0.20 objects=[Door];
+FBO prob=0.21 objects=[House,Inhabitant] cond=(!HS && IU) impact=1.09;
+DGB objects=[Door] impact=1.67;
+LGJ prob=0.70 objects=[Lock] cond=(LJ) impact=0.83;
+DSL prob=0.20 objects=[Door] impact=1.31;
 
 [odg.object_graph]
 House has Door;

@@ -3,7 +3,8 @@ from fractions import Fraction
 import pytest
 from lark.exceptions import VisitError
 
-from odf.checker.exceptions import InvalidProbabilityError
+from odf.checker.exceptions import InvalidProbabilityError, InvalidImpactError
+from odf.models.disruption_tree import DTNode
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
 
 
@@ -17,6 +18,23 @@ def test_basic_disruption_tree(parse_rule):
     node = result.nodes["A"]["data"]
     assert node.name == "A"
     assert node.probability == Fraction("0.5")
+    assert node.impact is None
+    assert node.objects is None
+    assert node.object_properties == set()
+    assert node.gate_type is None
+
+
+def test_basic_node_with_impact(parse_rule):
+    """Test transforming a basic node with only an impact attribute."""
+    transformer = DisruptionTreeTransformer()
+    tree = parse_rule("""toplevel A;
+    A impact = 0.7;""", "disruption_tree")
+
+    result = transformer.transform(tree)
+    node = result.nodes["A"]["data"]
+    assert node.name == "A"
+    assert node.impact == Fraction("0.7")
+    assert node.probability is None
     assert node.objects is None
     assert node.object_properties == set()
     assert node.gate_type is None
@@ -26,7 +44,7 @@ def test_disruption_tree_with_all_attributes(parse_rule):
     """Test transforming a disruption tree with node having all attributes."""
     transformer = DisruptionTreeTransformer()
     tree = parse_rule("""toplevel A;
-    A prob = 0.5 objects = [obj1, obj2] cond = (x && y);
+    A prob = 0.5 objects = [obj1, obj2] cond = (x && y) impact = 0.8;
     """, "disruption_tree")
 
     result = transformer.transform(tree)
@@ -35,6 +53,7 @@ def test_disruption_tree_with_all_attributes(parse_rule):
     assert node.probability == Fraction("0.5")
     assert node.objects == {"obj1", "obj2"}
     assert node.object_properties == {"x", "y"}
+    assert node.impact == Fraction("0.8")
     assert node.gate_type is None
 
 
@@ -239,6 +258,10 @@ def test_complex_disruption_tree_basic_nodes_first(parse_rule):
 def test_attribute_combinations(parse_rule):
     """Test all valid attribute combinations and orderings."""
     test_cases = [
+        # Single attributes
+        """toplevel Root;
+        Root impact = 0.8;""",
+
         # prob + objects
         """toplevel Root;
         Root prob = 0.5 objects = [obj1];""",
@@ -251,11 +274,43 @@ def test_attribute_combinations(parse_rule):
         """toplevel Root;
         Root cond = (x) prob = 0.5;""",
 
+        # prob + impact
+        """toplevel Root;
+        Root prob = 0.5 impact = 0.8;""",
+        """toplevel Root;
+        Root impact = 0.8 prob = 0.5;""",
+
         # objects + condition
         """toplevel Root;
         Root objects = [obj1] cond = (x);""",
         """toplevel Root;
-        Root cond = (x) objects = [obj1];"""
+        Root cond = (x) objects = [obj1];""",
+
+        # objects + impact
+        """toplevel Root;
+        Root objects = [obj1] impact = 0.8;""",
+        """toplevel Root;
+        Root impact = 0.8 objects = [obj1];""",
+
+        # condition + impact
+        """toplevel Root;
+        Root cond = (x) impact = 0.8;""",
+        """toplevel Root;
+        Root impact = 0.8 cond = (x);""",
+
+        # Triple combinations with impact
+        """toplevel Root;
+        Root prob = 0.5 objects = [obj1] impact = 0.8;""",
+        """toplevel Root;
+        Root prob = 0.5 impact = 0.8 cond = (x);""",
+        """toplevel Root;
+        Root objects = [obj1] impact = 0.8 cond = (x);""",
+
+        # All attributes
+        """toplevel Root;
+        Root prob = 0.5 objects = [obj1] cond = (x) impact = 0.8;""",
+        """toplevel Root;
+        Root impact = 0.8 prob = 0.5 objects = [obj1] cond = (x);"""
     ]
 
     for case in test_cases:
@@ -267,6 +322,11 @@ def test_attribute_combinations(parse_rule):
             assert node.probability == Fraction("0.5")
         else:
             assert node.probability is None
+
+        if "impact = 0.8" in case:
+            assert node.impact == Fraction("0.8")
+        else:
+            assert node.impact is None
 
         if "objects = [obj1]" in case:
             assert node.objects == {"obj1"}
@@ -291,6 +351,7 @@ def test_complex_boolean_formula(parse_rule):
     node = result.nodes["Root"]["data"]
     assert node.object_properties == {"a", "b", "c", "d", "x", "y", "p", "q"}
     assert node.probability is None
+    assert node.impact is None
     assert node.objects is None
     assert node.gate_type is None
 
@@ -355,3 +416,10 @@ def test_invalid_probability_values(parse_rule):
                        match=r"Probability for node 'A' must be between 0 and 1 \(got 1\.5") as excinfo:
         transformer.transform(invalid_tree)
     assert isinstance(excinfo.value.orig_exc, InvalidProbabilityError)
+
+
+def test_invalid_impact_value(parse_rule):
+    """Test validation of impact values in the trees."""
+    with pytest.raises(InvalidImpactError,
+                       match=r"Impact for node 'A' must be non-negative \(got -0\.5"):
+        DTNode("A", impact=Fraction("-0.5"))

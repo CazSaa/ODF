@@ -6,7 +6,7 @@ from lark import Tree, Visitor
 from networkx.algorithms.components import is_weakly_connected
 from networkx.algorithms.dag import descendants
 
-from odf.checker.exceptions import InvalidProbabilityError
+from odf.checker.exceptions import InvalidProbabilityError, InvalidImpactError
 from odf.models.tree_graph import TreeGraph
 from odf.transformers.exceptions import NotConnectedError, \
     NotExactlyOneRootError
@@ -29,12 +29,15 @@ class ConditionVariablesVisitor(Visitor):
 class DTNode:
     def __init__(self, name: str,
                  probability: Optional[Fraction] = None,
+                 impact: Optional[Fraction] = None,
                  objects: Optional[set[str]] = None,
                  condition_tree: Optional[Tree] = None,
                  gate_type: Optional[GateType] = None):
         self.name = name
         self.validate_probability(probability)
         self.probability = probability
+        self.validate_impact(impact)
+        self.impact = impact
         self.objects = objects
         self.condition_tree = condition_tree
         if condition_tree is not None:
@@ -49,6 +52,9 @@ class DTNode:
         if "probability" in attrs:
             self.validate_probability(attrs["probability"])
             self.probability = attrs["probability"]
+        if "impact" in attrs:
+            self.validate_impact(attrs["impact"])
+            self.impact = attrs["impact"]
         if "objects" in attrs:
             self.objects = attrs["objects"]
         if "condition_tree" in attrs:
@@ -64,6 +70,12 @@ class DTNode:
             return
         if probability < 0 or probability > 1:
             raise InvalidProbabilityError(self.name, probability)
+
+    def validate_impact(self, impact: Optional[Fraction]):
+        if impact is None:
+            return
+        if impact < 0:
+            raise InvalidImpactError(self.name, impact)
 
 
 class DisruptionTree(TreeGraph[DTNode]):

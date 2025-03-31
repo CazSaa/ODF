@@ -85,3 +85,12 @@ class InvalidProbabilityError(ODFError):
         self.value = value
         super().__init__(
             f"Probability for node '{node_name}' must be between 0 and 1 (got {value:f})")
+
+
+class InvalidImpactError(ODFError):
+    """Raised when an impact value is invalid."""
+
+    def __init__(self, node_name: str, value: Fraction):
+        self.value = value
+        super().__init__(
+            f"Impact for node '{node_name}' must be non-negative (got {value:f})")

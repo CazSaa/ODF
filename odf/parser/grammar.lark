@@ -19,11 +19,13 @@ gate: "and"i -> and_gate
 
 basic_node: NODE_NAME attribute_list?
 
-attribute_list: probability ( objects condition? | condition objects? )?
-              | objects ( probability condition? | condition probability? )?
-              | condition ( probability objects? | objects probability? )?
+attribute_list: probability ( objects ( condition impact? | impact condition? )? | condition ( objects impact? | impact objects? )? | impact ( objects condition? | condition objects? )? )?
+              | objects ( probability ( condition impact? | impact condition? )? | condition ( probability impact? | impact probability? )? | impact ( probability condition? | condition probability? )? )?
+              | condition ( probability ( objects impact? | impact objects? )? | objects ( probability impact? | impact probability? )? | impact ( probability objects? | objects probability? )? )?
+              | impact ( probability ( objects condition? | condition objects? )? | objects ( probability condition? | condition probability? )? | condition ( probability objects? | objects probability? )? )?
 
 probability: "prob"i "=" PROB_VALUE
+impact: "impact"i "=" PROB_VALUE
 objects: "objects"i "=" "[" node_list? "]"
 condition: "cond"i "=" "(" boolean_formula ")"
 

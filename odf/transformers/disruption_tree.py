@@ -19,6 +19,9 @@ class DisruptionTreeTransformer(Transformer):
     def probability(self, items):
         return ("probability", Fraction(items[0].value))
 
+    def impact(self, items):
+        return ("impact", Fraction(items[0].value))
+
     def objects(self, items):
         # items[0] is node_list result with list of names
         return ("objects", items[0])
