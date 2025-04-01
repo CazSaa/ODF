@@ -211,6 +211,21 @@ def fault_tree_paper_example(transform_disruption_tree_str):
 
 
 @pytest.fixture
+def fault_tree_paper_example_with_unsat_node(transform_disruption_tree_str):
+    return transform_disruption_tree_str("""
+    toplevel Fire_and_impossible_escape;
+    Fire_and_impossible_escape and FBO DGB;
+    DGB and DSL LGJ;
+    
+    Fire_and_impossible_escape objects=[House,Inhabitant] cond=(Inhab_in_House) impact=3.31;
+    FBO objects=[House,Inhabitant] cond=(!HS && IU) prob=0.21 impact=1.09;
+    DGB objects=[Door] impact=1.67;
+    DSL objects=[Door,House] prob=0.20 impact=1.31 cond=(HS);
+    LGJ objects=[Lock] cond=(LJ) prob=0.70 impact=0.83;
+    """)
+
+
+@pytest.fixture
 def object_graph_paper_example(transform_object_graph_str):
     """Create the object graph from the paper example."""
     return transform_object_graph_str("""

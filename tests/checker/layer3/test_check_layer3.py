@@ -194,13 +194,16 @@ def test_nested_evidence_with_conflict():
     assert interpreter.formula_type == "max_total_risk"
 
 
-def test_most_risky_attack_door_basic(paper_example_models):
+def test_most_risky_attack_door_basic(caplog, paper_example_models):
     """Test most_risky identifies the highest-risk attack node for Door."""
     # Door attack participants: EDLU, FD, DD
     # Risk(EDLU) = prob(EDLU) * impact(EDLU) = 0.17 * 1.27 = 0.2159
     # Risk(DD) = prob(DD) * impact(DD) = 0.13 * 1.81 = 0.2353
     # Risk(FD) = P(PL or DD) * impact(FD)=2.57 = 0.13 * 2.57 = 0.3341
     result = most_risky("Door", "attack", {"DF": True}, *paper_example_models)
+    assert "Risk for node EDLU: 0.2159" in caplog.text
+    assert "Risk for node FD: 0.3341" in caplog.text
+    assert "Risk for node DD: 0.2353" in caplog.text
     assert result.name == "FD"
 
 
@@ -210,72 +213,98 @@ def test_unused_evidence(caplog, paper_example_models):
     assert "these elements can be removed: {'Unused'}" in caplog.text
 
 
-def test_most_risky_attack_lock_basic(paper_example_models):
+def test_most_risky_attack_lock_basic(caplog, paper_example_models):
     """Test that most_risky correctly identifies PL as the risky node for Lock."""
     # Lock attack participants: PL
     # Risk(PL) = prob(PL | LP=True) * impact(PL) = 0.10 * 2.51 = 0.251
     result = most_risky("Lock", "attack", {"LP": True}, *paper_example_models)
+    assert "Risk for node PL: 0.251" in caplog.text
     assert result.name == "PL"
 
 
-def test_most_risky_fault_door_basic(paper_example_models):
+def test_most_risky_fault_door_basic(caplog, paper_example_models):
     """Test that most_risky correctly identifies DSL as the highest-risk fault node for Door."""
     # Door fault participants: DGB, DSL
     # Risk(DSL) = prob(DSL) * impact(DSL) = 0.20 * 1.31 = 0.262
     # Risk(DGB) = P(DSL and LGJ) * impact(DGB) = 0.20 * 0.70 * 1.67 = 0.2338
     result = most_risky("Door", "fault", {}, *paper_example_models)
+    assert "Risk for node DSL: 0.262" in caplog.text
+    assert "Risk for node DGB: 0.2338" in caplog.text
     assert result.name == "DSL"
 
 
-def test_most_risky_fault_lock_basic(paper_example_models):
+def test_most_risky_fault_lock_basic(caplog, paper_example_models):
     """Test that most_risky correctly identifies LGJ as the risky node for Lock."""
     # Lock fault participants: LGJ
     # Risk(LGJ) = prob(LGJ | LJ=True) * impact(LGJ) = 0.70 * 0.83 = 0.581
     result = most_risky("Lock", "fault", {"LJ": True}, *paper_example_models)
+    assert "Risk for node LGJ: 0.581" in caplog.text
     assert result.name == "LGJ"
 
 
-def test_fd_different_impact(
-        paper_example_models):
+def test_fd_different_impact(caplog, paper_example_models):
     result = most_risky("Door", "attack", {"DF": False}, *paper_example_models)
+    assert "Risk for node EDLU: 0.2159" in caplog.text
+    assert "Risk for node FD: 0.257" in caplog.text
     assert result.name == "FD"
+    caplog.clear()
 
     attack_tree = paper_example_models[0]
     attack_tree.nodes["FD"]["data"].impact = Fraction("2.15")
     result = most_risky("Door", "attack", {"DF": False}, *paper_example_models)
+    assert "Risk for node EDLU: 0.2159" in caplog.text
+    assert "Risk for node FD: 0.215" in caplog.text
     assert result.name == "EDLU"
 
 
-def test_most_risky_attack_lock_evidence_makes_unsatisfiable(
-        paper_example_models):
+def test_most_risky_attack_lock_evidence_makes_unsatisfiable(caplog,
+                                                             paper_example_models):
     """Test that most_risky returns None when evidence makes PL unsatisfiable."""
     # Lock attack participants: PL. Evidence: LP=False.
     # PL condition (LP) is False, making PL unsatisfiable. No other participants.
     result = most_risky("Lock", "attack", {"LP": False}, *paper_example_models)
+    assert "The provided evidence made the node PL unsatisfiable." in caplog.text
     assert result is None
 
 
-def test_most_risky_fault_lock_evidence_makes_unsatisfiable(
-        paper_example_models):
+def test_most_risky_fault_lock_evidence_makes_unsatisfiable(caplog,
+                                                            paper_example_models):
     """Test that most_risky returns None when evidence makes LGJ unsatisfiable."""
     # Lock fault participants: LGJ. Evidence: LJ=False.
     # LGJ condition (LJ) is False, making LGJ unsatisfiable. No other participants.
     result = most_risky("Lock", "fault", {"LJ": False}, *paper_example_models)
+    assert "The provided evidence made the node LGJ unsatisfiable." in caplog.text
     assert result is None
 
 
-def test_most_risky_no_participant_nodes(paper_example_models,
+def test_most_risky_fault_with_unsatisfiable_node(caplog, paper_example_models,
+                                                  fault_tree_paper_example_with_unsat_node):
+    # Risk(FBO) = prob(FBO) * impact(FBO) = 0.21 * 1.09 = 0.2289
+    # Risk(DSL) = prob(DSL) * impact(DSL) = 0.20 * 1.31 = 0.262
+    result = most_risky("House", "fault", {}, paper_example_models[0],
+                        fault_tree_paper_example_with_unsat_node,
+                        paper_example_models[2])
+    assert "Node Fire_and_impossible_escape is not satisfiable." in caplog.text
+    assert "Risk for node FBO: 0.2289" in caplog.text
+    assert "Risk for node DSL: 0.262" in caplog.text
+    assert result.name == "DSL"
+
+
+def test_most_risky_no_participant_nodes(caplog,
+                                         paper_example_models,
                                          object_graph_paper_example_with_extra):
     """Test that most_risky returns None for an object with no participant nodes."""
     result = most_risky("ExtraObject", "attack", {}, *paper_example_models[:2],
                         object_graph_paper_example_with_extra)
+    assert "There are no nodes in the attack tree that participate in the ExtraObject object." in caplog.text
     assert result is None
 
 
-def test_most_risky_object_not_in_graph(paper_example_models):
+def test_most_risky_object_not_in_graph(caplog, paper_example_models):
     """Test that most_risky returns None for an object not in the graph."""
     result = most_risky("NonexistentObject", "attack", {},
                         *paper_example_models)
+    assert "There are no nodes in the attack tree that participate in the NonexistentObject object." in caplog.text
     assert result is None
 
 

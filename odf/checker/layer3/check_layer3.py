@@ -46,12 +46,18 @@ def most_risky(object_name: str,
                fault_tree: DisruptionTree,
                object_graph: ObjectGraph):
     the_tree = attack_tree if tree_type == "attack" else fault_tree
+
+    participant_nodes = the_tree.participant_nodes(object_name)
+    if not participant_nodes:
+        logger.info(
+            f"There are no nodes in the {tree_type} tree that participate in the {object_name} object.")
+        return None
+
     object_properties = set(object_graph.object_properties)
     used_evidence = set()
-
     max_risk = -1
     max_element = None
-    for participant_node in the_tree.participant_nodes(object_name):
+    for participant_node in participant_nodes:
         if participant_node.impact is None:
             raise MissingNodeImpactError(participant_node.name, tree_type)
 
@@ -63,21 +69,29 @@ def most_risky(object_name: str,
                             [Token("NODE_NAME", participant_node.name)])
         bdd = interpreter.interpret(formula_tree)
 
+        if bdd == manager.false:
+            logger.warning(f"Node {participant_node.name} is not satisfiable.")
+            continue
+
         bdd_support = bdd.support
         needed_evidence = {k: v for k, v in evidence.items() if
                            k in bdd_support}
-        bdd = manager.let(needed_evidence, bdd)
-        used_evidence.update(needed_evidence.keys())
+        if needed_evidence:
+            bdd = manager.let(needed_evidence, bdd)
+            used_evidence.update(needed_evidence.keys())
 
         if bdd == manager.false:
+            logger.warning(
+                f"The provided evidence made the node {participant_node.name} unsatisfiable. Evidence: {needed_evidence}")
             continue
 
         risk = -1
-
         for cr_node, is_compl in find_config_reflection_nodes(bdd,
                                                               lambda node: node.var in object_properties):
             p = calc_node_prob(attack_tree, fault_tree, cr_node, is_compl, {})
             risk = max(risk, p * participant_node.impact)
+        logger.info("Risk for node %s: %f", participant_node.name, risk)
+
         if risk > max_risk:
             max_risk = risk
             max_element = participant_node
