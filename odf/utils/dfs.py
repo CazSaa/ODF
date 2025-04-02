@@ -1,7 +1,7 @@
 from collections import deque
 from typing import Iterator, Callable, Set, Tuple
 
-from dd import cudd
+from dd import cudd, cudd_add
 from dd.cudd import Function
 
 
@@ -48,6 +48,40 @@ def dfs_nodes_with_complement(
 
             child_regular = child.regular
             stack.append((child_regular, new_comp, False))
+
+
+def dfs_mtbdd_terminals(root: cudd_add.Function) -> Iterator[float]:
+    """
+    Generator that traverses an ADD using DFS and yields the values of all
+    terminal nodes encountered.
+
+    Args:
+        root: The root node of the ADD to traverse.
+
+    Yields:
+        The floating-point values of the terminal nodes.
+    """
+    stack = deque([root])
+    visited: set[Function] = set()
+
+    while stack:
+        node = stack.pop()
+
+        if node in visited:
+            continue
+        visited.add(node)
+
+        # Check if it's a terminal node (leaf)
+        if node.var is None:
+            yield node.value  # ADD terminal nodes have a 'value' attribute
+            continue
+
+        # Push children onto the stack if they exist
+        # ADDs do not have complemented edges, so we directly use low/high
+        if node.low is not None:
+            stack.append(node.low)
+        if node.high is not None:
+            stack.append(node.high)
 
 
 # Define predicate type

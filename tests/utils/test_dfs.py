@@ -1,7 +1,8 @@
 import pytest
-from dd import cudd
+from dd import cudd, cudd_add  # Added cudd_add
 
-from odf.utils.dfs import find_config_reflection_nodes
+from odf.utils.dfs import find_config_reflection_nodes, \
+    dfs_mtbdd_terminals  # Added dfs_add_terminals
 
 
 @pytest.fixture(scope='function')
@@ -10,6 +11,15 @@ def bdd_manager():
     manager = cudd.BDD()
     yield manager
     # No explicit cleanup needed for dd normally, but good practice if resources were held
+
+
+# New fixture for ADD manager
+@pytest.fixture(scope='function')
+def add_manager():
+    """Provides an ADD manager for tests."""
+    manager = cudd_add.ADD()
+    yield manager
+    # No explicit cleanup needed for dd normally
 
 
 def test_find_non_op_children_of_op(bdd_manager):
@@ -327,3 +337,56 @@ def test_find_non_op_children_complex_nested(bdd_manager):
     ]
 
     assert result_nodes == expected
+
+
+def test_dfs_add_terminals(add_manager):
+    """
+    Tests the dfs_add_terminals function for ADDs.
+    """
+    add = add_manager
+    add.declare('A', 'B', 'C')
+
+    a_var = add.var('A')
+    b_var = add.var('B')
+    c_var = add.var('C')
+
+    # 1. Test with a constant ADD
+    const_add = add.constant(7.5)
+    terminals_const = set(dfs_mtbdd_terminals(const_add))
+    assert terminals_const == {7.5}
+
+    # 2. Test with a simple ITE ADD: ite(A, 1.0, 2.0)
+    # This ADD has terminal values 1.0 and 2.0
+    ite_add_simple = add.ite(a_var, add.constant(1.0), add.constant(2.0))
+    terminals_simple = set(dfs_mtbdd_terminals(ite_add_simple))
+    assert terminals_simple == {1.0, 2.0}
+
+    # 3. Test with a more complex ADD: ite(A, ite(B, 3.0, 4.0), ite(C, 5.0, 6.0))
+    # This ADD has terminal values 3.0, 4.0, 5.0, 6.0
+    high_branch = add.ite(b_var, add.constant(3.0), add.constant(4.0))
+    low_branch = add.ite(c_var, add.constant(5.0), add.constant(6.0))
+    ite_add_complex = add.ite(a_var, high_branch, low_branch)
+    terminals_complex = set(dfs_mtbdd_terminals(ite_add_complex))
+    assert terminals_complex == {3.0, 4.0, 5.0, 6.0}
+
+    # 4. Test with an ADD involving arithmetic (terminals might be shared/reduced)
+    # (A * 2.0) + (B * 3.0)
+    # Possible paths/terminals:
+    # A=0, B=0 -> 0.0 * 2.0 + 0.0 * 3.0 = 0.0
+    # A=0, B=1 -> 0.0 * 2.0 + 1.0 * 3.0 = 3.0
+    # A=1, B=0 -> 1.0 * 2.0 + 0.0 * 3.0 = 2.0
+    # A=1, B=1 -> 1.0 * 2.0 + 1.0 * 3.0 = 5.0
+    term_a = add.apply('*', a_var, add.constant(2.0))
+    term_b = add.apply('*', b_var, add.constant(3.0))
+    arith_add = add.apply('+', term_a, term_b)
+    terminals_arith = set(dfs_mtbdd_terminals(arith_add))
+
+    assert terminals_arith == {0.0, 2.0, 3.0, 5.0}
+
+    # 5. Test with an ADD where a branch leads to an existing terminal
+    # ite(A, 10.0, ite(B, 10.0, 20.0))
+    # Terminals should be 10.0 and 20.0
+    branch_b = add.ite(b_var, add.constant(10.0), add.constant(20.0))
+    shared_terminal_add = add.ite(a_var, add.constant(10.0), branch_b)
+    terminals_shared = set(dfs_mtbdd_terminals(shared_terminal_add))
+    assert terminals_shared == {10.0, 20.0}

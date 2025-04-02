@@ -1,5 +1,7 @@
-from typing import Literal, Optional
+from fractions import Fraction
+from typing import Literal, Optional, Callable, Iterable
 
+from dd import cudd, cudd_add
 from lark import Tree, Token
 from lark.visitors import Interpreter
 
@@ -9,7 +11,7 @@ from odf.checker.layer2.check_layer2 import calc_node_prob
 from odf.models.disruption_tree import DisruptionTree
 from odf.models.object_graph import ObjectGraph
 from odf.transformers.mixins.mappings import BooleanMappingMixin
-from odf.utils.dfs import find_config_reflection_nodes
+from odf.utils.dfs import find_config_reflection_nodes, dfs_mtbdd_terminals
 from odf.utils.logger import logger
 
 
@@ -103,6 +105,101 @@ def most_risky(object_name: str,
     return max_element
 
 
+def create_mtbdd(mtbdd_manager: cudd_add.ADD,
+                 attack_tree: DisruptionTree,
+                 fault_tree: DisruptionTree,
+                 object_properties: set[str],
+                 bdd: cudd.Function,
+                 impact: Fraction):
+    def _create_mtbdd(bdd_: cudd.Function,
+                      is_complement: bool,
+                      parent_is_op: bool):
+        is_op = bdd_.var in object_properties
+        if parent_is_op and not is_op:
+            p = calc_node_prob(attack_tree, fault_tree, bdd_, is_complement, {})
+            risk = p * impact
+            return mtbdd_manager.constant(float(risk))
+
+        assert parent_is_op and is_op
+
+        return mtbdd_manager.apply('ite', mtbdd_manager.var(bdd_.var),
+                                   _create_mtbdd(bdd_.high, is_complement,
+                                                 is_op),
+                                   _create_mtbdd(bdd_.low.regular,
+                                                 is_complement ^ bdd_.low.negated,
+                                                 is_op))
+
+    return _create_mtbdd(bdd, bdd.negated, True)
+
+
+def total_risk(object_name: str,
+               func_type: Callable[[Iterable[float]], float],
+               evidence: dict[str, bool],
+               attack_tree: DisruptionTree,
+               fault_tree: DisruptionTree,
+               object_graph: ObjectGraph) -> Optional[float]:
+    mtbdd_manager = cudd_add.ADD()
+    mt_sum = mtbdd_manager.zero
+
+    participant_nodes = attack_tree.participant_nodes(object_name).union(
+        fault_tree.participant_nodes(object_name))
+
+    if not participant_nodes:
+        logger.info(
+            f"There are no nodes in the attack or fault tree that participate in the {object_name} object.")
+        return None
+
+    object_properties = set(object_graph.object_properties)
+    used_evidence = set()
+    mtbdd_manager.declare(*object_properties)
+
+    for participant_node in participant_nodes:
+        if participant_node.impact is None:
+            raise MissingNodeImpactError(participant_node.name,
+                                         "attack or fault")
+
+        interpreter = Layer1BDDInterpreter(attack_tree, fault_tree,
+                                           object_graph, reordering=False)
+        manager = interpreter.bdd
+
+        formula_tree = Tree("node_atom",
+                            [Token("NODE_NAME", participant_node.name)])
+        bdd = interpreter.interpret(formula_tree)
+
+        if bdd == manager.false:
+            logger.warning(f"Node {participant_node.name} is not satisfiable.")
+            continue
+
+        bdd_support = bdd.support
+        needed_evidence = {k: v for k, v in evidence.items() if
+                           k in bdd_support}
+        if needed_evidence:
+            bdd = manager.let(needed_evidence, bdd)
+            used_evidence.update(needed_evidence.keys())
+
+        if bdd == manager.false:
+            logger.warning(
+                f"The provided evidence made the node {participant_node.name} unsatisfiable. Evidence: {needed_evidence}")
+            continue
+
+        mtbdd = create_mtbdd(mtbdd_manager,
+                             attack_tree,
+                             fault_tree,
+                             object_properties,
+                             bdd,
+                             participant_node.impact)
+        mt_sum = mtbdd_manager.apply('+', mt_sum, mtbdd)
+
+    unused_evidence = set(evidence.keys()) - used_evidence
+    if unused_evidence:
+        logger.warning(
+            f"You specified evidence that is not used in this formula, these elements can be removed: {unused_evidence}")
+
+    return func_type(dfs_mtbdd_terminals(mt_sum))
+
+
+
+
 def check_layer3_query(formula: Tree,
                        attack_tree: DisruptionTree,
                        fault_tree: DisruptionTree,
@@ -121,3 +218,13 @@ def check_layer3_query(formula: Tree,
             result = most_risky(object_name, "fault", evidence, attack_tree,
                                 fault_tree, object_graph)
             print(f"The most risky fault node is: {result.name}")
+        case "max_total_risk":
+            result = total_risk(object_name, max, evidence, attack_tree,
+                                fault_tree,
+                                object_graph)
+            print(f"The maximum total risk is: {result}")
+        case "min_total_risk":
+            result = total_risk(object_name, min, evidence, attack_tree,
+                                fault_tree,
+                                object_graph)
+            print(f"The minimum total risk is: {result}")

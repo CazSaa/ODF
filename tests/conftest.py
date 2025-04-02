@@ -263,6 +263,68 @@ def paper_example_models(attack_tree_paper_example, fault_tree_paper_example,
 
 
 @pytest.fixture
+def attack_tree_complex_str():
+    """Attack tree (can be minimal if not directly used by non-ops)."""
+    return """
+    toplevel ComplexRootA;
+    ComplexRootA prob=0.23 impact=1.27 objects=[Obj6]; // Dummy fault
+    """
+
+
+@pytest.fixture
+def fault_tree_complex_str():
+    """Fault tree containing variables for the complex MTBDD test."""
+    return """
+    toplevel ComplexRootA;
+    ComplexRootA or NON_OP1 NON_OP2 NON_OP3 NON_OP4 NON_OP5; // Include all non-ops
+    NON_OP1 prob=0.07 impact=1.31 objects=[Obj1];
+    NON_OP2 prob=0.11 impact=1.37 objects=[Obj2];
+    NON_OP3 prob=0.13 impact=1.39 objects=[Obj3];
+    NON_OP4 prob=0.17 impact=1.49 objects=[Obj4];
+    NON_OP5 prob=0.19 impact=1.51 objects=[Obj5];
+    """
+
+
+@pytest.fixture
+def object_graph_complex_str():
+    """Object graph containing objects and OP variables for the complex MTBDD test."""
+    # Define objects and properties OP1..OP8
+    return """
+    Obj1 properties=[OP1, OP2];
+    Obj2 properties=[OP3, OP4];
+    Obj3 properties=[OP5, OP6];
+    Obj4 properties=[OP7, OP8];
+    Obj5; // Object for NON_OP5 if needed
+    Obj6; // Object for ComplexRootF if needed
+    """
+
+
+@pytest.fixture
+def attack_tree_complex(attack_tree_complex_str, transform_disruption_tree_str):
+    """Parsed attack tree for the complex MTBDD test."""
+    return transform_disruption_tree_str(attack_tree_complex_str)
+
+
+@pytest.fixture
+def fault_tree_complex(fault_tree_complex_str, transform_disruption_tree_str):
+    """Parsed fault tree for the complex MTBDD test."""
+    return transform_disruption_tree_str(fault_tree_complex_str)
+
+
+@pytest.fixture
+def object_graph_complex(object_graph_complex_str, transform_object_graph_str):
+    """Parsed object graph for the complex MTBDD test."""
+    return transform_object_graph_str(object_graph_complex_str)
+
+
+@pytest.fixture
+def complex_test_models(attack_tree_complex, fault_tree_complex,
+                        object_graph_complex):
+    """Returns the complex test models as a list for unpacking."""
+    return [attack_tree_complex, fault_tree_complex, object_graph_complex]
+
+
+@pytest.fixture
 def parse_and_get_bdd(attack_tree1, fault_tree1, object_graph1, parse_rule):
     def _parse_and_get_bdd(formula, attack_tree=attack_tree1,
                            fault_tree=fault_tree1, object_graph=object_graph1):
