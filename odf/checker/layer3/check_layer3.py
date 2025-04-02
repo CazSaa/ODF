@@ -1,3 +1,4 @@
+from collections import deque
 from fractions import Fraction
 from typing import Literal, Optional, Callable, Iterable
 
@@ -110,26 +111,113 @@ def create_mtbdd(mtbdd_manager: cudd_add.ADD,
                  fault_tree: DisruptionTree,
                  object_properties: set[str],
                  bdd: cudd.Function,
-                 impact: Fraction):
-    def _create_mtbdd(bdd_: cudd.Function,
-                      is_complement: bool,
-                      parent_is_op: bool):
-        is_op = bdd_.var in object_properties
-        if parent_is_op and not is_op:
-            p = calc_node_prob(attack_tree, fault_tree, bdd_, is_complement, {})
+                 impact: Fraction) -> cudd_add.Function:
+    """
+    Creates an MTBDD (ADD) representing risk based on a BDD.
+
+    Iteratively traverses the BDD. When transitioning from an object property (OP)
+    node to a non-OP node (event/attack), calculates the probability of the
+    non-OP subtree and multiplies by impact to get risk, creating a terminal ADD node.
+    Within OP nodes, constructs ITE ADD nodes.
+
+    Args:
+        mtbdd_manager: The ADD manager.
+        attack_tree: The attack tree model.
+        fault_tree: The fault tree model.
+        object_properties: Set of variable names that are object properties.
+        bdd: The input BDD.
+        impact: The impact value associated with the BDD.
+
+    Returns:
+        The resulting ADD representing a mapping from configurations of object
+        properties to risk values.
+    """
+    # (node, is_complement, parent_is_op)
+    stack = deque([(bdd, bdd.negated, True)])
+    # Memoization for computed ADDs
+    results: dict[tuple[cudd.Function, bool], cudd_add.Function] = {}
+    # Stores intermediate state for nodes being processed:
+    # key: (node, is_complement), value: {'stage': 'start'/'waiting_high'/'waiting_low', 'high_result': ADD}
+    processing_state: dict[tuple[cudd.Function, bool], dict] = {}
+
+    while stack:
+        current_bdd, current_complement, current_parent_is_op = stack[-1]
+        current_key = (current_bdd, current_complement)
+
+        if current_key in results:
+            stack.pop()
+            continue
+
+        is_op = current_bdd.var in object_properties
+
+        # Base Case: Transition from OP node to non-OP node
+        if current_parent_is_op and not is_op:
+            p = calc_node_prob(attack_tree, fault_tree, current_bdd,
+                               current_complement, {})
             risk = p * impact
-            return mtbdd_manager.constant(float(risk))
+            result_add = mtbdd_manager.constant(float(risk))
+            results[current_key] = result_add
+            stack.pop()
+            continue
 
-        assert parent_is_op and is_op
+        # Recursive Step: Still within OP nodes
+        # This assertion holds because the base case handles parent_is_op=True, is_op=False
+        # and the initial call starts with parent_is_op=True.
+        # If parent_is_op=False, we wouldn't enter this part due to the base case logic.
+        assert current_parent_is_op and is_op, \
+            f"Unexpected state: parent_is_op={current_parent_is_op}, is_op={is_op} for var {current_bdd.var}"
 
-        return mtbdd_manager.apply('ite', mtbdd_manager.var(bdd_.var),
-                                   _create_mtbdd(bdd_.high, is_complement,
-                                                 is_op),
-                                   _create_mtbdd(bdd_.low.regular,
-                                                 is_complement ^ bdd_.low.negated,
-                                                 is_op))
+        state = processing_state.get(current_key, {'stage': 'start'})
 
-    return _create_mtbdd(bdd, bdd.negated, True)
+        high_child_bdd = current_bdd.high
+        high_child_complement = current_complement
+        high_child_key = (high_child_bdd, high_child_complement)
+
+        low_child_bdd = current_bdd.low.regular
+        low_child_complement = current_complement ^ current_bdd.low.negated
+        low_child_key = (low_child_bdd, low_child_complement)
+
+        if state['stage'] == 'start':
+            # Process high child first
+            processing_state[current_key] = {'stage': 'waiting_high'}
+            if high_child_key not in results:
+                stack.append((high_child_bdd, high_child_complement, is_op))
+                continue  # Process high child
+            # High child already processed (e.g., shared node), fall through
+
+        if state['stage'] == 'waiting_high':
+            if high_child_key not in results:
+                raise RuntimeError(
+                    f"High child {high_child_key} result not found for parent {current_key}")
+
+            high_add = results[high_child_key]
+            processing_state[current_key] = {'stage': 'waiting_low',
+                                             'high_result': high_add}
+            if low_child_key not in results:
+                stack.append((low_child_bdd, low_child_complement, is_op))
+                continue  # Process low child
+            # Low child already processed, fall through
+
+        if state['stage'] == 'waiting_low':
+            if low_child_key not in results:
+                raise RuntimeError(
+                    f"Low child {low_child_key} result not found for parent {current_key}")
+
+            low_add = results[low_child_key]
+            high_add = state['high_result']
+
+            # Combine results using ITE
+            var_add = mtbdd_manager.var(current_bdd.var)
+            result_add = mtbdd_manager.apply('ite', var_add, high_add, low_add)
+            results[current_key] = result_add
+            stack.pop()
+            continue
+
+    final_key = (bdd, bdd.negated)
+    if final_key not in results:
+        raise RuntimeError("Failed to compute final result for the MTBDD.")
+
+    return results[final_key]
 
 
 def total_risk(object_name: str,
@@ -196,8 +284,6 @@ def total_risk(object_name: str,
             f"You specified evidence that is not used in this formula, these elements can be removed: {unused_evidence}")
 
     return func_type(dfs_mtbdd_terminals(mt_sum))
-
-
 
 
 def check_layer3_query(formula: Tree,
