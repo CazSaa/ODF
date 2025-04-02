@@ -728,3 +728,6 @@ def test_create_mtbdd_structure_complex_nested(complex_test_models, _ct):
     # Start the recursive check
     _check_mtbdd_structure(bdd, mtbdd, object_properties, attack_tree,
                            fault_tree, impact, bdd.negated)
+
+    # Sanity check
+    assert mtbdd_manager.apply('+', mtbdd_manager.zero, mtbdd) == mtbdd
