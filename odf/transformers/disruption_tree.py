@@ -1,15 +1,19 @@
 from fractions import Fraction
 
 from lark import Transformer
+from networkx.algorithms.dag import descendants
 
 from odf.models.disruption_tree import DisruptionTree, DTNode
+from odf.models.exceptions import CrossReferenceError
+from odf.models.object_graph import ObjectGraph
 from odf.transformers.exceptions import DuplicateNodeDefinitionError
 
 
 # noinspection PyMethodMayBeStatic,PyRedundantParentheses
 class DisruptionTreeTransformer(Transformer):
-    def __init__(self):
+    def __init__(self, object_graph: ObjectGraph):
         super().__init__()
+        self.object_graph = object_graph
         self.tree = DisruptionTree()
         # Track which nodes have been defined as basic nodes
         self.basic_nodes = set()
@@ -23,8 +27,15 @@ class DisruptionTreeTransformer(Transformer):
         return ("impact", Fraction(items[0].value))
 
     def objects(self, items):
-        # items[0] is node_list result with list of names
-        return ("objects", items[0])
+        node_list: set[str] = items[0]
+        for obj in node_list:
+            if not self.object_graph.has_node(obj):
+                raise CrossReferenceError(f"A non-existing object '{obj}' was"
+                                          f" referenced in the disruption tree")
+        participating_nodes = {succ for object_ in node_list for succ in
+                               descendants(self.object_graph, object_)}.union(
+            node_list)
+        return ("objects", participating_nodes)
 
     def node_list(self, items):
         # Each item is a NODE_NAME token

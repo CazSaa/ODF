@@ -8,6 +8,7 @@ from odf.checker.exceptions import (NodeAncestorEvidenceError,
                                     InvalidNodeEvidenceError)
 from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter, \
     ConditionTransformer
+from odf.models.object_graph import ObjectGraph
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
 
 
@@ -146,7 +147,7 @@ def test_deeply_nested_nodes(parse_rule):
     Basic14 prob = 0.2;
     Basic15 prob = 0.3;"""
 
-    attack_tree = DisruptionTreeTransformer().transform(
+    attack_tree = DisruptionTreeTransformer(ObjectGraph()).transform(
         parse_rule(attack_tree_str, "attack_tree"))
 
     # Initialize transformer with empty trees/graph since we only need the BDD manager
@@ -612,7 +613,7 @@ def test_mrs_with_evidence(parse_and_get_bdd):
 
 
 @pytest.fixture
-def complex_attack_tree(transform_disruption_tree_str):
+def complex_attack_tree(transform_disruption_tree_str, object_graph1):
     """Create an attack tree with a more complex structure having both AND and OR gates."""
     return transform_disruption_tree_str("""
     toplevel Root;
@@ -633,7 +634,7 @@ def complex_attack_tree(transform_disruption_tree_str):
     
     MixedGateNode cond = (obj_prop1) objects=[Object1];
     AndGateNode2 cond = (obj_prop2) objects=[Object1];
-    """)
+    """, object_graph1)
 
 
 def test_mrs_complex_intermediate_node(complex_attack_tree, parse_and_get_bdd):
@@ -802,7 +803,8 @@ def test_evidence_on_children(parse_and_get_bdd):
 
 
 def test_evidence_on_non_module_nodes(parse_and_get_bdd,
-                                      transform_disruption_tree_str):
+                                      transform_disruption_tree_str,
+                                      object_graph1):
     """Test that setting evidence on non-module nodes raises appropriate errors."""
     # Create a DAG where some nodes are not modules:
     #      Root
@@ -828,7 +830,7 @@ def test_evidence_on_non_module_nodes(parse_and_get_bdd,
     F prob=0.4;
     G prob=0.5;
     """
-    complex_tree = transform_disruption_tree_str(tree_str)
+    complex_tree = transform_disruption_tree_str(tree_str, object_graph1)
 
     # Test valid module nodes (Root, C, E, G)
     transformer, bdd = parse_and_get_bdd("Root [Root: 1]",
@@ -896,7 +898,8 @@ def test_invalid_node_evidence(parse_and_get_bdd):
 
 
 def test_single_child_intermediate_node(transform_disruption_tree_str,
-                                        parse_and_get_bdd):
+                                        parse_and_get_bdd,
+                                        object_graph1):
     """Test BDD creation for an intermediate node with a single child."""
     # Create a tree where SingleParent has only one child
     tree_str = """
@@ -908,7 +911,7 @@ def test_single_child_intermediate_node(transform_disruption_tree_str,
     SingleParent cond = (obj_prop3 && obj_prop4) objects=[Object2];
     BasicNode prob = 0.1 cond = (obj_prop5 && obj_prop6) objects=[Object2];
     """
-    attack_tree = transform_disruption_tree_str(tree_str)
+    attack_tree = transform_disruption_tree_str(tree_str, object_graph1)
 
     # Test SingleParent node through a formula
     transformer, bdd = parse_and_get_bdd("SingleParent",

@@ -409,7 +409,7 @@ def test_missing_probability_attack_tree(do_check_layer2,
     FD objects=[Door];
     PL objects=[Lock] cond=(LP);  // Missing probability
     DD objects=[Door] cond=(DF) prob=0.13;
-    """)
+    """, object_graph_paper_example)
 
     with pytest.raises(MissingNodeProbabilityError) as exc_info:
         do_check_layer2(
@@ -435,7 +435,7 @@ def test_missing_probability_fault_tree(do_check_layer2,
     DGB objects=[Door];
     DSL objects=[Door] prob=0.20;
     LGJ objects=[Lock] cond=(LJ);  // Missing probability
-    """)
+    """, object_graph_paper_example)
 
     with pytest.raises(MissingNodeProbabilityError) as exc_info:
         do_check_layer2(

@@ -5,12 +5,13 @@ from lark.exceptions import VisitError
 
 from odf.checker.exceptions import InvalidProbabilityError, InvalidImpactError
 from odf.models.disruption_tree import DTNode
+from odf.models.object_graph import ObjectGraph
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
 
 
 def test_basic_disruption_tree(parse_rule):
     """Test transforming a basic disruption tree with a single node."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(ObjectGraph())
     tree = parse_rule("""toplevel A;
     A prob = 0.5;""", "disruption_tree")
 
@@ -26,7 +27,7 @@ def test_basic_disruption_tree(parse_rule):
 
 def test_basic_node_with_impact(parse_rule):
     """Test transforming a basic node with only an impact attribute."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(ObjectGraph())
     tree = parse_rule("""toplevel A;
     A impact = 0.7;""", "disruption_tree")
 
@@ -40,18 +41,18 @@ def test_basic_node_with_impact(parse_rule):
     assert node.gate_type is None
 
 
-def test_disruption_tree_with_all_attributes(parse_rule):
+def test_disruption_tree_with_all_attributes(parse_rule, object_graph1):
     """Test transforming a disruption tree with node having all attributes."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(object_graph1)
     tree = parse_rule("""toplevel A;
-    A prob = 0.5 objects = [obj1, obj2] cond = (x && y) impact = 0.8;
+    A prob = 0.5 objects = [Object1] cond = (x && y) impact = 0.8;
     """, "disruption_tree")
 
     result = transformer.transform(tree)
     node = result.nodes["A"]["data"]
     assert node.name == "A"
     assert node.probability == Fraction("0.5")
-    assert node.objects == {"obj1", "obj2"}
+    assert node.objects == {"Object1"}
     assert node.object_properties == {"x", "y"}
     assert node.impact == Fraction("0.8")
     assert node.gate_type is None
@@ -59,7 +60,7 @@ def test_disruption_tree_with_all_attributes(parse_rule):
 
 def test_disruption_tree_with_intermediate_node(parse_rule):
     """Test transforming a disruption tree with intermediate AND node."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(ObjectGraph())
     tree = parse_rule("""toplevel Root;
     Root and A B;
     A prob = 0.5;
@@ -84,12 +85,13 @@ def test_disruption_tree_with_intermediate_node(parse_rule):
     assert result.nodes["B"]["data"].gate_type is None
 
 
-def test_duplicate_basic_node_definition_raises_error(parse_rule):
+def test_duplicate_basic_node_definition_raises_error(parse_rule,
+                                                      object_graph1):
     """Test that defining a basic node multiple times raises an error."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(object_graph1)
     tree = parse_rule("""toplevel A;
     A;
-    A prob = 0.5 objects = [obj1];
+    A prob = 0.5 objects = [Object1];
     """, "disruption_tree")
 
     with pytest.raises(VisitError) as excinfo:
@@ -99,7 +101,7 @@ def test_duplicate_basic_node_definition_raises_error(parse_rule):
 
 def test_duplicate_intermediate_node_definition_raises_error(parse_rule):
     """Test that defining an intermediate node multiple times raises an error."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(ObjectGraph())
     tree = parse_rule("""toplevel Root;
     A and B C;
     A or D E;
@@ -111,13 +113,13 @@ def test_duplicate_intermediate_node_definition_raises_error(parse_rule):
         excinfo.value.orig_exc)
 
 
-def test_node_can_be_both_basic_and_child(parse_rule):
+def test_node_can_be_both_basic_and_child(parse_rule, object_graph1):
     """Test that a node can be both a basic node and appear as a child in a gate."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(object_graph1)
     tree = parse_rule("""toplevel Root;
     Root and A B;
     A prob = 0.5;
-    B objects = [obj1];
+    B objects = [Object1];
     """, "disruption_tree")
 
     result = transformer.transform(tree)
@@ -125,16 +127,16 @@ def test_node_can_be_both_basic_and_child(parse_rule):
     # Check both structure and properties
     assert list(result.edges()) == [("Root", "A"), ("Root", "B")]
     assert result.nodes["A"]["data"].probability == Fraction("0.5")
-    assert result.nodes["B"]["data"].objects == {"obj1"}
+    assert result.nodes["B"]["data"].objects == {"Object1"}
 
 
-def test_node_can_be_both_basic_and_intermediate(parse_rule):
+def test_node_can_be_both_basic_and_intermediate(parse_rule, object_graph1):
     """Test that a node can be both a basic node and an intermediate node."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(object_graph1)
     tree = parse_rule("""toplevel A;
     A prob = 0.5;
     A and B C;
-    B objects = [obj1];
+    B objects = [Object1];
     C;
     """, "disruption_tree")
 
@@ -144,21 +146,21 @@ def test_node_can_be_both_basic_and_intermediate(parse_rule):
     assert list(result.edges()) == [("A", "B"), ("A", "C")]
     assert result.nodes["A"]["data"].probability == Fraction("0.5")
     assert result.nodes["A"]["data"].gate_type == "and"
-    assert result.nodes["B"]["data"].objects == {"obj1"}
+    assert result.nodes["B"]["data"].objects == {"Object1"}
 
 
-def test_complex_disruption_tree(parse_rule):
+def test_complex_disruption_tree(parse_rule, object_graph1):
     """Test transforming a complex disruption tree with multiple nodes and attributes."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(object_graph1)
     tree = parse_rule("""toplevel Root;
     Root and A B C;
     B and D E;
     C or F G;
-    A prob = 0.5 objects = [obj1];
-    D objects = [obj2, obj3];
-    E prob = 0.6 cond = (x && y) objects = [obj2];
+    A prob = 0.5 objects = [RootO];
+    D objects = [RootO, Object1];
+    E prob = 0.6 cond = (x && y) objects = [Object2];
     F prob = 0.4;
-    G objects = [obj4];
+    G objects = [Object1];
     """, "disruption_tree")
 
     result = transformer.transform(tree)
@@ -183,33 +185,33 @@ def test_complex_disruption_tree(parse_rule):
 
     # Check node attributes
     assert result.nodes["A"]["data"].probability == Fraction("0.5")
-    assert result.nodes["A"]["data"].objects == {"obj1"}
+    assert result.nodes["A"]["data"].objects == {"RootO", "Object1", "Object2"}
 
     assert result.nodes["B"]["data"].probability is None
 
     assert result.nodes["C"]["data"].probability is None
 
-    assert result.nodes["D"]["data"].objects == {"obj2", "obj3"}
+    assert result.nodes["D"]["data"].objects == {"RootO", "Object1", "Object2"}
     assert result.nodes["D"]["data"].probability is None
 
     assert result.nodes["E"]["data"].probability == Fraction("0.6")
     assert result.nodes["E"]["data"].object_properties == {"x", "y"}
-    assert result.nodes["E"]["data"].objects == {"obj2"}
+    assert result.nodes["E"]["data"].objects == {"Object2"}
 
     assert result.nodes["F"]["data"].probability == Fraction("0.4")
 
-    assert result.nodes["G"]["data"].objects == {"obj4"}
+    assert result.nodes["G"]["data"].objects == {"Object1"}
 
 
-def test_complex_disruption_tree_basic_nodes_first(parse_rule):
+def test_complex_disruption_tree_basic_nodes_first(parse_rule, object_graph1):
     """Test transforming a complex disruption tree with nodes defined before relationships."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(object_graph1)
     tree = parse_rule("""toplevel Root;
-    A prob = 0.5 objects = [obj1];
-    D objects = [obj2, obj3];
-    E prob = 0.6 cond = (x && y) objects = [obj2];
+    A prob = 0.5 objects = [Object1];
+    D objects = [Object1, Object2];
+    E prob = 0.6 cond = (x && y) objects = [Object2];
     F prob = 0.4;
-    G objects = [obj4];
+    G objects = [Object1];
     B and D E;
     C or F G;
     Root and A B C;
@@ -237,25 +239,25 @@ def test_complex_disruption_tree_basic_nodes_first(parse_rule):
 
     # Check node attributes
     assert result.nodes["A"]["data"].probability == Fraction("0.5")
-    assert result.nodes["A"]["data"].objects == {"obj1"}
+    assert result.nodes["A"]["data"].objects == {"Object1"}
 
     assert result.nodes["B"]["data"].probability is None
 
     assert result.nodes["C"]["data"].probability is None
 
-    assert result.nodes["D"]["data"].objects == {"obj2", "obj3"}
+    assert result.nodes["D"]["data"].objects == {"Object1", "Object2"}
     assert result.nodes["D"]["data"].probability is None
 
     assert result.nodes["E"]["data"].probability == Fraction("0.6")
     assert result.nodes["E"]["data"].object_properties == {"x", "y"}
-    assert result.nodes["E"]["data"].objects == {"obj2"}
+    assert result.nodes["E"]["data"].objects == {"Object2"}
 
     assert result.nodes["F"]["data"].probability == Fraction("0.4")
 
-    assert result.nodes["G"]["data"].objects == {"obj4"}
+    assert result.nodes["G"]["data"].objects == {"Object1"}
 
 
-def test_attribute_combinations(parse_rule):
+def test_attribute_combinations(parse_rule, object_graph1):
     """Test all valid attribute combinations and orderings."""
     test_cases = [
         # Single attributes
@@ -264,9 +266,9 @@ def test_attribute_combinations(parse_rule):
 
         # prob + objects
         """toplevel Root;
-        Root prob = 0.5 objects = [obj1];""",
+        Root prob = 0.5 objects = [Object1];""",
         """toplevel Root;
-        Root objects = [obj1] prob = 0.5;""",
+        Root objects = [Object1] prob = 0.5;""",
 
         # prob + condition
         """toplevel Root;
@@ -282,15 +284,15 @@ def test_attribute_combinations(parse_rule):
 
         # objects + condition
         """toplevel Root;
-        Root objects = [obj1] cond = (x);""",
+        Root objects = [Object1] cond = (x);""",
         """toplevel Root;
-        Root cond = (x) objects = [obj1];""",
+        Root cond = (x) objects = [Object1];""",
 
         # objects + impact
         """toplevel Root;
-        Root objects = [obj1] impact = 0.8;""",
+        Root objects = [Object1] impact = 0.8;""",
         """toplevel Root;
-        Root impact = 0.8 objects = [obj1];""",
+        Root impact = 0.8 objects = [Object1];""",
 
         # condition + impact
         """toplevel Root;
@@ -300,22 +302,22 @@ def test_attribute_combinations(parse_rule):
 
         # Triple combinations with impact
         """toplevel Root;
-        Root prob = 0.5 objects = [obj1] impact = 0.8;""",
+        Root prob = 0.5 objects = [Object1] impact = 0.8;""",
         """toplevel Root;
         Root prob = 0.5 impact = 0.8 cond = (x);""",
         """toplevel Root;
-        Root objects = [obj1] impact = 0.8 cond = (x);""",
+        Root objects = [Object1] impact = 0.8 cond = (x);""",
 
         # All attributes
         """toplevel Root;
-        Root prob = 0.5 objects = [obj1] cond = (x) impact = 0.8;""",
+        Root prob = 0.5 objects = [Object1] cond = (x) impact = 0.8;""",
         """toplevel Root;
-        Root impact = 0.8 prob = 0.5 objects = [obj1] cond = (x);"""
+        Root impact = 0.8 prob = 0.5 objects = [Object1] cond = (x);"""
     ]
 
     for case in test_cases:
         tree = parse_rule(case, "disruption_tree")
-        result = DisruptionTreeTransformer().transform(tree)
+        result = DisruptionTreeTransformer(object_graph1).transform(tree)
         node = result.nodes["Root"]["data"]
 
         if "prob = 0.5" in case:
@@ -328,8 +330,8 @@ def test_attribute_combinations(parse_rule):
         else:
             assert node.impact is None
 
-        if "objects = [obj1]" in case:
-            assert node.objects == {"obj1"}
+        if "objects = [Object1]" in case:
+            assert node.objects == {"Object1"}
         else:
             assert node.objects is None
 
@@ -342,7 +344,7 @@ def test_attribute_combinations(parse_rule):
 
 def test_complex_boolean_formula(parse_rule):
     """Test transforming a disruption tree node with a complex boolean formula."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(ObjectGraph())
     tree = parse_rule("""toplevel Root;
     Root cond = ((!a && b) || (c => d) || (x == y) || (p != q));
     """, "disruption_tree")
@@ -358,7 +360,7 @@ def test_complex_boolean_formula(parse_rule):
 
 def test_cyclic_graph_raises_error(parse_rule):
     """Test that a cyclic graph raises NotAcyclicError."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(ObjectGraph())
     tree = parse_rule("""toplevel A;
     A and B C;
     B and C D;
@@ -374,7 +376,7 @@ def test_cyclic_graph_raises_error(parse_rule):
 
 def test_disconnected_graph_raises_error(parse_rule):
     """Test that a disconnected graph raises NotConnectedError."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(ObjectGraph())
     tree = parse_rule("""toplevel A;
     A and B C;
     D and E F;  // Disconnected subgraph
@@ -391,7 +393,7 @@ def test_disconnected_graph_raises_error(parse_rule):
 
 def test_multiple_roots_raises_error(parse_rule):
     """Test that multiple root nodes raise NotExactlyOneRootError."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(ObjectGraph())
     # Both A and D have no parents
     tree = parse_rule("""toplevel A;
     A and B C;
@@ -405,7 +407,7 @@ def test_multiple_roots_raises_error(parse_rule):
 
 def test_invalid_probability_values(parse_rule):
     """Test validation of probability values in the trees."""
-    transformer = DisruptionTreeTransformer()
+    transformer = DisruptionTreeTransformer(ObjectGraph())
     invalid_tree = parse_rule("""
     toplevel Root;
     Root and A B;

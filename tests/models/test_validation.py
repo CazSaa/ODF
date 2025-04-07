@@ -1,4 +1,5 @@
 import pytest
+from lark.exceptions import VisitError
 
 from odf.models.exceptions import CrossReferenceError
 from odf.models.validation import validate_disruption_tree_references, \
@@ -35,8 +36,8 @@ def test_valid_references():
 
     parse_tree = parse(odl_text)
     trees = parse_tree.children
-    attack_tree = DisruptionTreeTransformer().transform(trees[0])
     object_graph = ObjectGraphTransformer().transform(trees[2])
+    attack_tree = DisruptionTreeTransformer(object_graph).transform(trees[0])
 
     # Should not raise any exceptions
     validate_disruption_tree_references(attack_tree, object_graph)
@@ -63,9 +64,9 @@ def test_property_matches_node_name():
 
     parse_tree = parse(odl_text)
     trees = parse_tree.children
-    attack_tree = DisruptionTreeTransformer().transform(trees[0])
-    fault_tree = DisruptionTreeTransformer().transform(trees[1])
     object_graph = ObjectGraphTransformer().transform(trees[2])
+    attack_tree = DisruptionTreeTransformer(object_graph).transform(trees[0])
+    fault_tree = DisruptionTreeTransformer(object_graph).transform(trees[1])
 
     with pytest.raises(CrossReferenceError) as exc_info:
         validate_unique_node_names(attack_tree, fault_tree, object_graph)
@@ -97,9 +98,9 @@ def test_duplicate_node_names():
 
     parse_tree = parse(odl_text)
     trees = parse_tree.children
-    attack_tree = DisruptionTreeTransformer().transform(trees[0])
-    fault_tree = DisruptionTreeTransformer().transform(trees[1])
     object_graph = ObjectGraphTransformer().transform(trees[2])
+    attack_tree = DisruptionTreeTransformer(object_graph).transform(trees[0])
+    fault_tree = DisruptionTreeTransformer(object_graph).transform(trees[1])
 
     with pytest.raises(CrossReferenceError) as exc_info:
         validate_unique_node_names(attack_tree, fault_tree, object_graph)
@@ -125,12 +126,12 @@ def test_invalid_object_reference():
 
     parse_tree = parse(odl_text)
     trees = parse_tree.children
-    attack_tree = DisruptionTreeTransformer().transform(trees[0])
     object_graph = ObjectGraphTransformer().transform(trees[2])
 
-    with pytest.raises(CrossReferenceError) as exc_info:
-        validate_disruption_tree_references(attack_tree, object_graph)
-    assert "Root" in str(exc_info.value)
+    with pytest.raises(VisitError) as exc_info:
+        DisruptionTreeTransformer(object_graph).transform(trees[0])
+    assert isinstance(exc_info.value.orig_exc, CrossReferenceError)
+    assert "in the disruption tree" in str(exc_info.value)
     assert "NonExistentObject" in str(exc_info.value)
 
 
@@ -152,8 +153,8 @@ def test_property_without_object():
 
     parse_tree = parse(odl_text)
     trees = parse_tree.children
-    attack_tree = DisruptionTreeTransformer().transform(trees[0])
     object_graph = ObjectGraphTransformer().transform(trees[2])
+    attack_tree = DisruptionTreeTransformer(object_graph).transform(trees[0])
 
     with pytest.raises(CrossReferenceError) as exc_info:
         validate_disruption_tree_references(attack_tree, object_graph)
@@ -178,8 +179,8 @@ def test_invalid_property_reference():
 
     parse_tree = parse(odl_text)
     trees = parse_tree.children
-    attack_tree = DisruptionTreeTransformer().transform(trees[0])
     object_graph = ObjectGraphTransformer().transform(trees[2])
+    attack_tree = DisruptionTreeTransformer(object_graph).transform(trees[0])
 
     with pytest.raises(CrossReferenceError) as exc_info:
         validate_disruption_tree_references(attack_tree, object_graph)
@@ -206,8 +207,8 @@ def test_property_from_wrong_object():
 
     parse_tree = parse(odl_text)
     trees = parse_tree.children
-    attack_tree = DisruptionTreeTransformer().transform(trees[0])
     object_graph = ObjectGraphTransformer().transform(trees[2])
+    attack_tree = DisruptionTreeTransformer(object_graph).transform(trees[0])
 
     with pytest.raises(CrossReferenceError) as exc_info:
         validate_disruption_tree_references(attack_tree, object_graph)
@@ -238,8 +239,8 @@ def test_complex_conditions():
 
     parse_tree = parse(odl_text)
     trees = parse_tree.children
-    attack_tree = DisruptionTreeTransformer().transform(trees[0])
     object_graph = ObjectGraphTransformer().transform(trees[2])
+    attack_tree = DisruptionTreeTransformer(object_graph).transform(trees[0])
 
     # Should not raise any exceptions
     validate_disruption_tree_references(attack_tree, object_graph)

@@ -1,6 +1,6 @@
 import argparse
-import sys
 
+import sys
 from lark import UnexpectedInput, Tree
 from lark.exceptions import VisitError
 
@@ -43,17 +43,19 @@ def execute_str(odl_text):
     [attack_parse_tree, fault_parse_tree,
      object_parse_tree, formulas_parse_tree] = extract_parse_trees(parse_tree)
     try:
-        attack_tree = DisruptionTreeTransformer().transform(attack_parse_tree)
-    except VisitError as e:
-        raise MyVisitError(e, "attack tree")
-    try:
-        fault_tree = DisruptionTreeTransformer().transform(fault_parse_tree)
-    except VisitError as e:
-        raise MyVisitError(e, "fault tree")
-    try:
         object_graph = ObjectGraphTransformer().transform(object_parse_tree)
     except VisitError as e:
         raise MyVisitError(e, "object graph")
+    try:
+        attack_tree = DisruptionTreeTransformer(object_graph).transform(
+            attack_parse_tree)
+    except VisitError as e:
+        raise MyVisitError(e, "attack tree")
+    try:
+        fault_tree = DisruptionTreeTransformer(object_graph).transform(
+            fault_parse_tree)
+    except VisitError as e:
+        raise MyVisitError(e, "fault tree")
 
     validate_models(attack_tree, fault_tree, object_graph)
 

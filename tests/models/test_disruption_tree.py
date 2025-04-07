@@ -123,3 +123,31 @@ def test_complex_dag_modules(complex_dag):
 
     for node in non_modules:
         assert not complex_dag.is_module(node)
+
+
+def test_participant_nodes(fault_tree_paper_example, attack_tree_paper_example):
+    def to_nodes(tree, names: set[str]) -> set[DTNode]:
+        return {tree.nodes[name]["data"] for name in names}
+
+    a = attack_tree_paper_example
+    f = fault_tree_paper_example
+
+    assert attack_tree_paper_example.participant_nodes("House") == to_nodes(a, {
+        "Attacker_breaks_in_house"})
+    assert fault_tree_paper_example.participant_nodes("House") == to_nodes(f, {
+        "Fire_and_impossible_escape", "FBO"})
+
+    assert attack_tree_paper_example.participant_nodes("Door") == to_nodes(a, {
+        "Attacker_breaks_in_house", "EDLU", "FD", "DD"})
+    assert fault_tree_paper_example.participant_nodes("Door") == to_nodes(f, {
+        "Fire_and_impossible_escape", "FBO", "DGB", "DSL"})
+
+    assert attack_tree_paper_example.participant_nodes("Lock") == to_nodes(a, {
+        "Attacker_breaks_in_house", "EDLU", "FD", "DD", "PL"})
+    assert fault_tree_paper_example.participant_nodes("Lock") == to_nodes(f, {
+        "Fire_and_impossible_escape", "FBO", "DGB", "DSL", "LGJ"})
+
+    assert attack_tree_paper_example.participant_nodes(
+        "Inhabitant") == to_nodes(a, {"Attacker_breaks_in_house"})
+    assert fault_tree_paper_example.participant_nodes("Inhabitant") == to_nodes(
+        f, {"Fire_and_impossible_escape", "FBO"})

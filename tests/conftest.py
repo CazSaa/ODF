@@ -11,6 +11,7 @@ from odf.checker.layer1.check_layer1 import layer1_check, \
     layer1_compute_all
 from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter
 from odf.checker.layer2.check_layer2 import check_layer2_query
+from odf.models.object_graph import ObjectGraph
 from odf.transformers.configuration import parse_configuration
 from odf.transformers.disruption_tree import DisruptionTreeTransformer
 from odf.transformers.object_graph import ObjectGraphTransformer
@@ -102,17 +103,17 @@ def object_graph_str1():
 
 
 @pytest.fixture
-def attack_tree1(attack_tree_str1, parse_rule):
+def attack_tree1(attack_tree_str1, parse_rule, object_graph1):
     """Create an attack tree with basic and non-basic nodes."""
     tree = parse_rule(attack_tree_str1, "disruption_tree")
-    return DisruptionTreeTransformer().transform(tree)
+    return DisruptionTreeTransformer(object_graph1).transform(tree)
 
 
 @pytest.fixture
-def fault_tree1(fault_tree_str1, parse_rule):
+def fault_tree1(fault_tree_str1, parse_rule, object_graph1):
     """Create a fault tree with a basic node."""
     tree = parse_rule(fault_tree_str1, "disruption_tree")
-    return DisruptionTreeTransformer().transform(tree)
+    return DisruptionTreeTransformer(object_graph1).transform(tree)
 
 
 @pytest.fixture
@@ -124,9 +125,10 @@ def object_graph1(object_graph_str1, parse_rule):
 
 @pytest.fixture
 def transform_disruption_tree_str(parse_rule):
-    def _transform_disruption_tree_str(tree_str):
+    def _transform_disruption_tree_str(tree_str, object_graph=None):
         tree = parse_rule(tree_str, "disruption_tree")
-        return DisruptionTreeTransformer().transform(tree)
+        return DisruptionTreeTransformer(
+            object_graph or ObjectGraph()).transform(tree)
 
     return _transform_disruption_tree_str
 
@@ -141,7 +143,7 @@ def transform_object_graph_str(parse_rule):
 
 
 @pytest.fixture
-def attack_tree_mixed_gates(transform_disruption_tree_str):
+def attack_tree_mixed_gates(transform_disruption_tree_str, object_graph1):
     """Create an attack tree with mixed AND/OR gates for interesting MRS patterns."""
     return transform_disruption_tree_str("""
     toplevel RootA;
@@ -175,11 +177,12 @@ def attack_tree_mixed_gates(transform_disruption_tree_str):
     Attack9;
     Attack10;
     Attack11;
-    """)
+    """, object_graph1)
 
 
 @pytest.fixture
-def attack_tree_paper_example(transform_disruption_tree_str):
+def attack_tree_paper_example(transform_disruption_tree_str,
+                              object_graph_paper_example):
     """Create the attack tree from the paper example with impact values."""
     return transform_disruption_tree_str("""
     toplevel Attacker_breaks_in_house;
@@ -191,11 +194,12 @@ def attack_tree_paper_example(transform_disruption_tree_str):
     FD objects=[Door] impact=2.57;
     PL objects=[Lock] cond=(LP) prob=0.10 impact=2.51;
     DD objects=[Door] cond=(DF) prob=0.13 impact=1.81;
-    """)
+    """, object_graph_paper_example)
 
 
 @pytest.fixture
-def fault_tree_paper_example(transform_disruption_tree_str):
+def fault_tree_paper_example(transform_disruption_tree_str,
+                             object_graph_paper_example):
     """Create the fault tree from the paper example with impact values."""
     return transform_disruption_tree_str("""
     toplevel Fire_and_impossible_escape;
@@ -207,11 +211,12 @@ def fault_tree_paper_example(transform_disruption_tree_str):
     DGB objects=[Door] impact=1.67;
     DSL objects=[Door] prob=0.20 impact=1.31;
     LGJ objects=[Lock] cond=(LJ) prob=0.70 impact=0.83;
-    """)
+    """, object_graph_paper_example)
 
 
 @pytest.fixture
-def fault_tree_paper_example_with_unsat_node(transform_disruption_tree_str):
+def fault_tree_paper_example_with_unsat_node(transform_disruption_tree_str,
+                                             object_graph_paper_example):
     return transform_disruption_tree_str("""
     toplevel Fire_and_impossible_escape;
     Fire_and_impossible_escape and FBO DGB;
@@ -222,7 +227,7 @@ def fault_tree_paper_example_with_unsat_node(transform_disruption_tree_str):
     DGB objects=[Door] impact=1.67;
     DSL objects=[Door,House] prob=0.20 impact=1.31 cond=(HS);
     LGJ objects=[Lock] cond=(LJ) prob=0.70 impact=0.83;
-    """)
+    """, object_graph_paper_example)
 
 
 @pytest.fixture
@@ -263,6 +268,58 @@ def paper_example_models(attack_tree_paper_example, fault_tree_paper_example,
 
 
 @pytest.fixture
+def attack_tree_paper_example_disconnected(transform_disruption_tree_str,
+                                           object_graph_paper_example_disconnected):
+    return transform_disruption_tree_str("""
+    toplevel Attacker_breaks_in_house;
+    Attacker_breaks_in_house or EDLU FD;
+    FD or PL DD;
+
+    Attacker_breaks_in_house objects=[House,Inhabitant] impact=3.47;
+    EDLU objects=[Door] prob=0.17 impact=1.27;
+    FD objects=[Door] impact=2.57;
+    PL objects=[Lock] cond=(LP) prob=0.10 impact=2.51;
+    DD objects=[Door] cond=(DF) prob=0.13 impact=1.81;
+    """, object_graph_paper_example_disconnected)
+
+
+@pytest.fixture
+def fault_tree_paper_example_disconnected(transform_disruption_tree_str,
+                                          object_graph_paper_example_disconnected):
+    return transform_disruption_tree_str("""
+    toplevel Fire_and_impossible_escape;
+    Fire_and_impossible_escape and FBO DGB;
+    DGB and DSL LGJ;
+
+    Fire_and_impossible_escape objects=[House,Inhabitant] cond=(Inhab_in_House) impact=3.53;
+    FBO objects=[House,Inhabitant] cond=(!HS && IU) prob=0.21 impact=1.09;
+    DGB objects=[Door] impact=1.67;
+    DSL objects=[Door] prob=0.20 impact=1.31;
+    LGJ objects=[Lock] cond=(LJ) prob=0.70 impact=0.83;
+    """, object_graph_paper_example_disconnected)
+
+
+@pytest.fixture
+def object_graph_paper_example_disconnected(transform_object_graph_str):
+    """Create the object graph from the paper example but disconnected."""
+    return transform_object_graph_str("""
+    Inhabitant properties=[Inhab_in_House,IU];
+    House properties=[HS];
+    Door properties=[DF];
+    Lock properties=[LP,LJ];
+    """)
+
+
+@pytest.fixture
+def paper_example_disconnected(attack_tree_paper_example_disconnected,
+                               fault_tree_paper_example_disconnected,
+                               object_graph_paper_example_disconnected):
+    return [attack_tree_paper_example_disconnected,
+            fault_tree_paper_example_disconnected,
+            object_graph_paper_example_disconnected]
+
+
+@pytest.fixture
 def attack_tree_complex_str():
     """Attack tree (can be minimal if not directly used by non-ops)."""
     return """
@@ -300,15 +357,19 @@ def object_graph_complex_str():
 
 
 @pytest.fixture
-def attack_tree_complex(attack_tree_complex_str, transform_disruption_tree_str):
+def attack_tree_complex(attack_tree_complex_str, transform_disruption_tree_str,
+                        object_graph_complex):
     """Parsed attack tree for the complex MTBDD test."""
-    return transform_disruption_tree_str(attack_tree_complex_str)
+    return transform_disruption_tree_str(attack_tree_complex_str,
+                                         object_graph_complex)
 
 
 @pytest.fixture
-def fault_tree_complex(fault_tree_complex_str, transform_disruption_tree_str):
+def fault_tree_complex(fault_tree_complex_str, transform_disruption_tree_str,
+                       object_graph_complex):
     """Parsed fault tree for the complex MTBDD test."""
-    return transform_disruption_tree_str(fault_tree_complex_str)
+    return transform_disruption_tree_str(fault_tree_complex_str,
+                                         object_graph_complex)
 
 
 @pytest.fixture
