@@ -13,6 +13,7 @@ cache:
 
 test:
   script:
+    - apk add git
     - uv sync
     - uv run pytest
     - uv cache prune --ci
