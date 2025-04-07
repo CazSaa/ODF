@@ -146,3 +146,47 @@ def find_config_reflection_nodes(
 
         stack.append((high_child, current_is_op, complement_flag))
         stack.append((low_child.regular, current_is_op, new_comp_low))
+
+
+def find_paths_to_min_terminal(root: cudd_add.Function) -> tuple[
+    list[dict[str, bool]], float]:
+    """
+    Finds all paths from the root to terminal node with the minimum value in an ADD/MTBDD.
+
+    Args:
+        root: The root node of the ADD/MTBDD.
+
+    Returns:
+        A list of dictionaries. Each dictionary represents a path mapping variable names (str) to boolean assignments (True for high,
+        False for low) that lead to a terminal node with the minimum value.
+    """
+    min_value = None
+    min_paths = []
+    stack = deque([(root, {})])
+
+    while stack:
+        node, path = stack.pop()
+        if node.var is None:  # Terminal node reached
+            if min_value is None or node.value < min_value:
+                min_value = node.value
+                min_paths = [path]
+            elif node.value == min_value:
+                min_paths.append(path)
+            continue
+
+        # Internal node: traverse children
+        var_name = node.var
+
+        # Explore low branch (assign False)
+        if node.low is not None:
+            new_path = path.copy()
+            new_path[var_name] = False
+            stack.append((node.low, new_path))
+
+        # Explore high branch (assign True)
+        if node.high is not None:
+            new_path = path.copy()
+            new_path[var_name] = True
+            stack.append((node.high, new_path))
+
+    return min_paths, min_value

@@ -202,7 +202,7 @@ def fault_tree_paper_example(transform_disruption_tree_str):
     Fire_and_impossible_escape and FBO DGB;
     DGB and DSL LGJ;
     
-    Fire_and_impossible_escape objects=[House,Inhabitant] cond=(Inhab_in_House);
+    Fire_and_impossible_escape objects=[House,Inhabitant] cond=(Inhab_in_House) impact=3.53;
     FBO objects=[House,Inhabitant] cond=(!HS && IU) prob=0.21 impact=1.09;
     DGB objects=[Door] impact=1.67;
     DSL objects=[Door] prob=0.20 impact=1.31;

@@ -12,7 +12,8 @@ from odf.checker.layer2.check_layer2 import calc_node_prob
 from odf.models.disruption_tree import DisruptionTree
 from odf.models.object_graph import ObjectGraph
 from odf.transformers.mixins.mappings import BooleanMappingMixin
-from odf.utils.dfs import find_config_reflection_nodes, dfs_mtbdd_terminals
+from odf.utils.dfs import find_config_reflection_nodes, dfs_mtbdd_terminals, \
+    find_paths_to_min_terminal
 from odf.utils.logger import logger
 
 
@@ -220,12 +221,13 @@ def create_mtbdd(mtbdd_manager: cudd_add.ADD,
     return results[final_key]
 
 
-def total_risk(object_name: str,
-               func_type: Callable[[Iterable[float]], float],
-               evidence: dict[str, bool],
-               attack_tree: DisruptionTree,
-               fault_tree: DisruptionTree,
-               object_graph: ObjectGraph) -> Optional[float]:
+def configs_to_risk_mtbdd(
+        object_name: str,
+        evidence: dict[str, bool],
+        attack_tree: DisruptionTree,
+        fault_tree: DisruptionTree,
+        object_graph: ObjectGraph
+) -> Optional[cudd_add.Function]:
     mtbdd_manager = cudd_add.ADD()
     mt_sum = mtbdd_manager.zero
 
@@ -283,7 +285,45 @@ def total_risk(object_name: str,
         logger.warning(
             f"You specified evidence that is not used in this formula, these elements can be removed: {unused_evidence}")
 
+    return mt_sum
+
+
+def total_risk(object_name: str,
+               func_type: Callable[[Iterable[float]], float],
+               evidence: dict[str, bool],
+               attack_tree: DisruptionTree,
+               fault_tree: DisruptionTree,
+               object_graph: ObjectGraph) -> Optional[float]:
+    mt_sum = configs_to_risk_mtbdd(object_name, evidence, attack_tree,
+                                   fault_tree, object_graph)
+    if mt_sum is None:
+        return None
+
     return func_type(dfs_mtbdd_terminals(mt_sum))
+
+
+def optimal_conf(object_name: str,
+                 evidence: dict[str, bool],
+                 attack_tree: DisruptionTree,
+                 fault_tree: DisruptionTree,
+                 object_graph: ObjectGraph) -> Optional[list[dict[str, bool]]]:
+    mt_sum = configs_to_risk_mtbdd(object_name, evidence, attack_tree,
+                                   fault_tree, object_graph)
+    if mt_sum is None:
+        return None
+
+    paths, min_term = find_paths_to_min_terminal(mt_sum)
+    assert min_term is not None
+    assert len(paths) > 0
+
+    if len(paths) > 1:
+        logger.info(
+            f"There are multiple optimal configurations with the same risk value of {min_term}")
+    else:
+        logger.info(
+            f"There is one optimal configuration with a risk value of {min_term}")
+
+    return paths
 
 
 def check_layer3_query(formula: Tree,
@@ -306,11 +346,18 @@ def check_layer3_query(formula: Tree,
             print(f"The most risky fault node is: {result.name}")
         case "max_total_risk":
             result = total_risk(object_name, max, evidence, attack_tree,
-                                fault_tree,
-                                object_graph)
+                                fault_tree, object_graph)
             print(f"The maximum total risk is: {result}")
         case "min_total_risk":
             result = total_risk(object_name, min, evidence, attack_tree,
-                                fault_tree,
-                                object_graph)
+                                fault_tree, object_graph)
             print(f"The minimum total risk is: {result}")
+        case "optimal_conf":
+            result = optimal_conf(object_name, evidence, attack_tree,
+                                  fault_tree, object_graph)
+            if len(result) == 1:
+                print(f"The optimal configuration is: {result[0]}")
+            else:
+                print("The optimal configurations are:")
+                for config in result:
+                    print(config)

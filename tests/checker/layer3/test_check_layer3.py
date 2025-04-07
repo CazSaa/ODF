@@ -8,7 +8,7 @@ from lark import Tree, Token
 from odf.checker.exceptions import MissingNodeImpactError
 from odf.checker.layer2.check_layer2 import calc_node_prob
 from odf.checker.layer3.check_layer3 import CollectEvidenceInterpreter, \
-    most_risky, total_risk, create_mtbdd
+    most_risky, total_risk, create_mtbdd, optimal_conf
 from odf.models.disruption_tree import DisruptionTree
 
 
@@ -731,3 +731,50 @@ def test_create_mtbdd_structure_complex_nested(complex_test_models, _ct):
 
     # Sanity check
     assert mtbdd_manager.apply('+', mtbdd_manager.zero, mtbdd) == mtbdd
+
+
+Path = dict[str, bool]
+
+
+def _satisfying_path(paths: list[Path], path: Path) -> bool:
+    """Check if a path satisfies a list of path constraints."""
+    for p_constraint in paths:
+        if all(p_constraint.get(k, v) == v for k, v in path.items()):
+            return True
+    return False
+
+
+def test_satisfying_paths():
+    assert _satisfying_path([{"DF": False}], {"DF": False})
+    assert not _satisfying_path([{"DF": False}], {"DF": True})
+
+    assert _satisfying_path([{"DF": False, "LP": True}],
+                            {"DF": False, "LP": True})
+    assert not _satisfying_path([{"DF": False, "LP": True}],
+                                {"DF": False, "LP": False})
+
+    assert _satisfying_path([{"DF": False, "LP": True}, {"DF": True}],
+                            {"DF": False, "LP": True})
+    assert _satisfying_path([{"DF": False, "LP": True}, {"DF": True}],
+                            {"DF": True, "LP": False})
+    assert not _satisfying_path([{"DF": False, "LP": True}, {"DF": True}],
+                                {"DF": False, "LP": False})
+    assert _satisfying_path([{"DF": False, "LP": True}, {"DF": True}],
+                            {"DF": True})
+    assert _satisfying_path([{"DF": False, "LP": True}, {"DF": True}],
+                            {"DF": False})
+    assert _satisfying_path([{"DF": False, "LP": True}, {"DF": True}],
+                            {"LP": False})
+
+
+def test_optimal_conf(caplog, paper_example_models):
+    attack_tree = paper_example_models[0]
+    attack_tree.nodes['EDLU']['data'].probability = Fraction('0.09')
+
+    paths = optimal_conf("House", {}, *paper_example_models)
+
+    assert _satisfying_path(paths, {"DF": False, "LP": False, "IU": False})
+    assert _satisfying_path(paths, {"DF": False, "LP": False, "HS": True})
+    assert not _satisfying_path(paths, {"DF": True})
+    assert not _satisfying_path(paths, {"LP": True})
+    assert not _satisfying_path(paths, {"HS": False, "IU": True})
