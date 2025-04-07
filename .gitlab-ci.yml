@@ -13,7 +13,8 @@ cache:
 
 test:
   script:
-    - apk add git
-    - uv sync
+    - apk add git build-base make
+    - uv sync --group build --no-group compile
+    - DD_FETCH=1 DD_CUDD=1 DD_CUDD_ADD=1 uv sync --all-groups
     - uv run pytest
     - uv cache prune --ci

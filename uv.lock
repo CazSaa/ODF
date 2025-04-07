@@ -69,7 +69,7 @@ wheels = [
 [[package]]
 name = "dd"
 version = "0.6.1"
-source = { git = "https://github.com/CazSaa/dd.git?branch=algebraic_cudd#a14f348bff23cc3dbf3a92e08ee618451350bcee" }
+source = { git = "https://github.com/CazSaa/dd.git?branch=develop#88e274ea310e3a0cf7adb47ae9f25f78e9dd972b" }
 dependencies = [
     { name = "astutils" },
     { name = "networkx" },
@@ -109,7 +109,6 @@ name = "odf"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "dd" },
     { name = "lark" },
     { name = "networkx" },
 ]
@@ -117,7 +116,11 @@ dependencies = [
 [package.dev-dependencies]
 build = [
     { name = "cython" },
+    { name = "setuptools" },
     { name = "wheel" },
+]
+compile = [
+    { name = "dd" },
 ]
 dev = [
     { name = "pytest" },
@@ -127,7 +130,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dd", git = "https://github.com/CazSaa/dd.git?branch=algebraic_cudd" },
     { name = "lark", specifier = ">=1.2.2" },
     { name = "networkx", specifier = ">=3.4.2" },
 ]
@@ -135,8 +137,10 @@ requires-dist = [
 [package.metadata.requires-dev]
 build = [
     { name = "cython", specifier = ">=3.0.12" },
+    { name = "setuptools", specifier = ">=75.8.2" },
     { name = "wheel", specifier = ">=0.45.1" },
 ]
+compile = [{ name = "dd", git = "https://github.com/CazSaa/dd.git?branch=develop" }]
 dev = [
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-cov", specifier = ">=6.0.0" },
