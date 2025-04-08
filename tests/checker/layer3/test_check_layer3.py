@@ -9,7 +9,7 @@ from lark import Tree, Token
 from odf.checker.exceptions import MissingNodeImpactError
 from odf.checker.layer2.check_layer2 import calc_node_prob
 from odf.checker.layer3.check_layer3 import CollectEvidenceInterpreter, \
-    most_risky, total_risk, create_mtbdd, optimal_conf
+    most_risky, total_risk, create_mtbdd, optimal_conf, check_layer3_query
 from odf.models.disruption_tree import DisruptionTree
 
 
@@ -197,6 +197,32 @@ def test_nested_evidence_with_conflict():
         "Property2": False
     }
     assert interpreter.formula_type == "max_total_risk"
+
+
+def test_layer3_query_ignores_non_object_properties(caplog,
+                                                    paper_example_disconnected):
+    """Test that check_layer3_query correctly ignores non-object properties in evidence"""
+    tree = Tree("layer3_query", [
+        Tree("with_boolean_evidence", [
+            Tree("most_risky_a", [
+                Token("NODE_NAME", "Door")
+            ]),
+            Tree("boolean_evidence", [
+                Tree("boolean_mapping", [
+                    Token("NODE_NAME", "DF"),
+                    Token("TRUTH_VALUE", "1"),
+                ]),
+                Tree("boolean_mapping", [
+                    Token("NODE_NAME", "DD"),
+                    Token("TRUTH_VALUE", "1"),
+                ])
+            ])
+        ])
+    ])
+
+    check_layer3_query(tree, *paper_example_disconnected)
+
+    assert "Evidence variables {'DD'} are not object properties and will be ignored." in caplog.text
 
 
 def test_most_risky_attack_door_basic(caplog, paper_example_disconnected):

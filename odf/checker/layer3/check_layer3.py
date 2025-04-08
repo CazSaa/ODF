@@ -336,6 +336,13 @@ def check_layer3_query(formula: Tree,
     assert formula.data == "layer3_query"
     evidence_interpreter = CollectEvidenceInterpreter()
     evidence, formula_type, object_name = evidence_interpreter.visit(formula)
+    non_object_properties = set(evidence.keys()) - set(
+        object_graph.object_properties)
+    if len(non_object_properties) > 0:
+        logger.warning(
+            f"Evidence variables {non_object_properties} are not object properties and will be ignored.")
+        for var in non_object_properties:
+            del evidence[var]
     assert formula_type is not None
 
     match formula_type:
