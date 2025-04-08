@@ -25,6 +25,22 @@ def test_basic_disruption_tree(parse_rule):
     assert node.gate_type is None
 
 
+def test_basic_node_with_empty_objects(parse_rule):
+    """Test transforming a basic node with empty objects attribute."""
+    transformer = DisruptionTreeTransformer(ObjectGraph())
+    tree = parse_rule("""toplevel A;
+    A objects = [];""", "disruption_tree")
+
+    result = transformer.transform(tree)
+    node = result.nodes["A"]["data"]
+    assert node.name == "A"
+    assert node.objects == set()
+    assert node.probability is None
+    assert node.impact is None
+    assert node.object_properties == set()
+    assert node.gate_type is None
+
+
 def test_basic_node_with_impact(parse_rule):
     """Test transforming a basic node with only an impact attribute."""
     transformer = DisruptionTreeTransformer(ObjectGraph())

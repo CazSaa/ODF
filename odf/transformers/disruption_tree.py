@@ -27,7 +27,7 @@ class DisruptionTreeTransformer(Transformer):
         return ("impact", Fraction(items[0].value))
 
     def objects(self, items):
-        node_list: set[str] = items[0]
+        node_list: set[str] = items[0] if items else set()
         for obj in node_list:
             if not self.object_graph.has_node(obj):
                 raise CrossReferenceError(f"A non-existing object '{obj}' was"

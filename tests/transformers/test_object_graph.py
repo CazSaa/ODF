@@ -17,6 +17,18 @@ def test_basic_object_graph(parse_rule):
     assert node.properties == ["prop1"]
 
 
+def test_basic_object_graph_empty_props(parse_rule):
+    """Test transforming a basic object graph with a single node."""
+    transformer = ObjectGraphTransformer()
+    tree = parse_rule("""
+    A properties = [];""", "object_graph_tree")
+
+    result = transformer.transform(tree)
+    node = result.nodes["A"]["data"]
+    assert node.name == "A"
+    assert node.properties == []
+
+
 def test_object_graph_with_intermediate_node(parse_rule):
     """Test transforming an object graph with has relationships."""
     transformer = ObjectGraphTransformer()

@@ -21,7 +21,8 @@ class ObjectGraphTransformer(Transformer):
 
     # noinspection PyRedundantParentheses
     def properties(self, items):
-        return ("properties", items[0])
+        properties = items[0] if items else []
+        return ("properties", properties)
 
     def node_list(self, items):
         # Each item is a NODE_NAME token
