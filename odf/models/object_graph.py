@@ -15,7 +15,6 @@ class ObjectNode:
 
 class ObjectGraph(TreeGraph[ObjectNode]):
     def has_object_property(self, object_property: str) -> bool:
-        # TODO caz very inefficient
         return any(object_property == prop for prop in self.object_properties)
 
     @property
