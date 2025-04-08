@@ -3,7 +3,7 @@ toplevel Attacker_breaks_in;
 Attacker_breaks_in or EDLU FD;
 FD or PL DD;
 
-Attacker_breaks_in objects=[House,Inhabitant];
+Attacker_breaks_in objects=[House,Inhabitant] impact=3.47;
 EDLU prob=0.17 objects=[Door] impact=1.27;
 FD objects=[Door] impact=2.57;
 PL prob=0.10 objects=[Lock] cond=(LP) impact=2.51;
@@ -14,7 +14,7 @@ toplevel Fire_impossible_escape;
 Fire_impossible_escape and FBO DGB;
 DGB and LGJ DSL;
 
-Fire_impossible_escape objects=[House,Inhabitant] cond=(Inhab_in_House);
+Fire_impossible_escape objects=[House,Inhabitant] cond=(Inhab_in_House) impact=3.53;
 FBO prob=0.21 objects=[House,Inhabitant] cond=(!HS && IU) impact=1.09;
 DGB objects=[Door] impact=1.67;
 LGJ prob=0.70 objects=[Lock] cond=(LJ) impact=0.83;
@@ -30,28 +30,28 @@ Door properties=[DF];
 Lock properties=[LJ,LP];
 
 [formulas]
-{LP:1, LJ:1, DF:1, HS:0, IU:1, Inhab_in_House:1}
+{LP: 1, LJ: 1, DF: 1, HS: 0, IU: 1, Inhab_in_House: 1}
 P(FD && DGB || EDLU && FBO) > 0.5;
 
-{LP:1, LJ:1, DF:1, HS:0, IU:1, Inhab_in_House:1}
-MRS(!Attacker_breaks_in => Fire_impossible_escape) [LJ:1, DF:1];
+{LP: 1, LJ: 1, DF: 1, HS: 0, IU: 1, Inhab_in_House: 1}
+[[!Attacker_breaks_in => Fire_impossible_escape [LJ: 1, DF: 1]]];
 
-{LP:1, LJ:1, DF:1, HS:0, IU:1, Inhab_in_House:1, PL:1, DD:1, EDLU:1, FBO:1, DSL:1, LGJ:1}
-(FD && DGB) == (EDLU && FBO) [LP:1];
+{LP: 1, LJ: 1, DF: 1, HS: 0, IU: 1, Inhab_in_House: 1, PL: 1, DD: 1, EDLU: 1, FBO: 1, DSL: 1, LGJ: 1}
+(FD && DGB) == (EDLU && FBO) [LP: 1];
 
-{LP:1, LJ:0, DF:0, HS:0, IU:1, Inhab_in_House:1}
-MRS(Attacker_breaks_in != Fire_impossible_escape) [HS:0];
+{LP: 1, LJ: 0, DF: 0, HS: 0, IU: 1, Inhab_in_House: 1}
+[[Attacker_breaks_in != Fire_impossible_escape [HS: 0]]];
 
-{LP:1, LJ:0, DF:1, HS:1, IU:0, Inhab_in_House:1}
+{LP: 1, LJ: 0, DF: 1, HS: 1, IU: 0, Inhab_in_House: 1}
 P((PL || DD) => Fire_impossible_escape) >= 0.7 [PL=0.1];
 
-{LP:0, LJ:1, DF:0, HS:1, IU:1, Inhab_in_House:1}
+{LP: 0, LJ: 1, DF: 0, HS: 1, IU: 1, Inhab_in_House: 1}
 P(DGB => (EDLU || FBO) => Fire_impossible_escape) < 0.3 [DGB=0.15];
 
-MostRiskyF(Door) [DF:1];
+MostRiskyF(Door) [DF: 1];
 
-OptimalConf(House) [HS:1, IU:0];
+OptimalConf(House) [HS: 0];
 
-MaxTotalRisk(Door) [DF:1, LP:0];
+MaxTotalRisk(Door) [DF: 1, LP: 0];
 
-MinTotalRisk(House) [HS:1, IU:0];
+MinTotalRisk(House) [HS: 1, IU: 0];
