@@ -5,6 +5,7 @@ from lark import UnexpectedInput, Tree
 from lark.exceptions import VisitError
 
 from odf.checker.checker import check_formulas
+from odf.core.constants import SEPARATOR_LENGTH
 from odf.models.exceptions import CrossReferenceError
 from odf.models.validation import validate_disruption_tree_references, \
     validate_unique_node_names
@@ -92,8 +93,14 @@ if __name__ == "__main__":
                            help="path to the ODF file you want to execute",
                            type=argparse.FileType("r"))
     args = argparser.parse_args()
+
+    print(f"Processing ODF File: {args.file.name}")
+    print("=" * SEPARATOR_LENGTH)
+
     try:
         file_text = args.file.read()
+        main(file_text)
+        print("\n\nProcessing Complete.")
     finally:
-        args.file.close()
-    main(file_text)
+        if args.file and not args.file.closed:
+            args.file.close()

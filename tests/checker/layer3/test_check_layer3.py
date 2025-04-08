@@ -1,4 +1,5 @@
 import random
+import re
 from fractions import Fraction
 
 import pytest
@@ -206,16 +207,17 @@ def test_most_risky_attack_door_basic(caplog, paper_example_disconnected):
     # Risk(FD) = P(PL or DD) * impact(FD)=2.57 = 0.13 * 2.57 = 0.3341
     result = most_risky("Door", "attack", {"DF": True},
                         *paper_example_disconnected)
-    assert "Risk for node EDLU: 0.2159" in caplog.text
-    assert "Risk for node FD: 0.3341" in caplog.text
-    assert "Risk for node DD: 0.2353" in caplog.text
+    # Risk messages now include exact fractions, so use regex
+    assert re.search(r"Risk for node EDLU: \d+/\d+ \(~0\.2159\)", caplog.text)
+    assert re.search(r"Risk for node FD: \d+/\d+ \(~0\.3341\)", caplog.text)
+    assert re.search(r"Risk for node DD: \d+/\d+ \(~0\.2353\)", caplog.text)
     assert result.name == "FD"
 
 
 def test_unused_evidence(caplog, paper_example_disconnected):
     most_risky("Door", "attack", {"DF": True, "Unused": False},
                *paper_example_disconnected)
-    assert "these elements can be removed: {'Unused'}" in caplog.text
+    assert "Evidence {'Unused'} is not used by the formula and will be ignored." in caplog.text
 
 
 def test_most_risky_attack_lock_basic(caplog, paper_example_disconnected):
@@ -224,7 +226,7 @@ def test_most_risky_attack_lock_basic(caplog, paper_example_disconnected):
     # Risk(PL) = prob(PL | LP=True) * impact(PL) = 0.10 * 2.51 = 0.251
     result = most_risky("Lock", "attack", {"LP": True},
                         *paper_example_disconnected)
-    assert "Risk for node PL: 0.251" in caplog.text
+    assert re.search(r"Risk for node PL: \d+/\d+ \(~0\.251\)", caplog.text)
     assert result.name == "PL"
 
 
@@ -234,8 +236,8 @@ def test_most_risky_fault_door_basic(caplog, paper_example_disconnected):
     # Risk(DSL) = prob(DSL) * impact(DSL) = 0.20 * 1.31 = 0.262
     # Risk(DGB) = P(DSL and LGJ) * impact(DGB) = 0.20 * 0.70 * 1.67 = 0.2338
     result = most_risky("Door", "fault", {}, *paper_example_disconnected)
-    assert "Risk for node DSL: 0.262" in caplog.text
-    assert "Risk for node DGB: 0.2338" in caplog.text
+    assert re.search(r"Risk for node DSL: \d+/\d+ \(~0\.262\)", caplog.text)
+    assert re.search(r"Risk for node DGB: \d+/\d+ \(~0\.2338\)", caplog.text)
     assert result.name == "DSL"
 
 
@@ -245,15 +247,15 @@ def test_most_risky_fault_lock_basic(caplog, paper_example_disconnected):
     # Risk(LGJ) = prob(LGJ | LJ=True) * impact(LGJ) = 0.70 * 0.83 = 0.581
     result = most_risky("Lock", "fault", {"LJ": True},
                         *paper_example_disconnected)
-    assert "Risk for node LGJ: 0.581" in caplog.text
+    assert re.search(r"Risk for node LGJ: \d+/\d+ \(~0\.581\)", caplog.text)
     assert result.name == "LGJ"
 
 
 def test_fd_different_impact(caplog, paper_example_disconnected):
     result = most_risky("Door", "attack", {"DF": False},
                         *paper_example_disconnected)
-    assert "Risk for node EDLU: 0.2159" in caplog.text
-    assert "Risk for node FD: 0.257" in caplog.text
+    assert re.search(r"Risk for node EDLU: \d+/\d+ \(~0\.2159\)", caplog.text)
+    assert re.search(r"Risk for node FD: \d+/\d+ \(~0\.257\)", caplog.text)
     assert result.name == "FD"
     caplog.clear()
 
@@ -261,8 +263,8 @@ def test_fd_different_impact(caplog, paper_example_disconnected):
     attack_tree.nodes["FD"]["data"].impact = Fraction("2.15")
     result = most_risky("Door", "attack", {"DF": False},
                         *paper_example_disconnected)
-    assert "Risk for node EDLU: 0.2159" in caplog.text
-    assert "Risk for node FD: 0.215" in caplog.text
+    assert re.search(r"Risk for node EDLU: \d+/\d+ \(~0\.2159\)", caplog.text)
+    assert re.search(r"Risk for node FD: \d+/\d+ \(~0\.215\)", caplog.text)
     assert result.name == "EDLU"
 
 
@@ -273,7 +275,7 @@ def test_most_risky_attack_lock_evidence_makes_unsatisfiable(caplog,
     # PL condition (LP) is False, making PL unsatisfiable. No other participants.
     result = most_risky("Lock", "attack", {"LP": False},
                         *paper_example_disconnected)
-    assert "The provided evidence made the node PL unsatisfiable." in caplog.text
+    assert "Evidence {'LP': False} made node 'PL' unsatisfiable." in caplog.text
     assert result is None
 
 
@@ -284,7 +286,7 @@ def test_most_risky_fault_lock_evidence_makes_unsatisfiable(caplog,
     # LGJ condition (LJ) is False, making LGJ unsatisfiable. No other participants.
     result = most_risky("Lock", "fault", {"LJ": False},
                         *paper_example_disconnected)
-    assert "The provided evidence made the node LGJ unsatisfiable." in caplog.text
+    assert "Evidence {'LJ': False} made node 'LGJ' unsatisfiable." in caplog.text
     assert result is None
 
 
@@ -296,9 +298,9 @@ def test_most_risky_fault_with_unsatisfiable_node(caplog,
     result = most_risky("House", "fault", {}, paper_example_disconnected[0],
                         fault_tree_paper_example_with_unsat_node,
                         paper_example_disconnected[2])
-    assert "Node Fire_and_impossible_escape is not satisfiable." in caplog.text
-    assert "Risk for node FBO: 0.2289" in caplog.text
-    assert "Risk for node DSL: 0.262" in caplog.text
+    assert "Node 'Fire_and_impossible_escape' is not satisfiable." in caplog.text
+    assert re.search(r"Risk for node FBO: \d+/\d+ \(~0\.2289\)", caplog.text)
+    assert re.search(r"Risk for node DSL: \d+/\d+ \(~0\.262\)", caplog.text)
     assert result.name == "DSL"
 
 
@@ -408,22 +410,22 @@ def test_total_risk_evidence_makes_all_lock_unsatisfiable(caplog,
     result_max = total_risk("Lock", max, {"LP": False, "LJ": False},
                             *paper_example_disconnected)
     assert result_max == approx(0.0)
-    assert "The provided evidence made the node PL unsatisfiable. Evidence: {'LP': False}" in caplog.text
-    assert "The provided evidence made the node LGJ unsatisfiable. Evidence: {'LJ': False}" in caplog.text
+    assert "Evidence {'LP': False} made node 'PL' unsatisfiable." in caplog.text
+    assert "Evidence {'LJ': False} made node 'LGJ' unsatisfiable." in caplog.text
     caplog.clear()
 
     result_min = total_risk("Lock", min, {"LP": False, "LJ": False},
                             *paper_example_disconnected)
     assert result_min == approx(0.0)
-    assert "The provided evidence made the node PL unsatisfiable. Evidence: {'LP': False}" in caplog.text
-    assert "The provided evidence made the node LGJ unsatisfiable. Evidence: {'LJ': False}" in caplog.text
+    assert "Evidence {'LP': False} made node 'PL' unsatisfiable." in caplog.text
+    assert "Evidence {'LJ': False} made node 'LGJ' unsatisfiable." in caplog.text
     caplog.clear()
 
     result_sum = total_risk("Lock", sum, {"LP": False, "LJ": False},
                             *paper_example_disconnected)
     assert result_sum == approx(0.0)
-    assert "The provided evidence made the node PL unsatisfiable. Evidence: {'LP': False}" in caplog.text
-    assert "The provided evidence made the node LGJ unsatisfiable. Evidence: {'LJ': False}" in caplog.text
+    assert "Evidence {'LP': False} made node 'PL' unsatisfiable." in caplog.text
+    assert "Evidence {'LJ': False} made node 'LGJ' unsatisfiable." in caplog.text
 
 
 def test_total_risk_no_participants(caplog,
@@ -463,7 +465,7 @@ def test_total_risk_unused_evidence(caplog, paper_example_disconnected):
     result_without_unused = total_risk("Door", max, {"DF": True},
                                        *paper_example_disconnected)
     assert result_with_unused == approx(result_without_unused)
-    assert "You specified evidence that is not used in this formula, these elements can be removed: {'UnusedProp'}" in caplog.text
+    assert "Evidence {'UnusedProp'} is not used by the formula and will be ignored." in caplog.text
 
 
 # === Tests for create_mtbdd ===

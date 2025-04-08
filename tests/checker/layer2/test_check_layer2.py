@@ -91,7 +91,7 @@ def test_unused_object_properties(caplog, do_check_layer2,
     do_check_layer2(
         "{LP: 1,LJ: 0,HS: 1} P(PL) > 0.05",  # HS is not used in formula
         *paper_example_models)
-    assert "not used in the formula" in caplog.text
+    assert "not used by the formula" in caplog.text
     assert "HS" in caplog.text
 
 

@@ -8,12 +8,14 @@ from lark.visitors import Interpreter, visit_children_decor
 from odf.checker.exceptions import MissingNodeProbabilityError, \
     MissingConfigurationError
 from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter
+from odf.core.constants import COLOR_GRAY
 from odf.core.types import Configuration
 from odf.models.disruption_tree import DisruptionTree
 from odf.models.object_graph import ObjectGraph
 from odf.transformers.configuration import parse_configuration
 from odf.transformers.prob_evidence_prepass import PrePassEvidenceInterpreter
 from odf.utils.dfs import dfs_nodes_with_complement
+from odf.utils.formatting import format_boolean, format_risk
 from odf.utils.logger import logger
 from odf.utils.reconstructor import reconstruct
 
@@ -137,10 +139,10 @@ class Layer2Interpreter(Interpreter):
         if evidence:
             evidence_str = ", ".join(f"{k}={v}" for k, v in evidence.items())
             logger.info(
-                f"Probability for formula `{reconstruct(formula_tree)}` with evidence [{evidence_str}]: {prob} (~{prob:f})")
+                f"P({reconstruct(formula_tree)}) with evidence [{evidence_str}] = {prob} (~{format_risk(float(prob))}{COLOR_GRAY})")
         else:
             logger.info(
-                f"Probability for formula `{reconstruct(formula_tree)}`: {prob} (~{prob:f})")
+                f"P({reconstruct(formula_tree)}) = {prob} (~{format_risk(float(prob))}{COLOR_GRAY})")
 
         match relation:
             case "<":
@@ -192,8 +194,8 @@ def check_layer2_query(formula: Tree,
     non_object_properties = set(configuration.keys()) - set(
         object_graph.object_properties)
     if len(non_object_properties) > 0:
-        logger.warning("The following variables of the configuration are not"
-                       f" object properties and will be ignored: {non_object_properties}")
+        logger.warning(
+            f"Configuration variables {non_object_properties} are not object properties and will be ignored.")
         for var in non_object_properties:
             del configuration[var]
 
@@ -212,8 +214,7 @@ def check_layer2_query(formula: Tree,
         configuration.keys()) - transformer.used_object_properties
     if len(surplus_vars) > 0:
         logger.warning(
-            "You provided object properties in the configuration that"
-            f" are not used in the formula, these can be removed: {surplus_vars}")
+            f"Object properties {surplus_vars} in configuration are not used by the formula and will be ignored.")
 
-    print(f"Result: {res}")
+    print(f"  Result: {format_boolean(res)}")
     return res

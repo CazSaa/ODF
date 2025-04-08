@@ -53,7 +53,7 @@ def test_extra_object_properties(do_layer1_compute_all, caplog):
     )
 
     # Check that warning was printed
-    assert "You specified object properties that either do not exist" in caplog.text
+    assert "are not used by the formula and will be ignored" in caplog.text
     assert "NonexistentVar" in caplog.text
     caplog.clear()
 
@@ -69,7 +69,7 @@ def test_extra_object_properties(do_layer1_compute_all, caplog):
         "BasicAttack && (obj_prop1 || !obj_prop1)",
         "{obj_prop1: 1}"
     ) == {frozenset({"BasicAttack"})}
-    assert "You specified object properties that either do not exist" in caplog.text
+    assert "are not used by the formula and will be ignored" in caplog.text
     assert "obj_prop1" in caplog.text
 
 

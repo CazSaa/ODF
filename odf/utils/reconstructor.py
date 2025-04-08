@@ -5,6 +5,10 @@ from lark import Token, Transformer, Tree
 class FormulaReconstructor(Transformer):
     """Transforms a parse tree of an odglog formula back into a string."""
 
+    def __init__(self, multiline: bool):
+        super().__init__()
+        self.multiline = multiline
+
     def configuration(self, items: list[str]) -> str:
         """Reconstruct a configuration."""
         return "{" + ", ".join(items) + "}"
@@ -40,7 +44,7 @@ class FormulaReconstructor(Transformer):
             return items[0]
         assert len(items) == 2
         conf, formula = items
-        return f"{conf} {formula}"
+        return f"{conf}\n  {formula}" if self.multiline else f"{conf} {formula}"
 
     def layer3_query(self, items: list[str]) -> str:
         """Reconstruct a layer 3 query."""
@@ -50,12 +54,12 @@ class FormulaReconstructor(Transformer):
     def compute_all(self, items: list[str]) -> str:
         """Reconstruct a compute all query."""
         conf, formula = items
-        return f"{conf} [[{formula}]]"
+        return f"{conf}\n  [[{formula}]]" if self.multiline else f"{conf} [[{formula}]]"
 
     def check(self, items: list[str]) -> str:
         """Reconstruct a check query."""
         conf, formula = items
-        return f"{conf} {formula}"
+        return f"{conf}\n  {formula}" if self.multiline else f"{conf} {formula}"
 
     def mrs(self, items: list[str]) -> str:
         """Reconstruct an MRS formula."""
@@ -130,16 +134,17 @@ class FormulaReconstructor(Transformer):
         return str(items[0])
 
 
-def reconstruct(tree: Tree) -> str:
+def reconstruct(tree: Tree, multiline: bool = False) -> str:
     """
     Reconstructs the string representation of a parse tree.
 
     Args:
         tree (Tree): The parse tree to reconstruct.
+        multiline: If True, the output will be formatted for multiline.
 
     Returns:
         str: The reconstructed string representation of the parse tree.
     """
     # There is a bug in the lark Reconstructor so I had to make my own: https://github.com/lark-parser/lark/issues/1500
-    reconstructor = FormulaReconstructor()
+    reconstructor = FormulaReconstructor(multiline)
     return reconstructor.transform(tree)

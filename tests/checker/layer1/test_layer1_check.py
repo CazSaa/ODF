@@ -59,7 +59,7 @@ def test_extra_variables(do_layer1_check, caplog):
     )
 
     # Check that warning was printed
-    assert "You specified variables that either do not exist" in caplog.text
+    assert "are not used by the formula and will be ignored" in caplog.text
     assert "NonexistentVar" in caplog.text
     # Check that the formula was still evaluated correctly
     assert result == True
@@ -294,7 +294,7 @@ def test_mrs_with_mixed_gates(do_layer1_check, attack_tree_mixed_gates, caplog):
         attack_tree=attack_tree_mixed_gates
     )
     # Will print warning about extra variable
-    assert "You specified variables that either do not exist" in caplog.text
+    assert "are not used by the formula and will be ignored" in caplog.text
     assert "Attack3" in caplog.text
 
     # PathB - should work with either SubPath

@@ -9,11 +9,13 @@ from lark.visitors import Interpreter
 from odf.checker.exceptions import MissingNodeImpactError
 from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter
 from odf.checker.layer2.check_layer2 import calc_node_prob
+from odf.core.constants import COLOR_GRAY
 from odf.models.disruption_tree import DisruptionTree
 from odf.models.object_graph import ObjectGraph
 from odf.transformers.mixins.mappings import BooleanMappingMixin
 from odf.utils.dfs import find_config_reflection_nodes, dfs_mtbdd_terminals, \
     find_paths_to_min_terminal
+from odf.utils.formatting import format_config, format_node_name, format_risk
 from odf.utils.logger import logger
 
 
@@ -74,7 +76,8 @@ def most_risky(object_name: str,
         bdd = interpreter.interpret(formula_tree)
 
         if bdd == manager.false:
-            logger.warning(f"Node {participant_node.name} is not satisfiable.")
+            logger.warning(
+                f"Node '{participant_node.name}' is not satisfiable.")
             continue
 
         bdd_support = bdd.support
@@ -86,7 +89,7 @@ def most_risky(object_name: str,
 
         if bdd == manager.false:
             logger.warning(
-                f"The provided evidence made the node {participant_node.name} unsatisfiable. Evidence: {needed_evidence}")
+                f"Evidence {needed_evidence} made node '{participant_node.name}' unsatisfiable.")
             continue
 
         risk = -1
@@ -94,7 +97,8 @@ def most_risky(object_name: str,
                                                               lambda node: node.var in object_properties):
             p = calc_node_prob(attack_tree, fault_tree, cr_node, is_compl, {})
             risk = max(risk, p * participant_node.impact)
-        logger.info("Risk for node %s: %f", participant_node.name, risk)
+        logger.info(
+            f"Risk for node {participant_node.name}: {risk} (~{format_risk(float(risk))}{COLOR_GRAY})")
 
         if risk > max_risk:
             max_risk = risk
@@ -103,7 +107,7 @@ def most_risky(object_name: str,
     unused_evidence = set(evidence.keys()) - used_evidence
     if unused_evidence:
         logger.warning(
-            f"You specified evidence that is not used in this formula, these elements can be removed: {unused_evidence}")
+            f"Evidence {unused_evidence} is not used by the formula and will be ignored.")
     return max_element
 
 
@@ -257,7 +261,8 @@ def configs_to_risk_mtbdd(
         bdd = interpreter.interpret(formula_tree)
 
         if bdd == manager.false:
-            logger.warning(f"Node {participant_node.name} is not satisfiable.")
+            logger.warning(
+                f"Node '{participant_node.name}' is not satisfiable.")
             continue
 
         bdd_support = bdd.support
@@ -269,7 +274,7 @@ def configs_to_risk_mtbdd(
 
         if bdd == manager.false:
             logger.warning(
-                f"The provided evidence made the node {participant_node.name} unsatisfiable. Evidence: {needed_evidence}")
+                f"Evidence {needed_evidence} made node '{participant_node.name}' unsatisfiable.")
             continue
 
         mtbdd = create_mtbdd(mtbdd_manager,
@@ -283,7 +288,7 @@ def configs_to_risk_mtbdd(
     unused_evidence = set(evidence.keys()) - used_evidence
     if unused_evidence:
         logger.warning(
-            f"You specified evidence that is not used in this formula, these elements can be removed: {unused_evidence}")
+            f"Evidence {unused_evidence} is not used by the formula and will be ignored.")
 
     return mt_sum
 
@@ -316,12 +321,10 @@ def optimal_conf(object_name: str,
     assert min_term is not None
     assert len(paths) > 0
 
-    if len(paths) > 1:
-        logger.info(
-            f"There are multiple optimal configurations with the same risk value of {min_term}")
-    else:
-        logger.info(
-            f"There is one optimal configuration with a risk value of {min_term}")
+    logger.info(
+        f"There {'are multiple' if len(paths) > 1 else 'is one'} optimal configuration"
+        f"{'s' if len(paths) > 1 else ''} with "
+        f"{'the same ' if len(paths) > 1 else 'a '}risk value of {format_risk(min_term)}")
 
     return paths
 
@@ -339,25 +342,22 @@ def check_layer3_query(formula: Tree,
         case "most_risky_a":
             result = most_risky(object_name, "attack", evidence, attack_tree,
                                 fault_tree, object_graph)
-            print(f"The most risky attack node is: {result.name}")
+            print(f"  Most Risky Attack Node: {format_node_name(result.name)}")
         case "most_risky_f":
             result = most_risky(object_name, "fault", evidence, attack_tree,
                                 fault_tree, object_graph)
-            print(f"The most risky fault node is: {result.name}")
+            print(f"  Most Risky Fault Node: {format_node_name(result.name)}")
         case "max_total_risk":
             result = total_risk(object_name, max, evidence, attack_tree,
                                 fault_tree, object_graph)
-            print(f"The maximum total risk is: {result}")
+            print(f"  Maximum Total Risk: {format_risk(result)}")
         case "min_total_risk":
             result = total_risk(object_name, min, evidence, attack_tree,
                                 fault_tree, object_graph)
-            print(f"The minimum total risk is: {result}")
+            print(f"  Minimum Total Risk: {format_risk(result)}")
         case "optimal_conf":
             result = optimal_conf(object_name, evidence, attack_tree,
                                   fault_tree, object_graph)
-            if len(result) == 1:
-                print(f"The optimal configuration is: {result[0]}")
-            else:
-                print("The optimal configurations are:")
-                for config in result:
-                    print(config)
+            print("  Optimal Configurations:")
+            for config in result:
+                print(f"    - {format_config(config)}")

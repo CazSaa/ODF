@@ -1,26 +1,36 @@
 import logging
 
+from odf.core.constants import COLOR_BLUE, COLOR_YELLOW, COLOR_RED, COLOR_GRAY, \
+    COLOR_RESET
+
 
 class ColorFormatter(logging.Formatter):
     """Custom formatter that adds colors to log messages."""
 
     COLORS = {
-        'INFO': '\033[94m',  # Blue
-        'WARNING': '\033[93m',  # Yellow
-        'ERROR': '\033[91m',  # Red
-        'RESET': '\033[0m'  # Reset color
+        'INFO': COLOR_BLUE,
+        'WARNING': COLOR_YELLOW,
+        'ERROR': COLOR_RED,
+        'RESET': COLOR_RESET
     }
+    indent = "    "
 
     def format(self, record):
+        """Add color to the levelname and indent the message"""
         orig_levelname = record.levelname
-
-        # Add color to the levelname
-        record.levelname = f"{self.COLORS.get(record.levelname, '')}{record.levelname}{self.COLORS['RESET']}"
-        # Format the message
+        # Store the original message
+        orig_message = record.msg
+        # Color the levelname and indent
+        record.levelname = (
+            f"{self.indent}{self.COLORS.get(record.levelname, '')}"
+            f"{record.levelname}{self.COLORS['RESET']}")
+        # Color the message gray
+        record.msg = f"{COLOR_GRAY}{orig_message}{COLOR_RESET}"
+        # Format with both colored parts
         result = super().format(record)
-        # Restore the original levelname
+        # Restore original values
         record.levelname = orig_levelname
-
+        record.msg = orig_message
         return result
 
 
