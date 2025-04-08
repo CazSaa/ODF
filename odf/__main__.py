@@ -6,6 +6,7 @@ from lark.exceptions import VisitError
 
 from odf.checker.checker import check_formulas
 from odf.core.constants import SEPARATOR_LENGTH
+from odf.core.exceptions import ODFError
 from odf.models.exceptions import CrossReferenceError
 from odf.models.validation import validate_disruption_tree_references, \
     validate_unique_node_names
@@ -46,16 +47,19 @@ def execute_str(odl_text):
     try:
         object_graph = ObjectGraphTransformer().transform(object_parse_tree)
     except VisitError as e:
+        if not isinstance(e.orig_exc, ODFError): raise
         raise MyVisitError(e, "object graph")
     try:
         attack_tree = DisruptionTreeTransformer(object_graph).transform(
             attack_parse_tree)
     except VisitError as e:
+        if not isinstance(e.orig_exc, ODFError): raise
         raise MyVisitError(e, "attack tree")
     try:
         fault_tree = DisruptionTreeTransformer(object_graph).transform(
             fault_parse_tree)
     except VisitError as e:
+        if not isinstance(e.orig_exc, ODFError): raise
         raise MyVisitError(e, "fault tree")
 
     validate_models(attack_tree, fault_tree, object_graph)
