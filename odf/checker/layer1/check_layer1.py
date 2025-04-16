@@ -29,7 +29,7 @@ def check_layer1_query(formula: Tree,
             formula = formula.children[0].children[1]
             res = layer1_compute_all(formula, configuration, attack_tree,
                                      fault_tree, object_graph)
-            print("  Minimal Satisfying Configurations:")
+            print("  Minimal Risk Scenarios:")
             if not res:
                 print("    - None (Formula is unsatisfiable)")
             else:
