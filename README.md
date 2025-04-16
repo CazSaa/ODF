@@ -12,8 +12,8 @@ ODF provides a complete framework that includes:
 3. A Python implementation of the ODGLog logic,
 4. A command-line interface for executing ODGLog formulas on ODGs.
 
-This implementation uses Binary Decision Diagrams (BDDs) and Multi-Terminal Binary Decision Diagrams (MTBDDs) via (
-a [fork](https://github.com/CazSaa/dd) of) the [`dd` library](https://pypi.org/project/dd/).
+This implementation uses Binary Decision Diagrams (BDDs) and Multi-Terminal Binary Decision Diagrams (MTBDDs) via
+(a [fork](https://github.com/CazSaa/dd) of) the [`dd` library](https://pypi.org/project/dd/).
 
 # Background
 
@@ -59,6 +59,7 @@ This project uses `uv` for dependency management and requires **Python 3.13** or
 You can use ODF via its command-line interface.
 
 From the root of this repository, with the virtual environment activated, run:
+
 ```bash
 $ python -m odf <path/to/your/odf_file.odf>
 ```
