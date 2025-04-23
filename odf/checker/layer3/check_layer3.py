@@ -317,6 +317,10 @@ def optimal_conf(object_name: str,
     if mt_sum is None:
         return None
 
+    # Apply sifting to get a better variable ordering, causing more succinct
+    # optimal configurations
+    mt_sum.agd.reorder()
+
     paths, min_term = find_paths_to_min_terminal(mt_sum)
     assert min_term is not None
     assert len(paths) > 0
