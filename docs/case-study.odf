@@ -16,7 +16,7 @@ Attacker_causes_pollution objects=[Pipeline, Environment] impact=3.0;
                         jamming_com_between_RTUs prob=0.7 objects=[RTU_RTU_Link] impact=1.0;
 
             attack_preparation2 and Access_via_RTU_CC_link deactivate_or_override_reflex_action send_false_instructions_to_RTUs report_false_data_to_CC;
-                Access_via_RTU_CC_link prob=0.0012 objects=[RTU_CC_Link] impact=1.0;
+                Access_via_RTU_CC_link prob=0.0012 objects=[RTU_CC_Link] cond=(!RTU_CC_Comm_Encyption) impact=1.0;
                 send_false_instructions_to_RTUs prob=0.4 objects=[RTU, RTU_RTU_Link] impact=1.0;
                 report_false_data_to_CC prob=0.4 objects=[RTU, RTU_CC_Link] impact=1.0;
 
@@ -66,10 +66,11 @@ Accidental_pollution objects=[Pipeline, Environment] impact=3.0;
                     inter_RTU_communication_lost prob=0.0007 objects=[RTU_RTU_Link] impact=1.0;
                     faulty_sensor_measure prob=0.00023 impact=1.0;
 
-                No_instruction_from_Control_Center or faulty_sensor_measure CC_RTU_communication_lost Control_Center_broken faulty_operator;
+                No_instruction_from_Control_Center or faulty_sensor_measure CC_RTU_communication_lost Control_Center_broken faulty_operator delayed_instructions;
                     CC_RTU_communication_lost prob=0.00046 objects=[RTU_CC_Link] impact=1.0;
                     Control_Center_broken prob=0.000114 objects=[Control_Center] impact=1.0;
                     faulty_operator prob=0.00023 impact=1.0;
+                    delayed_instructions prob=0.00023 objects=[RTU, RTU_CC_Link] cond=(RTU_CC_Comm_Encyption) impact=1.0;
 
         Equipment_failure_to_react or Valves_on_demand_failure_to_close Pumps_on_demand_failure_to_stop;
             Valves_on_demand_failure_to_close prob=0.00005 objects=[Valves] impact=1.0;
