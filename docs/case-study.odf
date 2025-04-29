@@ -27,7 +27,13 @@ Access_via_sensors_RTU_link prob=0.0008 objects=[Sensors_RTU_Link] impact=1.0;
 falsify_sensors_measures prob=0.4 objects=[Sensors, Sensors_RTU_Link] impact=1.0;
 
 falsify_RTU_output and Access_to_RTU falsify_data_sent_to_other_RTUs falsify_data_sent_to_CC falsify_instructions_sent_to_equipments;
-Access_to_RTU prob=0.0208 objects=[RTU] impact=1.0;
+Access_to_RTU or Hack_into_RTU_firmware Exploit_old_firmware_vulnerability;
+Hack_into_RTU_firmware prob=0.0008 objects=[RTU] impact=1.0;
+
+Exploit_old_firmware_vulnerability and Rollback_Firmware Execute_exploit;
+Execute_exploit prob=0.9 objects=[RTU] impact=1.0;
+Rollback_Firmware prob=0.0150 objects=[RTU] cond=(Allow_Firmware_Rollback) impact=1.0;
+
 falsify_data_sent_to_other_RTUs prob=0.6 objects=[RTU, RTU_RTU_Link] impact=1.0;
 falsify_data_sent_to_CC prob=0.6 objects=[RTU, RTU_CC_Link] impact=1.0;
 falsify_instructions_sent_to_equipments prob=0.7 objects=[RTU, Equipment] impact=1.0;
@@ -47,7 +53,12 @@ Pipeline_breaks_accidentally prob=0.0000114 objects=[Pipeline] impact=1.0;
 Protection_failure or No_instructions_from_RTU Equipment_failure_to_react;
 No_instructions_from_RTU or RTU_broken No_RTU_reaction;
 
-RTU_broken prob=0.000138 objects=[RTU] impact=1.0;
+RTU_broken or RTU_Hardware_Broken Firmware_Bug;
+RTU_Hardware_Broken prob=0.000138 objects=[RTU] impact=1.0;
+
+Firmware_Bug or Unknown_Firmware_Bug Bug_In_New_Firmware;
+Unknown_Firmware_Bug prob=0.0001 objects=[RTU] impact=1.0;
+Bug_In_New_Firmware prob=0.05 objects=[RTU] cond=(!Allow_Firmware_Rollback) impact=1.0;
 
 No_RTU_reaction and No_reflex_action_activated_by_RTU No_instruction_from_Control_Center;
 
@@ -72,7 +83,7 @@ Pipeline has Pumps Valves Sensors;
 
 // Control system
 SCADA_System has Control_Center RTU Equipment;
-RTU properties=[Reflex_Action_Enabled];
+RTU properties=[Reflex_Action_Enabled, Allow_Firmware_Rollback];
 Equipment has Sensors Valves Pumps; // Same equipment as in the pipeline
 
 Environment;
