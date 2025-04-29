@@ -13,7 +13,7 @@ Attacker_causes_pollution objects=[Pipeline, Environment] impact=3.0;
                     override_reflex_action prob=0.99 objects=[RTU] cond=(Remote_CC_Override_Enabled) impact=1.0;
                     deactivate_reflex_action or No_reflex_action_A jamming_com_between_RTUs;
                         No_reflex_action_A prob=1 objects=[RTU] cond=(!Reflex_Action_Enabled) impact=1.0;
-                        jamming_com_between_RTUs prob=0.7 objects=[RTU_RTU_Link] impact=1.0;
+                        jamming_com_between_RTUs prob=0.7 objects=[RTU_RTU_Link] cond=(Wireless_RTU_RTU_link) impact=1.0;
 
             attack_preparation2 and Access_via_RTU_CC_link deactivate_or_override_reflex_action send_false_instructions_to_RTUs report_false_data_to_CC;
                 Access_via_RTU_CC_link prob=0.0012 objects=[RTU_CC_Link] cond=(!RTU_CC_Comm_Encyption) impact=1.0;
@@ -97,7 +97,7 @@ Environment;
 
 // Communication links
 RTU_CC_Link;
-RTU_RTU_Link;
+RTU_RTU_Link properties=[Wireless_RTU_RTU_link];
 Sensors_RTU_Link;
 
 [formulas]
