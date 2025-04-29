@@ -9,15 +9,18 @@ Understand_system_operation prob=0.0208 objects=[SCADA_System] impact=1.0;
 
 protection_deactivation or attack_preparation1 attack_preparation2 attack_preparation3 falsify_RTU_output;
 
-attack_preparation1 and Access_to_Control_Center falsify_CC_instructions deactivate_reflex_action;
+attack_preparation1 and Access_to_Control_Center falsify_CC_instructions deactivate_or_override_reflex_action;
 Access_to_Control_Center prob=0.0050 objects=[Control_Center] impact=1.0;
 falsify_CC_instructions prob=0.4 objects=[Control_Center, RTU_CC_Link] impact=1.0;
+
+deactivate_or_override_reflex_action or override_reflex_action deactivate_reflex_action;
+override_reflex_action prob=0.99 objects=[RTU] cond=(Remote_CC_Override_Enabled) impact=1.0;
 
 deactivate_reflex_action or No_reflex_action_A jamming_com_between_RTUs;
 No_reflex_action_A prob=1 objects=[RTU] cond=(!Reflex_Action_Enabled) impact=1.0;
 jamming_com_between_RTUs prob=0.7 objects=[RTU_RTU_Link] impact=1.0;
 
-attack_preparation2 and Access_via_RTU_CC_link deactivate_reflex_action send_false_instructions_to_RTUs report_false_data_to_CC;
+attack_preparation2 and Access_via_RTU_CC_link deactivate_or_override_reflex_action send_false_instructions_to_RTUs report_false_data_to_CC;
 Access_via_RTU_CC_link prob=0.0012 objects=[RTU_CC_Link] impact=1.0;
 send_false_instructions_to_RTUs prob=0.4 objects=[RTU, RTU_RTU_Link] impact=1.0;
 report_false_data_to_CC prob=0.4 objects=[RTU, RTU_CC_Link] impact=1.0;
@@ -45,10 +48,17 @@ Valve_closing prob=0.7 objects=[Valves] impact=1.0;
 
 [odg.fault_tree]
 toplevel Accidental_pollution;
-Accidental_pollution and Pipeline_breaks_accidentally Protection_failure;
+Accidental_pollution and Pipeline_rupture Protection_failure;
 Accidental_pollution objects=[Pipeline, Environment] impact=3.0;
 
+Pipeline_rupture or Pipeline_breaks_accidentally Accidental_waterhammer;
+
 Pipeline_breaks_accidentally prob=0.0000114 objects=[Pipeline] impact=1.0;
+
+Accidental_waterhammer and False_reflex_signal High_pump_pressure;
+        Accidental_waterhammer cond=(!Remote_CC_Override_Enabled) objects=[Pipeline] impact=1.0;
+            False_reflex_signal prob=0.00009 objects=[RTU, RTU_RTU_Link] impact=1.0;
+            High_pump_pressure prob=0.0008 objects=[Pumps] impact=1.0;
 
 Protection_failure or No_instructions_from_RTU Equipment_failure_to_react;
 No_instructions_from_RTU or RTU_broken No_RTU_reaction;
@@ -83,6 +93,7 @@ Pipeline has Pumps Valves Sensors;
 
 // Control system
 SCADA_System has Control_Center RTU Equipment;
+Control_Center properties=[Remote_CC_Override_Enabled];
 RTU properties=[Reflex_Action_Enabled, Allow_Firmware_Rollback];
 Equipment has Sensors Valves Pumps; // Same equipment as in the pipeline
 
