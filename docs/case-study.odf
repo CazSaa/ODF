@@ -44,7 +44,9 @@ toplevel Accidental_pollution;
 Accidental_pollution and Pipeline_rupture Protection_failure;
 Accidental_pollution objects=[Pipeline, Environment] impact=3.0;
     Pipeline_rupture or Pipeline_breaks_accidentally Accidental_waterhammer;
-        Pipeline_breaks_accidentally prob=0.0000114 objects=[Pipeline] impact=1.0;
+        Pipeline_breaks_accidentally or Pipeline_strong_material_break Pipeline_weak_material_break;
+            Pipeline_strong_material_break prob=0.0000114 objects=[Pipeline] properties=[Strong_material] impact=1.0;
+            Pipeline_weak_material_break prob=0.0001 objects=[Pipeline] properties=[!Strong_material] impact=1.0;
 
         Accidental_waterhammer and False_reflex_signal High_pump_pressure;
         Accidental_waterhammer cond=(!Remote_CC_Override_Enabled) objects=[Pipeline] impact=1.0;
@@ -80,6 +82,7 @@ Accidental_pollution objects=[Pipeline, Environment] impact=3.0;
 [odg.object_graph]
 // Physical pipeline and components
 Pipeline has Pumps Valves Sensors;
+Pipeline properties=[Strong_material];
 
 // Control system
 SCADA_System has Control_Center RTU Equipment;
