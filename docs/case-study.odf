@@ -3,33 +3,31 @@ toplevel Attacker_causes_pollution;
 Attacker_causes_pollution and Attack_protection_system Waterhammer_attack;
 Attacker_causes_pollution objects=[Pipeline, Environment] impact=3.0;
 
-Attack_protection_system and Access_SCADA_system Understand_system_operation protection_deactivation;
-Access_SCADA_system or Access_to_Control_Center Access_via_RTU_CC_link Access_via_sensors_RTU_link Access_to_RTU;
-
-Access_to_Control_Center prob=0.0050 objects=[Control_Center] impact=1.0;
-Access_via_RTU_CC_link prob=0.0012 objects=[RTU_CC_Link] impact=1.0;
-Access_via_sensors_RTU_link prob=0.0008 objects=[Sensors_RTU_Link] impact=1.0;
-Access_to_RTU prob=0.0208 objects=[RTU] impact=1.0;
+Attack_protection_system and Understand_system_operation protection_deactivation;
 
 Understand_system_operation prob=0.0208 objects=[SCADA_System] impact=1.0;
 
 protection_deactivation or attack_preparation1 attack_preparation2 attack_preparation3 falsify_RTU_output;
 
-attack_preparation1 and falsify_CC_instructions deactivate_reflex_action;
+attack_preparation1 and Access_to_Control_Center falsify_CC_instructions deactivate_reflex_action;
+Access_to_Control_Center prob=0.0050 objects=[Control_Center] impact=1.0;
 falsify_CC_instructions prob=0.4 objects=[Control_Center, RTU_CC_Link] impact=1.0;
 
 deactivate_reflex_action or No_reflex_action_A jamming_com_between_RTUs;
 No_reflex_action_A prob=1 objects=[RTU] cond=(!Reflex_Action_Enabled) impact=1.0;
 jamming_com_between_RTUs prob=0.7 objects=[RTU_RTU_Link] impact=1.0;
 
-attack_preparation2 and deactivate_reflex_action send_false_instructions_to_RTUs report_false_data_to_CC;
+attack_preparation2 and Access_via_RTU_CC_link deactivate_reflex_action send_false_instructions_to_RTUs report_false_data_to_CC;
+Access_via_RTU_CC_link prob=0.0012 objects=[RTU_CC_Link] impact=1.0;
 send_false_instructions_to_RTUs prob=0.4 objects=[RTU, RTU_RTU_Link] impact=1.0;
 report_false_data_to_CC prob=0.4 objects=[RTU, RTU_CC_Link] impact=1.0;
 
-attack_preparation3 and deactivate_reflex_action falsify_sensors_measures;
+attack_preparation3 and Access_via_sensors_RTU_link deactivate_reflex_action falsify_sensors_measures;
+Access_via_sensors_RTU_link prob=0.0008 objects=[Sensors_RTU_Link] impact=1.0;
 falsify_sensors_measures prob=0.4 objects=[Sensors, Sensors_RTU_Link] impact=1.0;
 
-falsify_RTU_output and falsify_data_sent_to_other_RTUs falsify_data_sent_to_CC falsify_instructions_sent_to_equipments;
+falsify_RTU_output and Access_to_RTU falsify_data_sent_to_other_RTUs falsify_data_sent_to_CC falsify_instructions_sent_to_equipments;
+Access_to_RTU prob=0.0208 objects=[RTU] impact=1.0;
 falsify_data_sent_to_other_RTUs prob=0.6 objects=[RTU, RTU_RTU_Link] impact=1.0;
 falsify_data_sent_to_CC prob=0.6 objects=[RTU, RTU_CC_Link] impact=1.0;
 falsify_instructions_sent_to_equipments prob=0.7 objects=[RTU, Equipment] impact=1.0;
