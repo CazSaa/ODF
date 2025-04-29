@@ -1,84 +1,106 @@
 [odg.attack_tree]
 toplevel Attacker_causes_pollution;
 Attacker_causes_pollution and Attack_protection_system Waterhammer_attack;
-Attacker_causes_pollution objects=[Pipeline, Environment] impact=3.0;
+Attacker_causes_pollution objects=[Pipeline, Environment] impact=100;
     Attack_protection_system and Understand_system_operation protection_deactivation;
-        Understand_system_operation prob=0.0208 objects=[SCADA_System] impact=1.0;
+    Attack_protection_system objects=[SCADA_System] impact=1;
+        Understand_system_operation prob=0.0208 objects=[SCADA_System] impact=1;
 
         protection_deactivation or attack_preparation1 attack_preparation2 attack_preparation3 falsify_RTU_output;
+        protection_deactivation objects=[SCADA_System] impact=10;
             attack_preparation1 and Access_to_Control_Center falsify_CC_instructions deactivate_or_override_reflex_action;
-                Access_to_Control_Center prob=0.0050 objects=[Control_Center] impact=1.0;
-                falsify_CC_instructions prob=0.4 objects=[Control_Center, RTU_CC_Link] impact=1.0;
+            attack_preparation1 objects=[Control_Center, RTU] impact=1;
+                Access_to_Control_Center prob=0.0050 objects=[Control_Center] impact=8;
+                falsify_CC_instructions prob=0.4 objects=[Control_Center] impact=3;
                 deactivate_or_override_reflex_action or override_reflex_action deactivate_reflex_action;
-                    override_reflex_action prob=0.99 objects=[RTU] cond=(Remote_CC_Override_Enabled) impact=1.0;
+                deactivate_or_override_reflex_action objects=[RTU] impact=3;
+                    override_reflex_action prob=0.99 objects=[RTU] cond=(Remote_CC_Override_Enabled) impact=1;
                     deactivate_reflex_action or No_reflex_action_A jamming_com_between_RTUs;
-                        No_reflex_action_A prob=1 objects=[RTU] cond=(!Reflex_Action_Enabled) impact=1.0;
-                        jamming_com_between_RTUs prob=0.7 objects=[RTU_RTU_Link] cond=(Wireless_RTU_RTU_link) impact=1.0;
+                    deactivate_reflex_action objects=[RTU] impact=2;
+                        No_reflex_action_A prob=1 objects=[RTU] cond=(!Reflex_Action_Enabled) impact=1;
+                        jamming_com_between_RTUs prob=0.7 objects=[RTU, RTU_RTU_Link] cond=(Wireless_RTU_RTU_link) impact=3;
 
             attack_preparation2 and Access_via_RTU_CC_link deactivate_or_override_reflex_action send_false_instructions_to_RTUs report_false_data_to_CC;
-                Access_via_RTU_CC_link prob=0.0012 objects=[RTU_CC_Link] cond=(!RTU_CC_Comm_Encyption) impact=1.0;
-                send_false_instructions_to_RTUs prob=0.4 objects=[RTU, RTU_RTU_Link] impact=1.0;
-                report_false_data_to_CC prob=0.4 objects=[RTU, RTU_CC_Link] impact=1.0;
+            attack_preparation2 objects=[RTU, Control_Center, RTU_CC_Link] impact=1;
+                Access_via_RTU_CC_link prob=0.0012 objects=[RTU_CC_Link] cond=(!RTU_CC_Comm_Encyption) impact=6;
+                send_false_instructions_to_RTUs prob=0.4 objects=[RTU] impact=3;
+                report_false_data_to_CC prob=0.4 objects=[Control_Center] impact=3;
 
             attack_preparation3 and Access_via_sensors_RTU_link deactivate_reflex_action falsify_sensors_measures;
-                Access_via_sensors_RTU_link prob=0.0008 objects=[Sensors_RTU_Link] impact=1.0;
-                falsify_sensors_measures prob=0.4 objects=[Sensors, Sensors_RTU_Link] impact=1.0;
+            attack_preparation3 objects=[Sensors, Sensors_RTU_Link] impact=1;
+                Access_via_sensors_RTU_link prob=0.0008 objects=[Sensors_RTU_Link] impact=3;
+                falsify_sensors_measures prob=0.4 objects=[Sensors] impact=3;
 
             falsify_RTU_output and Access_to_RTU falsify_data_sent_to_other_RTUs falsify_data_sent_to_CC falsify_instructions_sent_to_equipments;
+            falsify_RTU_output objects=[RTU] impact=3;
                 Access_to_RTU or Hack_into_RTU_firmware Exploit_old_firmware_vulnerability;
-                    Hack_into_RTU_firmware prob=0.0008 objects=[RTU] impact=1.0;
+                Access_to_RTU objects=[RTU] impact=3;
+                    Hack_into_RTU_firmware prob=0.0008 objects=[RTU] impact=4;
                     Exploit_old_firmware_vulnerability and Rollback_Firmware Execute_exploit;
-                        Rollback_Firmware prob=0.0150 objects=[RTU] cond=(Allow_Firmware_Rollback) impact=1.0;
-                        Execute_exploit prob=0.9 objects=[RTU] impact=1.0;
-                falsify_data_sent_to_other_RTUs prob=0.6 objects=[RTU, RTU_RTU_Link] impact=1.0;
-                falsify_data_sent_to_CC prob=0.6 objects=[RTU, RTU_CC_Link] impact=1.0;
-                falsify_instructions_sent_to_equipments prob=0.7 objects=[RTU, Equipment] impact=1.0;
+                    Exploit_old_firmware_vulnerability objects=[RTU] impact=3;
+                        Rollback_Firmware prob=0.0150 objects=[RTU] cond=(Allow_Firmware_Rollback) impact=1;
+                        Execute_exploit prob=0.9 objects=[RTU] impact=1;
+                falsify_data_sent_to_other_RTUs prob=0.6 objects=[RTU] impact=2;
+                falsify_data_sent_to_CC prob=0.6 objects=[RTU, Control_Center] impact=3;
+                falsify_instructions_sent_to_equipments prob=0.7 objects=[Equipment] impact=2;
 
     Waterhammer_attack and High_pumping_pressure_activation Valve_closing;
-        High_pumping_pressure_activation prob=0.7 objects=[Pumps] impact=1.0;
-        Valve_closing prob=0.7 objects=[Valves] impact=1.0;
+    Waterhammer_attack objects=[Pipeline] impact=27;
+        High_pumping_pressure_activation prob=0.7 objects=[Pumps] impact=1.3;
+        Valve_closing prob=0.7 objects=[Valves] impact=1;
 
 
 [odg.fault_tree]
 toplevel Accidental_pollution;
 Accidental_pollution and Pipeline_rupture Protection_failure;
-Accidental_pollution objects=[Pipeline, Environment] impact=3.0;
+Accidental_pollution objects=[Pipeline, Environment] impact=100;
     Pipeline_rupture or Pipeline_breaks_accidentally Accidental_waterhammer;
+    Pipeline_rupture objects=[Pipeline, Environment] impact=27;
         Pipeline_breaks_accidentally or Pipeline_strong_material_break Pipeline_weak_material_break;
-            Pipeline_strong_material_break prob=0.0000114 objects=[Pipeline] properties=[Strong_material] impact=1.0;
-            Pipeline_weak_material_break prob=0.0001 objects=[Pipeline] properties=[!Strong_material] impact=1.0;
+        Pipeline_breaks_accidentally objects=[Pipeline] impact=1;
+            Pipeline_strong_material_break prob=0.0000114 objects=[Pipeline] properties=[Strong_material] impact=2;
+            Pipeline_weak_material_break prob=0.0001 objects=[Pipeline] properties=[!Strong_material] impact=3;
 
         Accidental_waterhammer and False_reflex_signal High_pump_pressure;
-        Accidental_waterhammer cond=(!Remote_CC_Override_Enabled) objects=[Pipeline] impact=1.0;
-            False_reflex_signal prob=0.00009 objects=[RTU, RTU_RTU_Link] impact=1.0;
-            High_pump_pressure prob=0.0008 objects=[Pumps] impact=1.0;
+        Accidental_waterhammer cond=(!Remote_CC_Override_Enabled) objects=[Pipeline] impact=1;
+            False_reflex_signal prob=0.00009 objects=[RTU, RTU_RTU_Link] impact=2.5;
+            High_pump_pressure prob=0.0008 objects=[Pumps] impact=1;
 
     Protection_failure or No_instructions_from_RTU Equipment_failure_to_react;
+    Protection_failure objects=[SCADA_System] impact=10;
         No_instructions_from_RTU or RTU_broken No_RTU_reaction;
+        No_instructions_from_RTU objects=[RTU] impact=3;
             RTU_broken or RTU_Hardware_Broken Firmware_Bug;
-                RTU_Hardware_Broken prob=0.000138 objects=[RTU] impact=1.0;
+            RTU_broken objects=[RTU] impact=8;
+                RTU_Hardware_Broken prob=0.000138 objects=[RTU] impact=3;
 
                 Firmware_Bug or Unknown_Firmware_Bug Bug_In_New_Firmware;
-                    Unknown_Firmware_Bug prob=0.0001 objects=[RTU] impact=1.0;
-                    Bug_In_New_Firmware prob=0.05 objects=[RTU] cond=(!Allow_Firmware_Rollback) impact=1.0;
+                Firmware_Bug objects=[RTU] impact=1;
+                    Unknown_Firmware_Bug prob=0.0001 objects=[RTU] impact=3;
+                    Bug_In_New_Firmware prob=0.05 objects=[RTU] cond=(!Allow_Firmware_Rollback) impact=1.5;
 
             No_RTU_reaction and No_reflex_action_activated_by_RTU No_instruction_from_Control_Center;
+            No_RTU_reaction objects=[RTU] impact=3;
                 No_reflex_action_activated_by_RTU or No_reflex_action_F inter_RTU_communication_lost faulty_sensor_measure;
-                    No_reflex_action_F prob=1 objects=[RTU] cond=(!Reflex_Action_Enabled) impact=1.0;
-                    inter_RTU_communication_lost prob=0.0007 objects=[RTU_RTU_Link] impact=1.0;
+                No_reflex_action_activated_by_RTU objects=[RTU] impact=2;
+                    No_reflex_action_F prob=1 objects=[RTU] cond=(!Reflex_Action_Enabled) impact=1;
+                    inter_RTU_communication_lost prob=0.0007 objects=[RTU_RTU_Link] impact=4;
                     faulty_sensor_measure or faulty_sensor_measure_no_redundancy faulty_sensor_measure_with_redundancy;
-                        faulty_sensor_measure_no_redundancy prob=0.0001 objects=[Sensors] cond=(!Sensor_redundancy) impact=1.0;
-                        faulty_sensor_measure_with_redundancy prob=0.00001 objects=[Sensors] cond=(Sensor_redundancy) impact=1.0;
+                    faulty_sensor_measure objects=[Sensors] impact=2;
+                        faulty_sensor_measure_no_redundancy prob=0.0001 objects=[Sensors] cond=(!Sensor_redundancy) impact=1;
+                        faulty_sensor_measure_with_redundancy prob=0.00001 objects=[Sensors] cond=(Sensor_redundancy) impact=1;
 
                 No_instruction_from_Control_Center or faulty_sensor_measure CC_RTU_communication_lost Control_Center_broken faulty_operator delayed_instructions;
-                    CC_RTU_communication_lost prob=0.00046 objects=[RTU_CC_Link] impact=1.0;
-                    Control_Center_broken prob=0.000114 objects=[Control_Center] impact=1.0;
-                    faulty_operator prob=0.00023 impact=1.0;
-                    delayed_instructions prob=0.00023 objects=[RTU, RTU_CC_Link] cond=(RTU_CC_Comm_Encyption) impact=1.0;
+                No_instruction_from_Control_Center objects=[RTU, Control_Center] impact=3;
+                    CC_RTU_communication_lost prob=0.00046 objects=[RTU_CC_Link] impact=5;
+                    Control_Center_broken prob=0.000114 objects=[Control_Center] impact=9;
+                    faulty_operator prob=0.00023 objects=[Operator] impact=3;
+                    delayed_instructions prob=0.00023 objects=[RTU, RTU_CC_Link] cond=(RTU_CC_Comm_Encyption) impact=2;
 
         Equipment_failure_to_react or Valves_on_demand_failure_to_close Pumps_on_demand_failure_to_stop;
-            Valves_on_demand_failure_to_close prob=0.00005 objects=[Valves] impact=1.0;
-            Pumps_on_demand_failure_to_stop prob=0.00001 objects=[Pumps] impact=1.0;
+        Equipment_failure_to_react objects=[Valves, Pumps] impact=1;
+            Valves_on_demand_failure_to_close prob=0.00005 objects=[Valves] impact=3;
+            Pumps_on_demand_failure_to_stop prob=0.00001 objects=[Pumps] impact=2;
 
 
 [odg.object_graph]
@@ -92,6 +114,8 @@ SCADA_System has Control_Center RTU Equipment;
 Control_Center properties=[Remote_CC_Override_Enabled];
 RTU properties=[Reflex_Action_Enabled, Allow_Firmware_Rollback];
 Equipment has Sensors Valves Pumps; // Same equipment as in the pipeline
+
+Operator;
 
 Environment;
 
