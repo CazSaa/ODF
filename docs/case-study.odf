@@ -66,7 +66,9 @@ Accidental_pollution objects=[Pipeline, Environment] impact=3.0;
                 No_reflex_action_activated_by_RTU or No_reflex_action_F inter_RTU_communication_lost faulty_sensor_measure;
                     No_reflex_action_F prob=1 objects=[RTU] cond=(!Reflex_Action_Enabled) impact=1.0;
                     inter_RTU_communication_lost prob=0.0007 objects=[RTU_RTU_Link] impact=1.0;
-                    faulty_sensor_measure prob=0.00023 impact=1.0;
+                    faulty_sensor_measure or faulty_sensor_measure_no_redundancy faulty_sensor_measure_with_redundancy;
+                        faulty_sensor_measure_no_redundancy prob=0.0001 objects=[Sensors] cond=(!Sensor_redundancy) impact=1.0;
+                        faulty_sensor_measure_with_redundancy prob=0.00001 objects=[Sensors] cond=(Sensor_redundancy) impact=1.0;
 
                 No_instruction_from_Control_Center or faulty_sensor_measure CC_RTU_communication_lost Control_Center_broken faulty_operator delayed_instructions;
                     CC_RTU_communication_lost prob=0.00046 objects=[RTU_CC_Link] impact=1.0;
@@ -83,6 +85,7 @@ Accidental_pollution objects=[Pipeline, Environment] impact=3.0;
 // Physical pipeline and components
 Pipeline has Pumps Valves Sensors;
 Pipeline properties=[Strong_material];
+Sensors properties=[Sensor_redundancy];
 
 // Control system
 SCADA_System has Control_Center RTU Equipment;
