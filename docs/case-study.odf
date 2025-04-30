@@ -18,7 +18,7 @@ Attacker_causes_pollution objects=[Pipeline, Environment] impact=100;
                     deactivate_reflex_action or No_reflex_action_A jamming_com_between_RTUs;
                     deactivate_reflex_action objects=[RTU] impact=2;
                         No_reflex_action_A prob=1 objects=[RTU] cond=(!Reflex_Action_Enabled) impact=1;
-                        jamming_com_between_RTUs prob=0.7 objects=[RTU, RTU_RTU_Link] cond=(Wireless_RTU_RTU_link) impact=3;
+                        jam_com_between_RTUs prob=0.7 objects=[RTU, RTU_RTU_Link] cond=(Wireless_RTU_RTU_link) impact=3;
 
             attack_preparation2 and Access_via_RTU_CC_link deactivate_or_override_reflex_action send_false_instructions_to_RTUs report_false_data_to_CC;
             attack_preparation2 objects=[RTU, Control_Center, RTU_CC_Link] impact=1;
