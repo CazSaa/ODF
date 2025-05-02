@@ -10,7 +10,7 @@ Attacker_causes_pollution objects=[Pipeline, Environment] impact=100;
         protection_deactivation objects=[SCADA_System] impact=10;
             attack_preparation1 and Access_to_Control_Center falsify_CC_instructions deactivate_or_override_reflex_action;
             attack_preparation1 objects=[Control_Center, RTU] impact=1;
-                Access_to_Control_Center prob=0.0050 objects=[Control_Center] impact=8;
+                Access_to_Control_Center prob=0.005 objects=[Control_Center] impact=8;
                 falsify_CC_instructions prob=0.4 objects=[Control_Center] impact=3;
                 deactivate_or_override_reflex_action or override_reflex_action deactivate_reflex_action;
                 deactivate_or_override_reflex_action objects=[RTU] impact=3;
@@ -27,12 +27,12 @@ Attacker_causes_pollution objects=[Pipeline, Environment] impact=100;
                 report_false_data_to_CC prob=0.4 objects=[Control_Center] impact=3;
 
             attack_preparation3 and Access_via_sensors_RTU_link deactivate_reflex_action falsify_sensors_measures;
-            attack_preparation3 objects=[Sensors, Sensors_RTU_Link] impact=1;
+            attack_preparation3 objects=[RTU, Sensors, Sensors_RTU_Link] impact=1;
                 Access_via_sensors_RTU_link prob=0.0008 objects=[Sensors_RTU_Link] impact=3;
                 falsify_sensors_measures prob=0.4 objects=[Sensors] impact=3;
 
             falsify_RTU_output and Access_to_RTU falsify_data_sent_to_other_RTUs falsify_data_sent_to_CC falsify_instructions_sent_to_equipments;
-            falsify_RTU_output objects=[RTU] impact=3;
+            falsify_RTU_output objects=[Control_Center, Equipment, RTU] impact=3;
                 Access_to_RTU or Hack_into_RTU_firmware Exploit_old_firmware_vulnerability;
                 Access_to_RTU objects=[RTU] impact=3;
                     Hack_into_RTU_firmware prob=0.0008 objects=[RTU] impact=4;
@@ -41,7 +41,7 @@ Attacker_causes_pollution objects=[Pipeline, Environment] impact=100;
                         Rollback_Firmware prob=0.0150 objects=[RTU] cond=(Allow_Firmware_Rollback) impact=1;
                         Execute_exploit prob=0.9 objects=[RTU] impact=1;
                 falsify_data_sent_to_other_RTUs prob=0.6 objects=[RTU] impact=2;
-                falsify_data_sent_to_CC prob=0.6 objects=[RTU, Control_Center] impact=3;
+                falsify_data_sent_to_CC prob=0.6 objects=[Control_Center] impact=3;
                 falsify_instructions_sent_to_equipments prob=0.7 objects=[Equipment] impact=2;
 
     Waterhammer_attack and High_pumping_pressure_activation Valve_closing;
@@ -58,11 +58,11 @@ Accidental_pollution objects=[Pipeline, Environment] impact=100;
     Pipeline_rupture objects=[Pipeline, Environment] impact=27;
         Pipeline_breaks_accidentally or Pipeline_strong_material_break Pipeline_weak_material_break;
         Pipeline_breaks_accidentally objects=[Pipeline] impact=1;
-            Pipeline_strong_material_break prob=0.0000114 objects=[Pipeline] properties=[Strong_material] impact=2;
+            Pipeline_strong_material_break prob=0.00001 objects=[Pipeline] properties=[Strong_material] impact=2;
             Pipeline_weak_material_break prob=0.0001 objects=[Pipeline] properties=[!Strong_material] impact=3;
 
         Accidental_waterhammer and False_reflex_signal High_pump_pressure;
-        Accidental_waterhammer cond=(!Remote_CC_Override_Enabled) objects=[Pipeline] impact=1;
+        Accidental_waterhammer cond=(!Remote_CC_Override_Enabled) objects=[Pipeline] impact=3;
             False_reflex_signal prob=0.00009 objects=[RTU, RTU_RTU_Link] impact=2.5;
             High_pump_pressure prob=0.0008 objects=[Pumps] impact=1;
 
@@ -87,7 +87,7 @@ Accidental_pollution objects=[Pipeline, Environment] impact=100;
                     inter_RTU_communication_lost prob=0.0007 objects=[RTU_RTU_Link] impact=4;
                     faulty_sensor_measure or faulty_sensor_measure_no_redundancy faulty_sensor_measure_with_redundancy;
                     faulty_sensor_measure objects=[Sensors] impact=2;
-                        faulty_sensor_measure_no_redundancy prob=0.0001 objects=[Sensors] cond=(!Sensor_redundancy) impact=1;
+                        faulty_sensor_measure_no_redundancy prob=0.00023 objects=[Sensors] cond=(!Sensor_redundancy) impact=1;
                         faulty_sensor_measure_with_redundancy prob=0.00001 objects=[Sensors] cond=(Sensor_redundancy) impact=1;
 
                 No_instruction_from_Control_Center or faulty_sensor_measure CC_RTU_communication_lost Control_Center_broken faulty_operator delayed_instructions;
