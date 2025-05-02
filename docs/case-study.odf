@@ -22,7 +22,7 @@ Attacker_causes_pollution objects=[Pipeline, Environment] impact=100;
 
             Attack_preparation2 and Access_via_RTU_CC_link Deactivate_or_override_reflex_action Send_false_instructions_to_RTUs Report_false_data_to_CC;
             Attack_preparation2 objects=[RTU, Control_center, RTU_CC_Link] impact=0;
-                Access_via_RTU_CC_link prob=0.0012 objects=[RTU_CC_Link] cond=(!RTU_CC_comm_encyption) impact=6;
+                Access_via_RTU_CC_link prob=0.0012 objects=[RTU_CC_Link] cond=(!RTU_CC_comm_encryption) impact=6;
                 Send_false_instructions_to_RTUs prob=0.4 objects=[RTU] impact=3;
                 Report_false_data_to_CC prob=0.4 objects=[Control_center] impact=3;
 
@@ -95,7 +95,7 @@ Accidental_pollution objects=[Pipeline, Environment] impact=100;
                     CC_RTU_communication_lost prob=0.00046 objects=[RTU_CC_Link] impact=5;
                     CC_broken prob=0.000114 objects=[Control_center] impact=9;
                     Faulty_operator prob=0.00023 objects=[Operator] impact=3;
-                    Delayed_instructions prob=0.00023 objects=[RTU, RTU_CC_Link] cond=(RTU_CC_comm_encyption) impact=2;
+                    Delayed_instructions prob=0.00023 objects=[RTU, RTU_CC_Link] cond=(RTU_CC_comm_encryption) impact=2;
 
         Equipment_failure_to_react or Valves_on_demand_failure_to_close Pumps_on_demand_failure_to_stop;
         Equipment_failure_to_react objects=[Valves, Pumps] impact=0;
@@ -121,7 +121,7 @@ Operator;
 Environment;
 
 // Communication links
-RTU_CC_Link;
+RTU_CC_Link properties=[RTU_CC_comm_encryption];
 RTU_RTU_Link properties=[Wireless_RTU_RTU_link];
 Sensors_RTU_Link;
 [formulas]
