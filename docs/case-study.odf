@@ -62,7 +62,7 @@ Accidental_pollution objects=[Pipeline, Environment] impact=100;
             Pipeline_weak_material_break prob=0.0001 objects=[Pipeline] cond=(!Strong_material) impact=3;
 
         Accidental_waterhammer and False_reflex_signal High_pump_pressure;
-        Accidental_waterhammer cond=(!Remote_CC_override_enabled) objects=[Pipeline] impact=3;
+        Accidental_waterhammer cond=(!Remote_CC_override_enabled) objects=[RTU, Pipeline] impact=3;
             False_reflex_signal prob=0.00009 objects=[RTU, RTU_RTU_Link] impact=2.5;
             High_pump_pressure prob=0.0008 objects=[Pumps] impact=1;
 
@@ -112,8 +112,8 @@ Sensors properties=[Sensor_redundancy];
 
 // Control system
 SCADA_system has Control_center RTU Equipment;
-Control_center properties=[Remote_CC_override_enabled];
-RTU properties=[Reflex_action_enabled, Allow_firmware_rollback];
+Control_center;
+RTU properties=[Reflex_action_enabled, Allow_firmware_rollback, Remote_CC_override_enabled];
 Equipment has Sensors Valves Pumps; // Same equipment as in the pipeline
 
 Operator;
