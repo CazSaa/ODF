@@ -125,34 +125,16 @@ RTU_CC_Link properties=[RTU_CC_comm_encryption];
 RTU_RTU_Link properties=[Wireless_RTU_RTU_link];
 Sensors_RTU_Link;
 [formulas]
-// Example formula to check the probability of pollution due to attacks vs. accidents
-{Pipeline_integrity: 1, RTU_operational: 1, CC_operational: 1, Reflex_action_enabled: 1, Valves_operational: 1, Pumps_operational: 1, Sensors_operational: 1, RTU_CC_Link_operational: 1, RTU_RTU_Link_operational: 1, Sensors_RTU_Link_operational: 1}
-P(Attacker_causes_pollution) > P(Accidental_pollution);
+{Strong_material: 0, Reflex_action_enabled: 1, Allow_firmware_rollback: 0, Sensor_redundancy: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1}
+P(Accidental_pollution) > 0.5;
 
+{Strong_material: 0, Reflex_action_enabled: 1, Allow_firmware_rollback: 0, Sensor_redundancy: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1}
+P(Attacker_causes_pollution) > 0.5;
 
-
-// Check if implementing the reflex action reduces the overall risk
-{Pipeline_integrity: 1, RTU_operational: 1, CC_operational: 1, Valves_operational: 1, Pumps_operational: 1, Sensors_operational: 1, RTU_CC_Link_operational: 1, RTU_RTU_Link_operational: 1, Sensors_RTU_Link_operational: 1}
-P(Accidental_pollution) < 0.02 [Reflex_action_enabled: 1];
-
-
-
-// Find the minimal scenarios that can lead to pollution
-{Pipeline_integrity: 1, RTU_operational: 1, CC_operational: 1, Reflex_action_enabled: 1, Valves_operational: 1, Pumps_operational: 1, Sensors_operational: 1, RTU_CC_Link_operational: 1, RTU_RTU_Link_operational: 1, Sensors_RTU_Link_operational: 1}
-[[Attacker_causes_pollution || Accidental_pollution]];
-
-
-
-// Find the most risky component in the system
-MostRiskyA(RTU);
-MostRiskyF(Pipeline);
-
-
-
-// Find the optimal configuration to minimize risk
-OptimalConf(Control_system);
-
-
-
-// Calculate the maximum total risk for the pipeline
 MaxTotalRisk(Pipeline);
+MaxTotalRisk(RTU);
+MaxTotalRisk(Environment);
+
+MinTotalRisk(Pipeline);
+MinTotalRisk(RTU);
+MinTotalRisk(Environment);
