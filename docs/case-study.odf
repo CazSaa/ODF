@@ -45,7 +45,7 @@ Attacker_causes_pollution objects=[Pipeline, Environment] impact=100;
                 Falsify_instructions_sent_to_equipments prob=0.7 objects=[Equipment] impact=2;
 
     Waterhammer_attack and High_pumping_pressure_activation Valve_closing;
-    Waterhammer_attack objects=[Pipeline] impact=27;
+    Waterhammer_attack objects=[Pipeline, WAO] impact=27;
         High_pumping_pressure_activation prob=0.7 objects=[Pumps] impact=1.3;
         Valve_closing prob=0.7 objects=[Valves] impact=1;
 
@@ -124,17 +124,29 @@ Environment;
 RTU_CC_Link properties=[RTU_CC_comm_encryption];
 RTU_RTU_Link properties=[Wireless_RTU_RTU_link];
 Sensors_RTU_Link;
-[formulas]
-{Strong_material: 0, Reflex_action_enabled: 1, Allow_firmware_rollback: 0, Sensor_redundancy: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1}
-P(Accidental_pollution) > 0.5;
 
-{Strong_material: 0, Reflex_action_enabled: 1, Allow_firmware_rollback: 0, Sensor_redundancy: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1}
-P(Attacker_causes_pollution) > 0.5;
+// Pseudo-objects
+WAO; // Waterhammer attack object
+
+[formulas]
 
 MaxTotalRisk(Pipeline);
-MaxTotalRisk(RTU);
-MaxTotalRisk(Environment);
-
 MinTotalRisk(Pipeline);
-MinTotalRisk(RTU);
+
+MaxTotalRisk(Environment);
 MinTotalRisk(Environment);
+
+MaxTotalRisk(WAO);
+MinTotalRisk(WAO);
+
+{} P(Waterhammer_attack) < 1;
+
+// {Strong_material: 0, Reflex_action_enabled: 1, Allow_firmware_rollback: 0, Sensor_redundancy: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1, RTU_CC_comm_encryption: 0}
+// P(Accidental_pollution) > 0.5;
+//
+// {Strong_material: 0, Reflex_action_enabled: 1, Allow_firmware_rollback: 0, Sensor_redundancy: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1, RTU_CC_comm_encryption: 0}
+// P(Attacker_causes_pollution) > 0.5;
+//
+// MaxTotalRisk(RTU);
+//
+// MinTotalRisk(RTU);

@@ -86,6 +86,23 @@ def calc_node_prob(attack_tree: DisruptionTree,
     return probs[to_key(root.regular, is_complement)]
 
 
+def calc_prob(configuration, evidence, formula_tree, attack_tree, fault_tree,
+              object_graph) -> tuple[set[str], Fraction]:
+    l1_transformer = Layer1BDDInterpreter(
+        attack_tree, fault_tree, object_graph,
+        reordering=False)
+    bdd = l1_transformer.interpret(formula_tree)
+    needed_vars = l1_transformer.object_properties.intersection(bdd.support)
+    given_vars = set(configuration.keys())
+    missing_vars = needed_vars - given_vars
+    if len(missing_vars) > 0:
+        raise MissingConfigurationError(missing_vars,
+                                        type_name="object properties")
+    prob = l2_prob(attack_tree, fault_tree, bdd,
+                   configuration, evidence)
+    return needed_vars, prob
+
+
 # noinspection PyMethodMayBeStatic
 class Layer2Interpreter(Interpreter):
     def __init__(self,
@@ -120,21 +137,10 @@ class Layer2Interpreter(Interpreter):
         # Get evidence for this formula, if any
         evidence = self.prob_evidence_per_formula.get(formula_id, {})
 
-        l1_transformer = Layer1BDDInterpreter(
-            self.attack_tree, self.fault_tree, self.object_graph,
-            reordering=False)
-        bdd = l1_transformer.interpret(formula_tree)
-
-        needed_vars = l1_transformer.object_properties.intersection(bdd.support)
-        given_vars = set(self.configuration.keys())
-        missing_vars = needed_vars - given_vars
-        if len(missing_vars) > 0:
-            raise MissingConfigurationError(missing_vars,
-                                            type_name="object properties")
+        needed_vars, prob = calc_prob(
+            self.configuration, evidence, formula_tree, self.attack_tree,
+            self.fault_tree, self.object_graph)
         self.used_object_properties.update(needed_vars)
-
-        prob = l2_prob(self.attack_tree, self.fault_tree, bdd,
-                       self.configuration, evidence)
 
         if evidence:
             evidence_str = ", ".join(f"{k}={v}" for k, v in evidence.items())

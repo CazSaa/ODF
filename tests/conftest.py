@@ -435,3 +435,69 @@ def do_check_layer2(parse_rule):
                                   object_graph)
 
     return _do_check_layer2
+
+
+import re
+
+
+def _extract_section(file_content: str, section_name: str) -> str:
+    """Extract a section from the case study file content."""
+    # Find start of section using regex to match section header at start of line
+    pattern = f"^\\[{re.escape(section_name)}\\]"
+    match = re.search(pattern, file_content, re.MULTILINE)
+    if not match:
+        raise ValueError(f"Section {section_name} not found")
+
+    start_idx = match.start()
+
+    # Find start of next section using regex
+    next_section = re.search(r"^\[", file_content[start_idx + 1:], re.MULTILINE)
+
+    if next_section:
+        # Found another section, extract up to it
+        section_content = file_content[start_idx + len(
+            match.group()):start_idx + 1 + next_section.start()]
+    else:
+        # No next section, use rest of file
+        section_content = file_content[start_idx + len(match.group()):]
+
+    return section_content.strip()
+
+
+@pytest.fixture(scope="session")
+def case_study_content():
+    """Read the case study file content."""
+    case_study_path = Path(__file__).parent.parent / "docs" / "case-study.odf"
+    return case_study_path.read_text()
+
+
+@pytest.fixture
+def case_study_attack_tree_str(case_study_content):
+    """Attack tree from the case study."""
+    return _extract_section(case_study_content, "odg.attack_tree")
+
+
+@pytest.fixture
+def case_study_fault_tree_str(case_study_content):
+    """Fault tree from the case study."""
+    return _extract_section(case_study_content, "odg.fault_tree")
+
+
+@pytest.fixture
+def case_study_object_graph_str(case_study_content):
+    """Object graph from the case study."""
+    return _extract_section(case_study_content, "odg.object_graph")
+
+
+@pytest.fixture
+def case_study_models(case_study_attack_tree_str, case_study_fault_tree_str,
+                      case_study_object_graph_str,
+                      transform_disruption_tree_str,
+                      transform_object_graph_str):
+    """Returns the case study models as a list for unpacking."""
+    object_graph = transform_object_graph_str(case_study_object_graph_str)
+    attack_tree = transform_disruption_tree_str(case_study_attack_tree_str,
+                                                object_graph)
+    fault_tree = transform_disruption_tree_str(case_study_fault_tree_str,
+                                               object_graph)
+    return [attack_tree, fault_tree, object_graph]
