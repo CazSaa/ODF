@@ -55,7 +55,7 @@ toplevel Accidental_pollution;
 Accidental_pollution and Pipeline_rupture Protection_failure;
 Accidental_pollution objects=[Pipeline, Environment] impact=100;
     Pipeline_rupture or Pipeline_breaks_accidentally Accidental_waterhammer;
-    Pipeline_rupture objects=[Pipeline, Environment] impact=27;
+    Pipeline_rupture objects=[Pipeline] impact=27;
         Pipeline_breaks_accidentally or Pipeline_strong_material_break Pipeline_weak_material_break;
         Pipeline_breaks_accidentally objects=[Pipeline] impact=0;
             Pipeline_strong_material_break prob=0.00001 objects=[Pipeline] cond=(Strong_material) impact=2;
