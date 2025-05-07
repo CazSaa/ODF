@@ -95,7 +95,7 @@ Accidental_pollution objects=[Pipeline, Environment] impact=100;
                 No_reflex_action_activated_by_RTU or No_reflex_action_F Inter_RTU_communication_lost Faulty_sensor_measure;
                 No_reflex_action_activated_by_RTU objects=[RTU] impact=2;
                     No_reflex_action_F prob=1 objects=[RTU] cond=(!Reflex_action_enabled) impact=0;
-                    Inter_RTU_communication_lost prob=0.0007 objects=[RTU_RTU_Link] impact=4;
+                    Inter_RTU_communication_lost prob=0.0007 objects=[RTU_RTU_Link] cond=(Wireless_RTU_RTU_link) impact=4;
                     Faulty_sensor_measure or Faulty_sensor_measure_no_redundancy Faulty_sensor_measure_with_redundancy;
                     Faulty_sensor_measure objects=[Sensors] impact=0;
                         Faulty_sensor_measure_no_redundancy prob=0.00023 objects=[Sensors] cond=(!Sensor_redundancy) impact=2;
