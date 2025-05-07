@@ -809,7 +809,7 @@ def test_optimal_conf(caplog, paper_example_disconnected):
     attack_tree = paper_example_disconnected[0]
     attack_tree.nodes['EDLU']['data'].probability = Fraction('0.09')
 
-    paths = optimal_conf("House", {}, *paper_example_disconnected)
+    paths = optimal_conf("House", {}, *paper_example_disconnected)[0]
 
     assert _satisfying_path(paths, {"DF": False, "LP": False, "IU": False})
     assert _satisfying_path(paths, {"DF": False, "LP": False, "HS": True})

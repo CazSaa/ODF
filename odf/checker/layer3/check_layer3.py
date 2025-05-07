@@ -311,7 +311,7 @@ def optimal_conf(object_name: str,
                  evidence: dict[str, bool],
                  attack_tree: DisruptionTree,
                  fault_tree: DisruptionTree,
-                 object_graph: ObjectGraph) -> Optional[list[dict[str, bool]]]:
+                 object_graph: ObjectGraph) -> Optional[tuple[list[dict[str, bool]], float]]:
     mt_sum = configs_to_risk_mtbdd(object_name, evidence, attack_tree,
                                    fault_tree, object_graph)
     if mt_sum is None:
@@ -330,7 +330,7 @@ def optimal_conf(object_name: str,
         f"{'s' if len(paths) > 1 else ''} with "
         f"{'the same ' if len(paths) > 1 else 'a '}risk value of {format_risk(min_term)}")
 
-    return paths
+    return paths, min_term
 
 
 def check_layer3_query(formula: Tree,
@@ -368,7 +368,7 @@ def check_layer3_query(formula: Tree,
             print(f"  Minimum Total Risk: {format_risk(result)}")
         case "optimal_conf":
             result = optimal_conf(object_name, evidence, attack_tree,
-                                  fault_tree, object_graph)
+                                  fault_tree, object_graph)[0]
             print("  Optimal Configurations:")
             for config in result:
                 print(f"    - {format_config(config)}")
