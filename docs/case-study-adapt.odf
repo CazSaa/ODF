@@ -187,3 +187,7 @@ OptimalConf(APO);
 
 OptimalConf(ACPO) [Remote_CC_override_enabled: 1];
 OptimalConf(APO) [Remote_CC_override_enabled: 0];
+
+OptimalConf(ACPO) [Allow_firmware_rollback: 1];
+OptimalConf(APO) [Allow_firmware_rollback: 0];
+
