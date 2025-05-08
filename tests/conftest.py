@@ -471,10 +471,24 @@ def case_study_content():
     return case_study_path.read_text()
 
 
+@pytest.fixture(scope="session")
+def alternative_case_study_content():
+    """Read the alternative case study file content."""
+    case_study_path = Path(
+        __file__).parent.parent / "docs" / "case-study-adapt.odf"
+    return case_study_path.read_text()
+
+
 @pytest.fixture
 def case_study_attack_tree_str(case_study_content):
     """Attack tree from the case study."""
     return _extract_section(case_study_content, "odg.attack_tree")
+
+
+@pytest.fixture
+def alternative_case_study_attack_tree_str(alternative_case_study_content):
+    """Alternative attack tree from the case study with adapted Waterhammer attack."""
+    return _extract_section(alternative_case_study_content, "odg.attack_tree")
 
 
 @pytest.fixture
@@ -484,9 +498,21 @@ def case_study_fault_tree_str(case_study_content):
 
 
 @pytest.fixture
+def alternative_case_study_fault_tree_str(alternative_case_study_content):
+    """Alternative fault tree from the case study with adapted Waterhammer attack."""
+    return _extract_section(alternative_case_study_content, "odg.fault_tree")
+
+
+@pytest.fixture
 def case_study_object_graph_str(case_study_content):
     """Object graph from the case study."""
     return _extract_section(case_study_content, "odg.object_graph")
+
+
+@pytest.fixture
+def alternative_case_study_object_graph_str(alternative_case_study_content):
+    """Object graph from the case study with adapted Waterhammer attack."""
+    return _extract_section(alternative_case_study_content, "odg.object_graph")
 
 
 @pytest.fixture
@@ -500,4 +526,21 @@ def case_study_models(case_study_attack_tree_str, case_study_fault_tree_str,
                                                 object_graph)
     fault_tree = transform_disruption_tree_str(case_study_fault_tree_str,
                                                object_graph)
+    return [attack_tree, fault_tree, object_graph]
+
+
+@pytest.fixture
+def alternative_case_study_models(
+        alternative_case_study_attack_tree_str,
+        alternative_case_study_fault_tree_str,
+        alternative_case_study_object_graph_str,
+        transform_disruption_tree_str,
+        transform_object_graph_str):
+    """Returns the alternative case study models as a list for unpacking."""
+    object_graph = transform_object_graph_str(
+        alternative_case_study_object_graph_str)
+    attack_tree = transform_disruption_tree_str(
+        alternative_case_study_attack_tree_str, object_graph)
+    fault_tree = transform_disruption_tree_str(
+        alternative_case_study_fault_tree_str, object_graph)
     return [attack_tree, fault_tree, object_graph]

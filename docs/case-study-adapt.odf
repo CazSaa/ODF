@@ -1,0 +1,189 @@
+[odg.attack_tree]
+toplevel Attacker_causes_pollution;
+Attacker_causes_pollution and Attack_protection_system Waterhammer_attack;
+Attacker_causes_pollution objects=[Pipeline, Environment, ACPO] impact=100;
+    Attack_protection_system and Understand_system_operation Protection_deactivation;
+    Attack_protection_system objects=[SCADA_system] impact=1;
+        Understand_system_operation prob=0.0208 objects=[SCADA_system] impact=1;
+
+        Protection_deactivation or Attack_preparation1 Attack_preparation2 Attack_preparation3 Falsify_RTU_output;
+        Protection_deactivation objects=[SCADA_system] impact=10;
+            Attack_preparation1 and Access_to_CC Falsify_CC_instructions Deactivate_or_override_reflex_action;
+            Attack_preparation1 objects=[Control_center, RTU] impact=0;
+                Access_to_CC prob=0.005 objects=[Control_center] impact=8;
+                Falsify_CC_instructions prob=0.4 objects=[Control_center] impact=3;
+                Deactivate_or_override_reflex_action or Override_reflex_action Deactivate_reflex_action;
+                Deactivate_or_override_reflex_action objects=[RTU] impact=3;
+                    Override_reflex_action prob=0.99 objects=[RTU] cond=(Remote_CC_override_enabled) impact=1;
+                    Deactivate_reflex_action or No_reflex_action_A Jam_com_between_RTUs;
+                    Deactivate_reflex_action objects=[RTU] impact=2;
+                        No_reflex_action_A prob=1 objects=[RTU] cond=(!Reflex_action_enabled) impact=0;
+                        Jam_com_between_RTUs prob=0.7 objects=[RTU, RTU_RTU_Link] cond=(Wireless_RTU_RTU_link) impact=3;
+
+            Attack_preparation2 and Access_via_RTU_CC_link Deactivate_or_override_reflex_action Send_false_instructions_to_RTUs Report_false_data_to_CC;
+            Attack_preparation2 objects=[RTU, Control_center, RTU_CC_Link] impact=0;
+                Access_via_RTU_CC_link prob=0.0012 objects=[RTU_CC_Link] cond=(!RTU_CC_comm_encrypted) impact=6;
+                Send_false_instructions_to_RTUs prob=0.4 objects=[RTU] impact=3;
+                Report_false_data_to_CC prob=0.4 objects=[Control_center] impact=3;
+
+            Attack_preparation3 and Access_via_sensors_RTU_link Deactivate_reflex_action Falsify_sensors_measures;
+            Attack_preparation3 objects=[RTU, Sensors, Sensors_RTU_Link] impact=0;
+                Access_via_sensors_RTU_link prob=0.0008 objects=[Sensors_RTU_Link] impact=3;
+                Falsify_sensors_measures prob=0.4 objects=[Sensors] impact=3;
+
+            Falsify_RTU_output and Access_to_RTU Falsify_data_sent_to_other_RTUs Falsify_data_sent_to_CC Falsify_instructions_sent_to_equipments;
+            Falsify_RTU_output objects=[Control_center, Equipment, RTU] impact=3;
+                Access_to_RTU or Hack_into_RTU_firmware Exploit_old_firmware_vulnerability;
+                Access_to_RTU objects=[RTU] impact=3;
+                    Hack_into_RTU_firmware prob=0.0008 objects=[RTU] impact=4;
+                    Exploit_old_firmware_vulnerability and Rollback_firmware Execute_exploit;
+                    Exploit_old_firmware_vulnerability objects=[RTU] impact=3;
+                        Rollback_firmware prob=0.0150 objects=[RTU] cond=(Allow_firmware_rollback) impact=1;
+                        Execute_exploit prob=0.9 objects=[RTU] impact=1;
+                Falsify_data_sent_to_other_RTUs prob=0.6 objects=[RTU] impact=2;
+                Falsify_data_sent_to_CC prob=0.6 objects=[Control_center] impact=3;
+                Falsify_instructions_sent_to_equipments prob=0.7 objects=[Equipment] impact=2;
+
+    // BEGIN ORIGINAL_WATERHAMMER
+    // Waterhammer_attack and High_pumping_pressure_activation Valve_closing;
+    // Waterhammer_attack objects=[Pipeline, WAO] impact=27;
+    //     High_pumping_pressure_activation prob=0.7 objects=[Pumps] impact=1.3;
+    //     Valve_closing prob=0.7 objects=[Valves] impact=1;
+    // END ORIGINAL_WATERHAMMER
+
+    // BEGIN ADAPTED_WATERHAMMER
+    Waterhammer_attack and High_pumping_pressure_activation Valve_closing Instruct_RTU;
+    Waterhammer_attack objects=[Pipeline, WAO] impact=27;
+        High_pumping_pressure_activation prob=0.7 objects=[Pumps] impact=1.3;
+        Valve_closing prob=0.7 objects=[Valves] impact=1;
+        Instruct_RTU or Access_to_CC Access_via_RTU_CC_link Access_to_RTU;
+        Instruct_RTU objects=[RTU] impact=0;
+    // END ADAPTED_WATERHAMMER
+
+
+[odg.fault_tree]
+toplevel Accidental_pollution;
+Accidental_pollution and Pipeline_rupture Protection_failure;
+Accidental_pollution objects=[Pipeline, Environment, APO] impact=100;
+    Pipeline_rupture or Pipeline_breaks_accidentally Accidental_waterhammer;
+    Pipeline_rupture objects=[Pipeline] impact=27;
+        Pipeline_breaks_accidentally or Pipeline_strong_material_break Pipeline_weak_material_break;
+        Pipeline_breaks_accidentally objects=[Pipeline] impact=0;
+            Pipeline_strong_material_break prob=0.00001 objects=[Pipeline] cond=(Strong_material) impact=2;
+            Pipeline_weak_material_break prob=0.0001 objects=[Pipeline] cond=(!Strong_material) impact=3;
+
+        Accidental_waterhammer and False_reflex_signal High_pump_pressure;
+        Accidental_waterhammer cond=(!Remote_CC_override_enabled) objects=[RTU, Pipeline] impact=3;
+            False_reflex_signal prob=0.00009 objects=[RTU, RTU_RTU_Link] impact=2.5;
+            High_pump_pressure prob=0.0008 objects=[Pumps] impact=1;
+
+    Protection_failure or No_instructions_from_RTU Equipment_failure_to_react;
+    Protection_failure objects=[SCADA_system] impact=10;
+        No_instructions_from_RTU or RTU_broken No_RTU_reaction;
+        No_instructions_from_RTU objects=[RTU] impact=3;
+            RTU_broken or RTU_Hardware_Broken Firmware_bug;
+            RTU_broken objects=[RTU] impact=2.5;
+                RTU_Hardware_Broken prob=0.000138 objects=[RTU] impact=3;
+
+                Firmware_bug or Unknown_firmware_bug Bug_in_new_firmware;
+                Firmware_bug objects=[RTU] impact=0;
+                    Unknown_firmware_bug prob=0.0001 objects=[RTU] impact=3;
+                    Bug_in_new_firmware prob=0.05 objects=[RTU] cond=(!Allow_firmware_rollback) impact=1.5;
+
+            No_RTU_reaction and No_reflex_action_activated_by_RTU No_instruction_from_CC;
+            No_RTU_reaction objects=[RTU] impact=3;
+                No_reflex_action_activated_by_RTU or No_reflex_action_F Inter_RTU_communication_lost Faulty_sensor_measure;
+                No_reflex_action_activated_by_RTU objects=[RTU] impact=2;
+                    No_reflex_action_F prob=1 objects=[RTU] cond=(!Reflex_action_enabled) impact=0;
+                    Inter_RTU_communication_lost prob=0.0007 objects=[RTU_RTU_Link] cond=(Wireless_RTU_RTU_link) impact=4;
+                    Faulty_sensor_measure or Faulty_sensor_measure_no_redundancy Faulty_sensor_measure_with_redundancy;
+                    Faulty_sensor_measure objects=[Sensors] impact=0;
+                        Faulty_sensor_measure_no_redundancy prob=0.00023 objects=[Sensors] cond=(!Sensor_redundancy) impact=2;
+                        Faulty_sensor_measure_with_redundancy prob=0.00001 objects=[Sensors] cond=(Sensor_redundancy) impact=2;
+
+                No_instruction_from_CC or CC_RTU_communication_lost CC_broken Faulty_operator Delayed_instructions;
+                No_instruction_from_CC objects=[RTU, Control_center] impact=3;
+                    CC_RTU_communication_lost prob=0.00046 objects=[RTU_CC_Link] impact=5;
+                    CC_broken prob=0.000114 objects=[Control_center] impact=9;
+                    Faulty_operator prob=0.00023 objects=[Operator] impact=3;
+                    Delayed_instructions prob=0.00023 objects=[RTU, RTU_CC_Link] cond=(RTU_CC_comm_encrypted) impact=2;
+
+        Equipment_failure_to_react or Valves_on_demand_failure_to_close Pumps_on_demand_failure_to_stop;
+        Equipment_failure_to_react objects=[Valves, Pumps] impact=0;
+            Valves_on_demand_failure_to_close prob=0.00005 objects=[Valves] impact=3;
+            Pumps_on_demand_failure_to_stop prob=0.00001 objects=[Pumps] impact=2;
+
+
+[odg.object_graph]
+// Physical pipeline and components
+Pipeline has Pumps Valves Sensors;
+Pipeline properties=[Strong_material];
+Sensors properties=[Sensor_redundancy];
+
+
+// Control system
+SCADA_system has Control_center RTU Equipment;
+Control_center;
+RTU properties=[Reflex_action_enabled, Allow_firmware_rollback, Remote_CC_override_enabled];
+Equipment has Sensors Valves Pumps; // Same equipment as in the pipeline
+
+Operator;
+
+Environment;
+
+// Communication links
+RTU_CC_Link properties=[RTU_CC_comm_encrypted];
+RTU_RTU_Link properties=[Wireless_RTU_RTU_link];
+Sensors_RTU_Link;
+
+// Pseudo-objects
+WAO; // Waterhammer attack object
+ACPO; // Attacker causes pollution object
+APO; // Accidental pollution object
+
+[formulas]
+
+MaxTotalRisk(Pipeline);
+MinTotalRisk(Pipeline);
+
+MaxTotalRisk(Environment);
+MinTotalRisk(Environment);
+
+MaxTotalRisk(WAO);
+MinTotalRisk(WAO);
+
+{Reflex_action_enabled: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1, Allow_firmware_rollback: 1, RTU_CC_comm_encrypted: 0}
+P(Attacker_causes_pollution) < 1;
+
+{Reflex_action_enabled: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1, Allow_firmware_rollback: 1, RTU_CC_comm_encrypted: 0}
+P(Waterhammer_attack) < 1;
+
+{Reflex_action_enabled: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1, Allow_firmware_rollback: 1, RTU_CC_comm_encrypted: 0}
+P(Attack_preparation3) < 1;
+
+{Reflex_action_enabled: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1, Allow_firmware_rollback: 1, RTU_CC_comm_encrypted: 0}
+P(Attack_preparation1) < 1
+&&
+P(Attack_preparation2) < 1
+&&
+P(Attack_preparation3) < 1
+&&
+P(Falsify_RTU_output) < 1
+&&
+P(Protection_deactivation) < 1;
+
+OptimalConf(Environment);
+OptimalConf(Pipeline);
+OptimalConf(SCADA_system);
+OptimalConf(RTU);
+
+OptimalConf(Environment) [Allow_firmware_rollback: 1];
+OptimalConf(Pipeline) [Allow_firmware_rollback: 1];
+OptimalConf(SCADA_system) [Allow_firmware_rollback: 0];
+OptimalConf(RTU) [Allow_firmware_rollback: 0];
+
+OptimalConf(ACPO);
+OptimalConf(APO);
+
+OptimalConf(ACPO) [Remote_CC_override_enabled: 1];
+OptimalConf(APO) [Remote_CC_override_enabled: 0];
