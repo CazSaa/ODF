@@ -350,7 +350,7 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     add_cmd("EnvironmentMinTotalRisk", orig_environment_min_total_risk)
     add_cmd("EnvironmentFactorIncrease", orig_environment_factor_increase, precision=2)
 
-    add_cmd("WaterhammerAttackImpact", orig_waterhammer_attack_impact)
+    add_cmd("WaterhammerAttackImpact", orig_waterhammer_attack_impact, precision=0)
     add_cmd("WaterhammerAttackProbability", orig_waterhammer_attack_prob, precision=2)
     add_cmd("WaterhammerAttackRisk", orig_waterhammer_attack_risk, precision=2)
     add_cmd("WaterhammerPipelineMinRiskPercentage", orig_waterhammer_contrib_min_risk_percent)
