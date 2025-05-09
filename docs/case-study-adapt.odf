@@ -44,21 +44,12 @@ Attacker_causes_pollution objects=[Pipeline, Environment, ACPO] impact=100;
                 Falsify_data_sent_to_CC prob=0.6 objects=[Control_center] impact=3;
                 Falsify_instructions_sent_to_equipments prob=0.7 objects=[Equipment] impact=2;
 
-    // BEGIN ORIGINAL_WATERHAMMER
-    // Waterhammer_attack and High_pumping_pressure_activation Valve_closing;
-    // Waterhammer_attack objects=[Pipeline, WAO] impact=27;
-    //     High_pumping_pressure_activation prob=0.7 objects=[Pumps] impact=1.3;
-    //     Valve_closing prob=0.7 objects=[Valves] impact=1;
-    // END ORIGINAL_WATERHAMMER
-
-    // BEGIN ADAPTED_WATERHAMMER
     Waterhammer_attack and High_pumping_pressure_activation Valve_closing Instruct_RTU;
     Waterhammer_attack objects=[Pipeline, WAO] impact=27;
         High_pumping_pressure_activation prob=0.7 objects=[Pumps] impact=1.3;
         Valve_closing prob=0.7 objects=[Valves] impact=1;
         Instruct_RTU or Access_to_CC Access_via_RTU_CC_link Access_to_RTU;
         Instruct_RTU objects=[RTU] impact=0;
-    // END ADAPTED_WATERHAMMER
 
 
 [odg.fault_tree]
@@ -149,18 +140,6 @@ MinTotalRisk(Pipeline);
 MaxTotalRisk(Environment);
 MinTotalRisk(Environment);
 
-MaxTotalRisk(WAO);
-MinTotalRisk(WAO);
-
-{Reflex_action_enabled: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1, Allow_firmware_rollback: 1, RTU_CC_comm_encrypted: 0}
-P(Attacker_causes_pollution) < 1;
-
-{Reflex_action_enabled: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1, Allow_firmware_rollback: 1, RTU_CC_comm_encrypted: 0}
-P(Waterhammer_attack) < 1;
-
-{Reflex_action_enabled: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1, Allow_firmware_rollback: 1, RTU_CC_comm_encrypted: 0}
-P(Attack_preparation3) < 1;
-
 {Reflex_action_enabled: 0, Remote_CC_override_enabled: 1, Wireless_RTU_RTU_link: 1, Allow_firmware_rollback: 1, RTU_CC_comm_encrypted: 0}
 P(Attack_preparation1) < 1
 &&
@@ -171,6 +150,9 @@ P(Attack_preparation3) < 1
 P(Falsify_RTU_output) < 1
 &&
 P(Protection_deactivation) < 1;
+
+MaxTotalRisk(WAO);
+MinTotalRisk(WAO);
 
 OptimalConf(Environment);
 OptimalConf(Pipeline);
