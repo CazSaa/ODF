@@ -8,7 +8,7 @@ from lark.visitors import Interpreter, visit_children_decor
 from odf.checker.exceptions import MissingNodeProbabilityError, \
     MissingConfigurationError
 from odf.checker.layer1.layer1_bdd import Layer1BDDInterpreter
-from odf.core.constants import COLOR_GRAY
+from odf.core.constants import COLOR_GRAY, COLOR_RESET
 from odf.core.types import Configuration
 from odf.models.disruption_tree import DisruptionTree
 from odf.models.object_graph import ObjectGraph
@@ -145,10 +145,10 @@ class Layer2Interpreter(Interpreter):
         if evidence:
             evidence_str = ", ".join(f"{k}={v}" for k, v in evidence.items())
             logger.info(
-                f"P({reconstruct(formula_tree)}) with evidence [{evidence_str}] = {prob} (~{format_risk(float(prob))}{COLOR_GRAY})")
+                f"P({reconstruct(formula_tree)}) with evidence [{evidence_str}] = {prob} (~{format_risk(float(prob))}{COLOR_GRAY}){COLOR_RESET}")
         else:
             logger.info(
-                f"P({reconstruct(formula_tree)}) = {prob} (~{format_risk(float(prob))}{COLOR_GRAY})")
+                f"P({reconstruct(formula_tree)}) = {prob} (~{format_risk(float(prob))}{COLOR_GRAY}){COLOR_RESET}")
 
         match relation:
             case "<":

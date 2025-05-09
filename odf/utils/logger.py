@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from odf.core.constants import COLOR_BLUE, COLOR_YELLOW, COLOR_RED, COLOR_GRAY, \
     COLOR_RESET
@@ -37,7 +38,7 @@ class ColorFormatter(logging.Formatter):
 logger = logging.getLogger("odf")
 
 # Set up console handler with custom formatter
-console_handler = logging.StreamHandler()
+console_handler = logging.StreamHandler(stream=sys.stdout)
 formatter = ColorFormatter('%(levelname)s: %(message)s')
 console_handler.setFormatter(formatter)
 
