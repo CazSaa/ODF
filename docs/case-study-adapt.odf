@@ -44,12 +44,10 @@ Attacker_causes_pollution objects=[Pipeline, Environment, ACPO] impact=100;
                 Falsify_data_sent_to_CC prob=0.6 objects=[Control_center] impact=3;
                 Falsify_instructions_sent_to_equipments prob=0.7 objects=[Equipment] impact=2;
 
-    Waterhammer_attack and High_pumping_pressure_activation Valve_closing Instruct_RTU;
+    Waterhammer_attack and High_pumping_pressure_activation Valve_closing Attack_protection_system;
     Waterhammer_attack objects=[Pipeline, WAO] impact=27;
         High_pumping_pressure_activation prob=0.7 objects=[Pumps] impact=1.3;
         Valve_closing prob=0.7 objects=[Valves] impact=1;
-        Instruct_RTU or Access_to_CC Access_via_RTU_CC_link Access_to_RTU;
-        Instruct_RTU objects=[RTU] impact=0;
 
 
 [odg.fault_tree]
