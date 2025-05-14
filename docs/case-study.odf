@@ -90,7 +90,7 @@ Accidental_pollution objects=[Pipeline, Environment] impact=100;
                         Faulty_sensor_measure_no_redundancy prob=0.00023 objects=[Sensors] cond=(!Sensor_redundancy) impact=2;
                         Faulty_sensor_measure_with_redundancy prob=0.00001 objects=[Sensors] cond=(Sensor_redundancy) impact=2;
 
-                No_instruction_from_CC or CC_RTU_communication_lost CC_broken Faulty_operator Delayed_instructions;
+                No_instruction_from_CC or CC_RTU_communication_lost CC_broken Faulty_operator Delayed_instructions Faulty_sensor_measure;
                 No_instruction_from_CC objects=[RTU, Control_center] impact=3;
                     CC_RTU_communication_lost prob=0.00046 objects=[RTU_CC_Link] impact=5;
                     CC_broken prob=0.000114 objects=[Control_center] impact=9;
