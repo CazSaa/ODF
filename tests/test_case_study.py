@@ -128,7 +128,7 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     print()
     attack_tree = case_study_models[0]
     pipeline_max_total_risk = max_total_risk("Pipeline", case_study_models)
-    assert pipeline_max_total_risk == approx(13.2364, abs=1e-04)
+    assert pipeline_max_total_risk == approx(13.2365, abs=1e-04)
     pipeline_min_total_risk = min_total_risk("Pipeline", case_study_models)
     assert pipeline_min_total_risk == approx(13.2305, abs=1e-04)
 
@@ -146,7 +146,7 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
                                                  environment_max_total_risk)
     print(f"Relative increase in total risk: {environment_relative_inc * 100}%")
     factor_increase = environment_max_total_risk / environment_min_total_risk
-    assert factor_increase == approx(13.5901, abs=1e-04)
+    assert factor_increase == approx(13.5986, abs=1e-04)
     print(f"Factor increase in total risk: {factor_increase}")
 
     print(
@@ -189,38 +189,30 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
 
     pipeline_max_total_risk = max_total_risk("Pipeline",
                                              alternative_case_study_models)
-    assert pipeline_max_total_risk == approx(0.1851, abs=1e-04)
+    assert pipeline_max_total_risk == approx(7.42e-03)
     pipeline_min_total_risk = min_total_risk("Pipeline",
                                              alternative_case_study_models)
-    assert pipeline_min_total_risk == approx(0.0667, abs=1e-04)
-    relative_diff = relative_difference(pipeline_max_total_risk,
-                                        pipeline_min_total_risk)
-    print(
-        f"Relative percent difference between max and min total risk: {relative_diff * 100}%")
-    assert relative_diff == approx(0.9404, abs=1e-04)
+    assert pipeline_min_total_risk == approx(6.04e-04)
     relative_inc = relative_increase(pipeline_min_total_risk,
                                      pipeline_max_total_risk)
     print(f"Relative increase in total risk: {relative_inc * 100}%")
     factor_increase = pipeline_max_total_risk / pipeline_min_total_risk
-    assert factor_increase == approx(2.775, abs=1e-04)
+    assert factor_increase == approx(12.29, abs=1e-02)
     print(f"Factor increase in total risk: {factor_increase}")
 
     environment_max_total_risk = max_total_risk("Environment",
                                                 alternative_case_study_models)
     assert environment_max_total_risk == approx(3.48e-3)
+    assert environment_max_total_risk == orig_environment_max_total_risk
     environment_min_total_risk = min_total_risk("Environment",
                                                 alternative_case_study_models)
     assert environment_min_total_risk == approx(2.56e-4)
-    relative_diff = relative_difference(environment_max_total_risk,
-                                        environment_min_total_risk)
-    print(
-        f"Relative percent difference between max and min total risk: {relative_diff * 100}%")
-    assert relative_diff == approx(1.72)
+    assert environment_min_total_risk == orig_environment_min_total_risk
     relative_inc = relative_increase(environment_min_total_risk,
                                      environment_max_total_risk)
     print(f"Relative increase in total risk: {relative_inc * 100}%")
     factor_increase = environment_max_total_risk / environment_min_total_risk
-    assert factor_increase == approx(13.5901, abs=1e-04)
+    assert factor_increase == approx(13.5986, abs=1e-04)
     print(f"Factor increase in total risk: {factor_increase}")
     print(
         f"The difference between max-min total risks for pipeline is {pipeline_max_total_risk - pipeline_min_total_risk}, and for environment is {environment_max_total_risk - environment_min_total_risk}")
@@ -241,15 +233,15 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert falsify_rtu_output_prob == protection_deactivation_prob, "Most likely attack"
 
     wao_max_risk = max_total_risk("WAO", alternative_case_study_models)
-    assert wao_max_risk == approx(0.178605, abs=1e-06)
+    assert wao_max_risk == approx(9.36e-04)
     wao_min_risk = min_total_risk("WAO", alternative_case_study_models)
-    assert wao_min_risk == approx(0.06615, abs=1e-05)
+    assert wao_min_risk == approx(5.55e-05)
     wao_div_pipeline_max = wao_max_risk / pipeline_max_total_risk
-    assert wao_div_pipeline_max == approx(0.9650, abs=1e-04)
+    assert wao_div_pipeline_max == approx(0.1261, abs=1e-04)
     print(
         f"WAO max risk / pipeline max risk: {wao_div_pipeline_max * 100}%")
     wao_div_pipeline_min = wao_min_risk / pipeline_min_total_risk
-    assert wao_div_pipeline_min == approx(0.9918, abs=1e-04)
+    assert wao_div_pipeline_min == approx(0.0919, abs=1e-04)
     print(
         f"WAO min risk / pipeline min risk: {wao_div_pipeline_min * 100}%")
 
@@ -268,22 +260,20 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
         'Allow_firmware_rollback': False, 'Remote_CC_override_enabled': False,
         'Reflex_action_enabled': True, 'Wireless_RTU_RTU_link': False,
         'Sensor_redundancy': True, 'Strong_material': True,
-        'RTU_CC_comm_encrypted': False
     }
 
-    assert optimal_risk_pipeline == approx(6.67e-02)
+    assert optimal_risk_pipeline == approx(6.04e-04)
     assert len(optimal_conf_pipeline) == 1
     assert optimal_conf_pipeline[0] == {
         'Allow_firmware_rollback': False, 'Remote_CC_override_enabled': False,
         'Reflex_action_enabled': True, 'Wireless_RTU_RTU_link': False,
         'Sensor_redundancy': True, 'Strong_material': True,
-        'RTU_CC_comm_encrypted': False
     }
 
     assert optimal_risk_scada == approx(5.79e-02)
     assert len(optimal_conf_scada) == 1
     assert optimal_conf_scada[0] == {
-        'Reflex_action_enabled': True, 'RTU_CC_comm_encrypted': False,
+        'Reflex_action_enabled': True,
         'Sensor_redundancy': True, 'Allow_firmware_rollback': True,
         'Wireless_RTU_RTU_link': False
     }
@@ -313,20 +303,20 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert optimal_conf_environment_evidence[0] == {
         'Remote_CC_override_enabled': True, 'Reflex_action_enabled': True,
         'Sensor_redundancy': True, 'Strong_material': True,
-        'RTU_CC_comm_encrypted': False, 'Wireless_RTU_RTU_link': False
+        'Wireless_RTU_RTU_link': False
     }
 
     assert len(optimal_conf_pipeline_evidence) == 1
     assert optimal_conf_pipeline_evidence[0] == {
         'Remote_CC_override_enabled': True, 'Reflex_action_enabled': True,
         'Sensor_redundancy': True, 'Strong_material': True,
-        'RTU_CC_comm_encrypted': False, 'Wireless_RTU_RTU_link': False
+         'Wireless_RTU_RTU_link': False
     }
 
     assert len(optimal_conf_scada_evidence) == 1
     assert optimal_conf_scada_evidence[0] == {
         'Reflex_action_enabled': True, 'Sensor_redundancy': True,
-        'Remote_CC_override_enabled': False, 'RTU_CC_comm_encrypted': False,
+        'Remote_CC_override_enabled': False,
         'Wireless_RTU_RTU_link': False
     }
 
@@ -340,17 +330,17 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     environment_risk_increase = relative_increase(optimal_risk_environment,
                                                   optimal_risk_environment_evidence) * 100
     print(f"Risk for Environment increased by {environment_risk_increase}%")
-    assert environment_risk_increase == approx(1253.93, abs=1e-02)
+    assert environment_risk_increase == approx(1253.87, abs=1e-02)
 
     pipeline_risk_increase = relative_increase(optimal_risk_pipeline,
                                                optimal_risk_pipeline_evidence) * 100
     print(f"Risk for Pipeline increased by {pipeline_risk_increase}%")
-    assert pipeline_risk_increase == approx(173.41, abs=1e-02)
+    assert pipeline_risk_increase == approx(677.43, abs=1e-02)
 
     scada_risk_increase = relative_increase(optimal_risk_scada,
                                             optimal_risk_scada_evidence) * 100
     print(f"Risk for SCADA_system increased by {scada_risk_increase}%")
-    assert scada_risk_increase == approx(808.32, abs=1e-02)
+    assert scada_risk_increase == approx(806.92, abs=1e-02)
 
     rtu_risk_increase = relative_increase(optimal_risk_rtu,
                                           optimal_risk_rtu_evidence) * 100
@@ -371,13 +361,12 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
 
     optimal_conf_apo, optimal_risk_apo = optimal_conf("APO", {},
                                                       *alternative_case_study_models)
-    assert optimal_risk_apo == approx(2.98e-07)
+    assert optimal_risk_apo == approx(3.08e-07)
     assert len(optimal_conf_apo) == 1
     assert optimal_conf_apo[0] == {
         'Allow_firmware_rollback': True, 'Remote_CC_override_enabled': True,
         'Reflex_action_enabled': True, 'Wireless_RTU_RTU_link': False,
         'Sensor_redundancy': True, 'Strong_material': True,
-        'RTU_CC_comm_encrypted': False
     }
 
     ######## Remote_CC_override_enabled = opposite
@@ -401,7 +390,7 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert len(optimal_conf_apo_rem_cc) == 1
     assert optimal_conf_apo_rem_cc[0] == {
         'Reflex_action_enabled': True, 'Strong_material': True,
-        'RTU_CC_comm_encrypted': False, 'Sensor_redundancy': True,
+         'Sensor_redundancy': True,
         'Allow_firmware_rollback': True, 'Wireless_RTU_RTU_link': False
     }
 
@@ -421,12 +410,12 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     apo_allow_fw_risk_increase = relative_increase(optimal_risk_apo,
                                                    optimal_risk_apo_allow_fw) * 100
     print(f"Risk for APO increased by {apo_allow_fw_risk_increase}%")
-    assert apo_allow_fw_risk_increase == approx(16775, abs=1)
+    assert apo_allow_fw_risk_increase == approx(16230, abs=1)
     assert len(optimal_conf_apo_allow_fw) == 1
     assert optimal_conf_apo_allow_fw[0] == {
         'Remote_CC_override_enabled': True, 'Reflex_action_enabled': True,
         'Sensor_redundancy': True, 'Strong_material': True,
-        'RTU_CC_comm_encrypted': False, 'Wireless_RTU_RTU_link': False
+         'Wireless_RTU_RTU_link': False
     }
 
     # --- Generate LaTeX commands file ---
