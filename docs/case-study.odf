@@ -87,8 +87,8 @@ Accidental_pollution objects=[Pipeline, Environment] impact=100;
                     Inter_RTU_communication_lost prob=0.0007 objects=[RTU_RTU_Link] cond=(Wireless_RTU_RTU_link) impact=4;
                     Faulty_sensor_measure or Faulty_sensor_measure_no_redundancy Faulty_sensor_measure_with_redundancy;
                     Faulty_sensor_measure objects=[Sensors] impact=0;
-                        Faulty_sensor_measure_no_redundancy prob=0.00023 objects=[Sensors] cond=(!Sensor_redundancy) impact=2;
-                        Faulty_sensor_measure_with_redundancy prob=0.00001 objects=[Sensors] cond=(Sensor_redundancy) impact=2;
+                        Faulty_sensor_measure_no_redundancy prob=0.00023 objects=[Sensors] cond=(!Redundant_sensors) impact=2;
+                        Faulty_sensor_measure_with_redundancy prob=0.00001 objects=[Sensors] cond=(Redundant_sensors) impact=2;
 
                 No_instruction_from_CC or CC_RTU_communication_lost CC_broken Faulty_operator Delayed_instructions Faulty_sensor_measure;
                 No_instruction_from_CC objects=[RTU, Control_center] impact=3;
@@ -107,7 +107,7 @@ Accidental_pollution objects=[Pipeline, Environment] impact=100;
 // Physical pipeline and components
 Pipeline has Pumps Valves Sensors;
 Pipeline properties=[Strong_material];
-Sensors properties=[Sensor_redundancy];
+Sensors properties=[Redundant_sensors];
 
 
 // Control system

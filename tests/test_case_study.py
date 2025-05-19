@@ -48,7 +48,7 @@ def case_study_configuration_str():
         Strong_material: 0,
         Reflex_action_enabled: 1,
         Allow_firmware_rollback: 0,
-        Sensor_redundancy: 0,
+        Redundant_sensors: 0,
         Remote_CC_override_enabled: 1,
         Wireless_RTU_RTU_link: 1,
         RTU_CC_comm_encrypted: 0
@@ -259,7 +259,7 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert optimal_conf_environment[0] == {
         'Allow_firmware_rollback': False, 'Remote_CC_override_enabled': False,
         'Reflex_action_enabled': True, 'Wireless_RTU_RTU_link': False,
-        'Sensor_redundancy': True, 'Strong_material': True,
+        'Redundant_sensors': True, 'Strong_material': True,
     }
 
     assert optimal_risk_pipeline == approx(6.04e-04)
@@ -267,14 +267,14 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert optimal_conf_pipeline[0] == {
         'Allow_firmware_rollback': False, 'Remote_CC_override_enabled': False,
         'Reflex_action_enabled': True, 'Wireless_RTU_RTU_link': False,
-        'Sensor_redundancy': True, 'Strong_material': True,
+        'Redundant_sensors': True, 'Strong_material': True,
     }
 
     assert optimal_risk_scada == approx(5.79e-02)
     assert len(optimal_conf_scada) == 1
     assert optimal_conf_scada[0] == {
         'Reflex_action_enabled': True,
-        'Sensor_redundancy': True, 'Allow_firmware_rollback': True,
+        'Redundant_sensors': True, 'Allow_firmware_rollback': True,
         'Wireless_RTU_RTU_link': False
     }
 
@@ -283,7 +283,7 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert optimal_conf_rtu[0] == {
         'Wireless_RTU_RTU_link': False, 'Allow_firmware_rollback': True,
         'Remote_CC_override_enabled': False, 'Reflex_action_enabled': True,
-        'Sensor_redundancy': True, 'RTU_CC_comm_encrypted': False
+        'Redundant_sensors': True, 'RTU_CC_comm_encrypted': False
     }
 
     optimal_conf_environment_evidence, optimal_risk_environment_evidence = optimal_conf(
@@ -302,20 +302,20 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert len(optimal_conf_environment_evidence) == 1
     assert optimal_conf_environment_evidence[0] == {
         'Remote_CC_override_enabled': True, 'Reflex_action_enabled': True,
-        'Sensor_redundancy': True, 'Strong_material': True,
+        'Redundant_sensors': True, 'Strong_material': True,
         'Wireless_RTU_RTU_link': False
     }
 
     assert len(optimal_conf_pipeline_evidence) == 1
     assert optimal_conf_pipeline_evidence[0] == {
         'Remote_CC_override_enabled': True, 'Reflex_action_enabled': True,
-        'Sensor_redundancy': True, 'Strong_material': True,
+        'Redundant_sensors': True, 'Strong_material': True,
          'Wireless_RTU_RTU_link': False
     }
 
     assert len(optimal_conf_scada_evidence) == 1
     assert optimal_conf_scada_evidence[0] == {
-        'Reflex_action_enabled': True, 'Sensor_redundancy': True,
+        'Reflex_action_enabled': True, 'Redundant_sensors': True,
         'Remote_CC_override_enabled': False,
         'Wireless_RTU_RTU_link': False
     }
@@ -323,7 +323,7 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert len(optimal_conf_rtu_evidence) == 1
     assert optimal_conf_rtu_evidence[0] == {
         'Remote_CC_override_enabled': False, 'Reflex_action_enabled': True,
-        'Sensor_redundancy': True, 'RTU_CC_comm_encrypted': False,
+        'Redundant_sensors': True, 'RTU_CC_comm_encrypted': False,
         'Wireless_RTU_RTU_link': False
     }
 
@@ -366,7 +366,7 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert optimal_conf_apo[0] == {
         'Allow_firmware_rollback': True, 'Remote_CC_override_enabled': True,
         'Reflex_action_enabled': True, 'Wireless_RTU_RTU_link': False,
-        'Sensor_redundancy': True, 'Strong_material': True,
+        'Redundant_sensors': True, 'Strong_material': True,
     }
 
     ######## Remote_CC_override_enabled = opposite
@@ -390,7 +390,7 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert len(optimal_conf_apo_rem_cc) == 1
     assert optimal_conf_apo_rem_cc[0] == {
         'Reflex_action_enabled': True, 'Strong_material': True,
-         'Sensor_redundancy': True,
+         'Redundant_sensors': True,
         'Allow_firmware_rollback': True, 'Wireless_RTU_RTU_link': False
     }
 
@@ -414,7 +414,7 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert len(optimal_conf_apo_allow_fw) == 1
     assert optimal_conf_apo_allow_fw[0] == {
         'Remote_CC_override_enabled': True, 'Reflex_action_enabled': True,
-        'Sensor_redundancy': True, 'Strong_material': True,
+        'Redundant_sensors': True, 'Strong_material': True,
          'Wireless_RTU_RTU_link': False
     }
 
