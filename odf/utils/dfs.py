@@ -76,12 +76,10 @@ def dfs_mtbdd_terminals(root: cudd_add.Function) -> Iterator[float]:
             yield node.value  # ADD terminal nodes have a 'value' attribute
             continue
 
-        # Push children onto the stack if they exist
+        # Push children onto the stack
         # ADDs do not have complemented edges, so we directly use low/high
-        if node.low is not None:
-            stack.append(node.low)
-        if node.high is not None:
-            stack.append(node.high)
+        stack.append(node.low)
+        stack.append(node.high)
 
 
 # Define predicate type
@@ -178,15 +176,13 @@ def find_paths_to_min_terminal(root: cudd_add.Function) -> tuple[
         var_name = node.var
 
         # Explore low branch (assign False)
-        if node.low is not None:
-            new_path = path.copy()
-            new_path[var_name] = False
-            stack.append((node.low, new_path))
+        low_path = path.copy()
+        low_path[var_name] = False
+        stack.append((node.low, low_path))
 
         # Explore high branch (assign True)
-        if node.high is not None:
-            new_path = path.copy()
-            new_path[var_name] = True
-            stack.append((node.high, new_path))
+        high_path = path.copy()
+        high_path[var_name] = True
+        stack.append((node.high, high_path))
 
     return min_paths, min_value
