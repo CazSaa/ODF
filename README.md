@@ -9,7 +9,7 @@ ODF provides a complete framework that includes:
 
 1. A domain-specific language for specifying ODGs (consisting of attack trees, fault trees, and object graphs),
 2. ASCII syntax for defining ODGLog formulas,
-3. A Python implementation of the ODGLog logic,
+3. A Python implementation for checking ODGLog formulas,
 4. A command-line interface for executing ODGLog formulas on ODGs.
 
 This implementation uses Binary Decision Diagrams (BDDs) and Multi-Terminal Binary Decision Diagrams (MTBDDs) via
@@ -247,7 +247,7 @@ Both query types share these components:
         * Equivalence: `==` or `\equiv`
         * Non-equivalence: `!=` or `\nequiv`
     * **Parentheses:** `(...)` for grouping
-    * Standard operator precedence: `!` > `&&` > `||` > `=>` > `==`/`!=`
+    * Standard operator precedence: `!` > `==`/`!=` > `&&` > `||` > `=>`
     * **Evidence** (`[evidence]`):
         * Can be added to any boolean formula or subformula: `l1_formula [evidence]`
         * Has lowest precedence (binds to entire formula by default)
