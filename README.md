@@ -1,30 +1,30 @@
 ODF: Object-oriented Disruption Framework
 ==========================================
 
-ODF is a Python implementation and extension of the concepts presented in the DODGE framework [1].
-It provides a language for defining Object-oriented Disruption Graphs (ODGs) and implements the ODGLog logic for
+ODF is a Python implementation and extension of the concepts presented in the WATCHDOG framework [1].
+It provides a language for defining object-oriented DisruptiOn Graph (DOGs) and implements the DOGLog logic for
 analyzing them.
 
 ODF provides a complete framework that includes:
 
-1. A domain-specific language for specifying ODGs (consisting of attack trees, fault trees, and object graphs),
-2. ASCII syntax for defining ODGLog formulas,
-3. A Python implementation for checking ODGLog formulas,
-4. A command-line interface for executing ODGLog formulas on ODGs.
+1. A domain-specific language for specifying DOGs (consisting of attack trees, fault trees, and object graphs),
+2. ASCII syntax for defining DOGLog formulas,
+3. A Python implementation for checking DOGLog formulas,
+4. A command-line interface for executing DOGLog formulas on DOGs.
 
 This implementation uses Binary Decision Diagrams (BDDs) and Multi-Terminal Binary Decision Diagrams (MTBDDs) via
 (a [fork](https://github.com/CazSaa/dd) of) the [`dd` library](https://pypi.org/project/dd/).
 
 # Background
 
-Familiarity with attack trees, fault trees, object graphs, and ODGLog (as described in the DODGE paper [1]) is assumed.
+Familiarity with attack trees, fault trees, object graphs, and DOGLog (as described in the WATCHDOG paper [1]) is assumed.
 This README focuses on the specifics of this implementation.
 
 ## Key Concepts Recap
 
-* **ODG (Object-oriented Disruption Graph):** Combines an attack tree, fault tree, and object graph to model system
+* **DOG (object-oriented DisruptiOn Graph):** Combines an attack tree, fault tree, and object graph to model system
   disruptions and their relation to system objects.
-* **ODGLog:** A three-layered logic for reasoning about ODGs:
+* **DOGLog:** A three-layered logic for reasoning about DOGs:
     * **Layer 1:** Disruption propagation (Boolean logic).
     * **Layer 2:** Probabilistic reasoning about disruption propagation probabilities.
     * **Layer 3:** Object-centric risk analysis (object risk exposure, optimal configurations).
@@ -66,16 +66,16 @@ $ python -m odf <path/to/your/odf_file.odf>
 
 Replace `<path/to/your/odf_file.odf>` with the path to your input file.
 
-The application will parse the file, build the internal models, execute the specified ODGLog formulas, and print the
+The application will parse the file, build the internal models, execute the specified DOGLog formulas, and print the
 results to the console with structured, colored output.
 
 # Input File Format (`.odf`)
 
-An `.odf` file defines the Object-oriented Disruption Graph (ODG) and the ODGLog formulas to evaluate. It uses a
+An `.odf` file defines the object-oriented DisruptiOn Graph (DOG) and the DOGLog formulas to evaluate. It uses a
 section-based format. All four sections are required but can appear in any order. Comments start with `//`. An example
 of a complete `.odf` file can be found at [docs/odf-example.odf](docs/odf-example.odf).
 
-## 1. Attack Tree (`[odg.attack_tree]`)
+## 1. Attack Tree (`[dog.attack_tree]`)
 
 Defines the attack tree structure and node attributes.
 
@@ -106,7 +106,7 @@ Defines the attack tree structure and node attributes.
 **Example:**
 
 ```odf
-[odg.attack_tree]
+[dog.attack_tree]
 toplevel Attacker_breaks_in;
 Attacker_breaks_in or EDLU FD;  // Intermediate node
 FD or PL DD;                    // Intermediate node
@@ -118,7 +118,7 @@ PL prob=0.10 objects=[Lock] cond=(LP) impact=2.51;  // Basic node with attribute
 DD prob=0.13 objects=[Door] cond=(DF) impact=1.81;  // Basic node with attributes
 ```
 
-## 2. Fault Tree (`[odg.fault_tree]`)
+## 2. Fault Tree (`[dog.fault_tree]`)
 
 Defines the fault tree structure and node attributes. The syntax is identical to the attack tree section, but defines
 fault events instead of attacks.
@@ -131,7 +131,7 @@ fault events instead of attacks.
 **Example:**
 
 ```odf
-[odg.fault_tree]
+[dog.fault_tree]
 toplevel Fire_impossible_escape;
 Fire_impossible_escape and FBO DGB;
 DGB and LGJ DSL;
@@ -143,7 +143,7 @@ LGJ prob=0.70 objects=[Lock] cond=(LJ) impact=0.83;
 DSL prob=0.20 objects=[Door] impact=1.31;
 ```
 
-## 3. Object Graph (`[odg.object_graph]`)
+## 3. Object Graph (`[dog.object_graph]`)
 
 Defines the objects, their relationships, and their properties.
 
@@ -158,7 +158,7 @@ Note: The object graph need not be connected. This means the object graph is a f
 **Example:**
 
 ```odf
-[odg.object_graph]
+[dog.object_graph]
 House has Door; // Relationship
 Door has Lock;  // Relationship
 
@@ -170,7 +170,7 @@ Lock properties=[LJ, LP];
 
 ## 4. Formulas (`[formulas]`)
 
-Contains a list of ODGLog formulas to be evaluated, each ending with a semicolon.
+Contains a list of DOGLog formulas to be evaluated, each ending with a semicolon.
 
 Each formula belongs to one of the three layers (layer 1, layer 2, layer 3).
 
@@ -310,12 +310,11 @@ Layer 3 provides various risk analysis queries for objects in the graph:
     * `odf/parser/`: Lark grammar and parser.
     * `odf/transformers/`: Converts parse trees to internal models.
     * `odf/models/`: Internal data structures (DisruptionTree, ObjectGraph).
-    * `odf/checker/`: Logic for evaluating ODGLog formulas (layers 1, 2, 3).
+    * `odf/checker/`: Logic for evaluating DOGLog formulas (layers 1, 2, 3).
     * `odf/core/`: Core types and constants.
     * `odf/utils/`: Helper functions (logging, formatting, BDD traversal).
     * `tests/`: Pytest tests mirroring the package structure.
 
 # References
 
-[1] S. M. Nicoletti, E. M. Hahn, M. Fumagalli, G. Guizzardi, and M. Stoelinga, “DODGE: Ontology-Aware Risk Assessment
-via Object-Oriented Disruption Graphs,” Dec. 18, 2024, arXiv: arXiv:2412.13964. doi: 10.48550/arXiv.2412.13964.
+[1] S. M. Nicoletti, E. M. Hahn, M. Fumagalli, G. Guizzardi, and M. Stoelinga, “WATCHDOG: an ontology-aWare risk AssessmenT approaCH via object-oriented DisruptiOn Graphs”.

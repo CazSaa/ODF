@@ -1,4 +1,4 @@
-[odg.attack_tree]
+[dog.attack_tree]
 toplevel Attacker_breaks_in;
 Attacker_breaks_in or EDLU FD;
 FD or PL DD;
@@ -9,7 +9,7 @@ FD objects=[Door] impact=2.57;
 PL prob=0.10 objects=[Lock] cond=(LP) impact=2.51;
 DD prob=0.13 objects=[Door] cond=(DF) impact=1.81;
 
-[odg.fault_tree]
+[dog.fault_tree]
 toplevel Fire_impossible_escape;
 Fire_impossible_escape and FBO DGB;
 DGB and LGJ DSL;
@@ -20,7 +20,7 @@ DGB objects=[Door] impact=1.67;
 LGJ prob=0.70 objects=[Lock] cond=(LJ) impact=0.83;
 DSL prob=0.20 objects=[Door] impact=1.31;
 
-[odg.object_graph]
+[dog.object_graph]
 House has Door;
 Door has Lock;
 

@@ -1,4 +1,4 @@
-[odg.attack_tree]
+[dog.attack_tree]
 toplevel Attacker_causes_pollution;
 Attacker_causes_pollution and Attack_protection_system Waterhammer_attack;
 Attacker_causes_pollution objects=[Pipeline, Environment, ACPO] impact=100;
@@ -50,7 +50,7 @@ Attacker_causes_pollution objects=[Pipeline, Environment, ACPO] impact=100;
         Valve_closing prob=0.7 objects=[Valves] impact=1;
 
 
-[odg.fault_tree]
+[dog.fault_tree]
 toplevel Accidental_pollution;
 Accidental_pollution and Pipeline_rupture Protection_failure;
 Accidental_pollution objects=[Pipeline, Environment, APO] impact=100;
@@ -103,7 +103,7 @@ Accidental_pollution objects=[Pipeline, Environment, APO] impact=100;
             Pumps_on_demand_failure_to_stop prob=0.00001 objects=[Pumps] impact=2;
 
 
-[odg.object_graph]
+[dog.object_graph]
 // Physical pipeline and components
 Pipeline has Pumps Valves Sensors;
 Pipeline properties=[Strong_material];

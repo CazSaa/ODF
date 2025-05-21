@@ -4,17 +4,17 @@ import pytest
 from lark import UnexpectedInput
 
 # Define components as variables for reuse
-ATTACK = """[odg.attack_tree]
+ATTACK = """[dog.attack_tree]
 toplevel A;
 A;
 """
 
-FAULT = """[odg.fault_tree]
+FAULT = """[dog.fault_tree]
 toplevel B;
 B;
 """
 
-OBJ = """[odg.object_graph]
+OBJ = """[dog.object_graph]
 C;
 """
 
@@ -23,41 +23,41 @@ FORMULAS = """[formulas]
 """
 
 
-def test_minimal_valid_odg(parse):
-    """Test a minimal valid ODG structure with all required components."""
-    minimal_odg = """
-[odg.attack_tree]
+def test_minimal_valid_dog(parse):
+    """Test a minimal valid DOG structure with all required components."""
+    minimal_dog = """
+[dog.attack_tree]
 toplevel A;
 
-[odg.fault_tree]
+[dog.fault_tree]
 toplevel B;
 
-[odg.object_graph]
+[dog.object_graph]
 C;
 
 [formulas]
 {}A;"""
     # Should not raise an exception
-    tree = parse(minimal_odg)
+    tree = parse(minimal_dog)
     assert tree is not None
 
 
 def test_complete_structure(parse):
-    """Test a complete ODG structure with all components."""
-    complete_odg = """
-[odg.attack_tree]
+    """Test a complete DOG structure with all components."""
+    complete_dog = """
+[dog.attack_tree]
 toplevel Root;
 Root and A B;
 A;
 B prob = 0.5;
 
-[odg.fault_tree]
+[dog.fault_tree]
 toplevel System;
 System or C D;
 C;
 D prob = 0.3;
 
-[odg.object_graph]
+[dog.object_graph]
 System has Component1 Component2;
 Component1 properties = [prop1, prop2];
 Component2;
@@ -67,7 +67,7 @@ Component2;
 {A: 1} P(C) >= 0.5;
 MostRiskyA(Root);"""
     # Should not raise an exception
-    tree = parse(complete_odg)
+    tree = parse(complete_dog)
     assert tree is not None
 
 
@@ -110,7 +110,7 @@ def test_invalid_structures(parse):
 def test_individual_attack_tree(parse_rule):
     """Test parsing just an attack tree."""
     tree = """
-[odg.attack_tree]
+[dog.attack_tree]
 toplevel Root;
 Root and A B;
 A;
@@ -122,7 +122,7 @@ B prob = 0.5;"""
 def test_individual_fault_tree(parse_rule):
     """Test parsing just a fault tree."""
     tree = """
-[odg.fault_tree]
+[dog.fault_tree]
 toplevel Root;
 Root or A B;
 A;
@@ -134,7 +134,7 @@ B prob = 0.3;"""
 def test_individual_object_graph(parse_rule):
     """Test parsing just an object graph."""
     graph = """
-[odg.object_graph]
+[dog.object_graph]
 System has Component1 Component2;
 Component1 properties = [prop1];
 Component2;"""
@@ -143,81 +143,81 @@ Component2;"""
 
 
 def test_individual_formulas(parse_rule):
-    """Test parsing just ODGLog formulas."""
+    """Test parsing just DOGLog formulas."""
     formulas = """
 [formulas]
 {}A && B;
 {A: 1} P(C) >= 0.5;
 MostRiskyA(Root);"""
-    result = parse_rule(formulas, "odglog")
+    result = parse_rule(formulas, "doglog")
     assert result is not None
 
 
 def test_whitespace_handling(parse):
     """Test that whitespace is handled correctly."""
-    odg_with_whitespace = """
+    dog_with_whitespace = """
 
-    [odg.attack_tree]
+    [dog.attack_tree]
         toplevel A;
             A;
     
-    [odg.fault_tree]
+    [dog.fault_tree]
         toplevel B;
             B;
     
-    [odg.object_graph]
+    [dog.object_graph]
             C;
     
     [formulas]
         {}A;"""
-    tree = parse(odg_with_whitespace)
+    tree = parse(dog_with_whitespace)
     assert tree is not None
 
 
 def test_comment_handling(parse):
     """Test that comments are handled correctly."""
-    odg_with_comments = """
-[odg.attack_tree]
+    dog_with_comments = """
+[dog.attack_tree]
 // This is a comment
 toplevel A; // End of line comment
 A; // Basic node
 
-[odg.fault_tree]
+[dog.fault_tree]
 toplevel B;
 B;  // Another comment
 
-[odg.object_graph]
+[dog.object_graph]
 C;
 
 [formulas]
 {}A 
 // Comment within formula
 && B;"""
-    tree = parse(odg_with_comments)
+    tree = parse(dog_with_comments)
     assert tree is not None
 
 
 def test_layer2_formula_configuration(parse_rule):
     """Test that layer 2 formulas require a configuration."""
     valid_formula = "{A: 1} P(C) >= 0.5"
-    result = parse_rule(valid_formula, "odglog_formula")
+    result = parse_rule(valid_formula, "doglog_formula")
     assert result is not None
 
     invalid_formula = "P(C) >= 0.5"
     with pytest.raises(UnexpectedInput):
-        parse_rule(invalid_formula, "odglog_formula")
+        parse_rule(invalid_formula, "doglog_formula")
 
     complex_valid = "{A: 0, B: 1} !P(X && Y) < 0.3 && P(Z) >= 0.7"
-    result = parse_rule(complex_valid, "odglog_formula")
+    result = parse_rule(complex_valid, "doglog_formula")
     assert result is not None
 
     complex_invalid = "!P(X && Y) < 0.3 && P(Z) >= 0.7"
     with pytest.raises(UnexpectedInput):
-        parse_rule(complex_invalid, "odglog_formula")
+        parse_rule(complex_invalid, "doglog_formula")
 
 
 def test_complex_nested_formulas(parse_rule):
-    """Test parsing complex nested ODGLog formulas."""
+    """Test parsing complex nested DOGLog formulas."""
     formulas = [
         # Layer 1 - Basic boolean expressions
         "{}MRS(!((A && B) || (C => D)))",
@@ -262,7 +262,7 @@ def test_complex_nested_formulas(parse_rule):
     ]
 
     for formula in formulas:
-        result = parse_rule(formula, "odglog_formula")
+        result = parse_rule(formula, "doglog_formula")
         assert result is not None, f"Failed to parse: {formula}"
 
     invalid_formulas = [
@@ -284,36 +284,36 @@ def test_complex_nested_formulas(parse_rule):
 
     for formula in invalid_formulas:
         with pytest.raises(UnexpectedInput):
-            parse_rule(formula, "odglog_formula")
+            parse_rule(formula, "doglog_formula")
 
 
-def test_parse_example_odgl(parse):
-    """Test parsing the complete odglog-example.odgl file."""
+def test_parse_example_dogl(parse):
+    """Test parsing the complete doglog-example.dogl file."""
     with open(Path(__file__).parent.parent.parent
               / "docs" / "odf-example.odf",
               "r") as f:
-        example_odg = f.read()
+        example_dog = f.read()
 
-    tree = parse(example_odg)
+    tree = parse(example_dog)
     assert tree is not None
 
 
 def test_case_insensitivity(parse):
     """Test that keywords are case insensitive."""
     case_variations = """
-[ODG.ATTACK_TREE]
+[DOG.ATTACK_TREE]
 TOPLEVEL A;
 A AND B C;
 B;
 C;
 
-[ODG.FAULT_TREE]
+[DOG.FAULT_TREE]
 Toplevel D;
 D oR E F;
 E;
 F PROB = 0.3 oBjects=[obj1, obj2] conD=(a || b);
 
-[ODG.OBJECT_GRAPH]
+[DOG.OBJECT_GRAPH]
 System Has Component;
 Component Properties = [prop1];
 

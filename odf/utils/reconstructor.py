@@ -3,7 +3,7 @@ from lark import Token, Transformer, Tree
 
 # noinspection PyMethodMayBeStatic
 class FormulaReconstructor(Transformer):
-    """Transforms a parse tree of an odglog formula back into a string."""
+    """Transforms a parse tree of an doglog formula back into a string."""
 
     def __init__(self, multiline: bool):
         super().__init__()

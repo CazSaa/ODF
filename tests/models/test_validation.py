@@ -11,7 +11,7 @@ from odf.transformers.object_graph import ObjectGraphTransformer
 
 def test_valid_references():
     odl_text = """
-    [odg.attack_tree]
+    [dog.attack_tree]
     toplevel Root;
     Root or Node1 Node2;
 
@@ -19,10 +19,10 @@ def test_valid_references():
     Node1 prob=0.17 objects=[Lock] cond=(LP);
     Node2 prob=0.13 objects=[Lock] cond=(LJ);
 
-    [odg.fault_tree]
+    [dog.fault_tree]
     toplevel FRoot;
     
-    [odg.object_graph]
+    [dog.object_graph]
     House has Door;
     Door has Lock;
 
@@ -45,14 +45,14 @@ def test_valid_references():
 
 def test_property_matches_node_name():
     odl_text = """
-    [odg.attack_tree]
+    [dog.attack_tree]
     toplevel Root;
     Root objects=[Door];
 
-    [odg.fault_tree]
+    [dog.fault_tree]
     toplevel FRoot;
 
-    [odg.object_graph]
+    [dog.object_graph]
     House has Door Window;
     
     Door properties=[Root];  // Property name matches node name
@@ -76,7 +76,7 @@ def test_property_matches_node_name():
 
 def test_duplicate_node_names():
     odl_text = """
-    [odg.attack_tree]
+    [dog.attack_tree]
     toplevel Root;
     Root or DuplicateName Node2;
     
@@ -84,11 +84,11 @@ def test_duplicate_node_names():
     DuplicateName objects=[Door];
     Node2 objects=[Lock];
 
-    [odg.fault_tree]
+    [dog.fault_tree]
     toplevel DuplicateName;  // Same name used in attack tree
     DuplicateName;
 
-    [odg.object_graph]
+    [dog.object_graph]
     House has Door;
     Door has Lock;
     
@@ -110,14 +110,14 @@ def test_duplicate_node_names():
 
 def test_invalid_object_reference():
     odl_text = """
-    [odg.attack_tree]
+    [dog.attack_tree]
     toplevel Root;
     Root objects=[NonExistentObject];
 
-    [odg.fault_tree]
+    [dog.fault_tree]
     toplevel FRoot;
 
-    [odg.object_graph]
+    [dog.object_graph]
     House properties=[HS];
     
     [formulas]
@@ -137,14 +137,14 @@ def test_invalid_object_reference():
 
 def test_property_without_object():
     odl_text = """
-    [odg.attack_tree]
+    [dog.attack_tree]
     toplevel Root;
     Root cond=(HS);  // No objects specified
 
-    [odg.fault_tree]
+    [dog.fault_tree]
     toplevel FRoot;
 
-    [odg.object_graph]
+    [dog.object_graph]
     House properties=[HS];
     
     [formulas]
@@ -163,14 +163,14 @@ def test_property_without_object():
 
 def test_invalid_property_reference():
     odl_text = """
-    [odg.attack_tree]
+    [dog.attack_tree]
     toplevel Root;
     Root objects=[House] cond=(InvalidProp);
 
-    [odg.fault_tree]
+    [dog.fault_tree]
     toplevel FRoot;
 
-    [odg.object_graph]
+    [dog.object_graph]
     House properties=[HS];
     
     [formulas]
@@ -190,14 +190,14 @@ def test_invalid_property_reference():
 
 def test_property_from_wrong_object():
     odl_text = """
-    [odg.attack_tree]
+    [dog.attack_tree]
     toplevel Root;
     Root objects=[House] cond=(LP);  // LP is Lock's property
 
-    [odg.fault_tree]
+    [dog.fault_tree]
     toplevel FRoot;
 
-    [odg.object_graph]
+    [dog.object_graph]
     House properties=[HS];
     Lock properties=[LP];
     
@@ -219,14 +219,14 @@ def test_property_from_wrong_object():
 
 def test_complex_conditions():
     odl_text = """
-    [odg.attack_tree]
+    [dog.attack_tree]
     toplevel Root;
     Root objects=[Lock,Door] cond=((LP && !LJ) || DF);
 
-    [odg.fault_tree]
+    [dog.fault_tree]
     toplevel FRoot;
 
-    [odg.object_graph]
+    [dog.object_graph]
     House has Door;
     Door has Lock;
 

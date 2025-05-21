@@ -1,6 +1,6 @@
 import argparse
-
 import sys
+
 from lark import UnexpectedInput, Tree
 from lark.exceptions import VisitError
 
@@ -30,7 +30,7 @@ def extract_parse_trees(parse_tree: Tree):
             fault_parse_tree = child
         elif child.data == "object_graph":
             object_parse_tree = child
-        elif child.data == "odglog":
+        elif child.data == "doglog":
             formulas_parse_tree = child
 
     assert (attack_parse_tree is not None and fault_parse_tree is not None and

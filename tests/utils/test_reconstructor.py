@@ -48,7 +48,7 @@ from odf.utils.reconstructor import reconstruct
 )
 def test_reconstruct_formula(parse_rule, formula: str, expected: str) -> None:
     """Test that formulas are reconstructed correctly."""
-    tree = parse_rule(formula, "odglog_formula")
+    tree = parse_rule(formula, "doglog_formula")
 
     # Reconstruct the formula and compare with expected
     assert reconstruct(tree) == expected

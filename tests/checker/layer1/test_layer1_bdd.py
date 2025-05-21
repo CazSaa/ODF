@@ -99,7 +99,7 @@ def test_intermediate_node_bdd(attack_tree1):
 def test_deeply_nested_nodes(parse_rule):
     """Test creating BDD for deeply nested nodes with mixed gates and conditions."""
     # Create a complex attack tree with 4 levels of nesting and various conditions
-    attack_tree_str = """[odg.attack_tree]
+    attack_tree_str = """[dog.attack_tree]
     toplevel Root;
     Root and Level1A Level1B;
     Level1A or Level2A Level2B;

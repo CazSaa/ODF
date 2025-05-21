@@ -169,22 +169,22 @@ def test_layer3_formula_tree(parse_rule):
     assert result == expected
 
 
-def test_complete_odg_tree(parse):
-    """Test exact tree structure of a complete minimal ODG."""
-    odg_text = """[odg.attack_tree]
+def test_complete_dog_tree(parse):
+    """Test exact tree structure of a complete minimal DOG."""
+    dog_text = """[dog.attack_tree]
     toplevel A;
     A;
 
-    [odg.fault_tree]
+    [dog.fault_tree]
     toplevel B;
     B;
 
-    [odg.object_graph]
+    [dog.object_graph]
     C;
 
     [formulas]
     {}A;"""
-    result = parse(odg_text)
+    result = parse(dog_text)
     expected = Tree(Token("RULE", "start"), [
         Tree(Token("RULE", "attack_tree"), [
             Tree(Token("RULE", "disruption_tree"), [
@@ -213,7 +213,7 @@ def test_complete_odg_tree(parse):
                 ])
             ])
         ]),
-        Tree(Token("RULE", "odglog"), [
+        Tree(Token("RULE", "doglog"), [
             Tree(Token("RULE", "layer1_query"), [
                 Tree("check", [
                     Tree(Token("RULE", "configuration"), []),

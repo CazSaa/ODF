@@ -482,37 +482,37 @@ def alternative_case_study_content():
 @pytest.fixture
 def case_study_attack_tree_str(case_study_content):
     """Attack tree from the case study."""
-    return _extract_section(case_study_content, "odg.attack_tree")
+    return _extract_section(case_study_content, "dog.attack_tree")
 
 
 @pytest.fixture
 def alternative_case_study_attack_tree_str(alternative_case_study_content):
     """Alternative attack tree from the case study with adapted Waterhammer attack."""
-    return _extract_section(alternative_case_study_content, "odg.attack_tree")
+    return _extract_section(alternative_case_study_content, "dog.attack_tree")
 
 
 @pytest.fixture
 def case_study_fault_tree_str(case_study_content):
     """Fault tree from the case study."""
-    return _extract_section(case_study_content, "odg.fault_tree")
+    return _extract_section(case_study_content, "dog.fault_tree")
 
 
 @pytest.fixture
 def alternative_case_study_fault_tree_str(alternative_case_study_content):
     """Alternative fault tree from the case study with adapted Waterhammer attack."""
-    return _extract_section(alternative_case_study_content, "odg.fault_tree")
+    return _extract_section(alternative_case_study_content, "dog.fault_tree")
 
 
 @pytest.fixture
 def case_study_object_graph_str(case_study_content):
     """Object graph from the case study."""
-    return _extract_section(case_study_content, "odg.object_graph")
+    return _extract_section(case_study_content, "dog.object_graph")
 
 
 @pytest.fixture
 def alternative_case_study_object_graph_str(alternative_case_study_content):
     """Object graph from the case study with adapted Waterhammer attack."""
-    return _extract_section(alternative_case_study_content, "odg.object_graph")
+    return _extract_section(alternative_case_study_content, "dog.object_graph")
 
 
 @pytest.fixture
