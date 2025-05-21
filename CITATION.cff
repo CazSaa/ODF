@@ -1,0 +1,41 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: 'ODF: Object-oriented Disruption Framework'
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Caz
+    family-names: Saaltink
+    email: cazsaaltink@gmail.com
+    affiliation: University of Twente
+    orcid: 'https://orcid.org/0009-0000-6353-0349'
+repository-code: 'https://github.com/CazSaa/ODF'
+abstract: >-
+  ODF is a Python implementation and extension of the
+  concepts presented in the WATCHDOG framework. It provides
+  a language for defining object-oriented DisruptiOn Graph
+  (DOGs) and implements the DOGLog logic for analyzing them.
+
+
+  ODF provides a complete framework that includes:
+
+  1. A domain-specific language for specifying DOGs
+  (consisting of attack trees, fault trees, and object
+  graphs),
+
+  2. ASCII syntax for defining DOGLog formulas,
+
+  3. A Python implementation for checking DOGLog formulas,
+
+  4. A command-line interface for executing DOGLog formulas
+  on DOGs.
+
+
+  This implementation uses Binary Decision Diagrams (BDDs)
+  and Multi-Terminal Binary Decision Diagrams (MTBDDs) via
+  (a fork of) the dd library.
+license: MIT
