@@ -310,7 +310,7 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert optimal_conf_pipeline_evidence[0] == {
         'Remote_CC_override_enabled': True, 'Reflex_action_enabled': True,
         'Redundant_sensors': True, 'Strong_material': True,
-         'Wireless_RTU_RTU_link': False
+        'Wireless_RTU_RTU_link': False
     }
 
     assert len(optimal_conf_scada_evidence) == 1
@@ -390,7 +390,7 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert len(optimal_conf_apo_rem_cc) == 1
     assert optimal_conf_apo_rem_cc[0] == {
         'Reflex_action_enabled': True, 'Strong_material': True,
-         'Redundant_sensors': True,
+        'Redundant_sensors': True,
         'Allow_firmware_rollback': True, 'Wireless_RTU_RTU_link': False
     }
 
@@ -415,7 +415,7 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
     assert optimal_conf_apo_allow_fw[0] == {
         'Remote_CC_override_enabled': True, 'Reflex_action_enabled': True,
         'Redundant_sensors': True, 'Strong_material': True,
-         'Wireless_RTU_RTU_link': False
+        'Wireless_RTU_RTU_link': False
     }
 
     # --- Generate LaTeX commands file ---
@@ -522,13 +522,34 @@ def test_case_study(do_case_study_layer2, case_study_configuration_str,
 
 # --- Functions for CLI Output to LaTeX ---
 
+# Set to True to generate for presentation, False for report
+IS_PRESENTATION = False
+
+# Configuration based on target
+CLI_OUTPUT_CONFIG = {
+    "report": {
+        "output_dir": "../../report/chapters/case-study/cli_outputs/",
+        "terminal_width": "75",
+        "font_size": "\\footnotesize"
+    },
+    "presentation": {
+        "output_dir": "../../report/presentation/cli_outputs/",
+        "terminal_width": "56",
+        "font_size": "\\small"
+    }
+}
+
+# Get current config based on IS_PRESENTATION flag
+CURRENT_CONFIG = CLI_OUTPUT_CONFIG[
+    "presentation" if IS_PRESENTATION else "report"]
+
 CLI_COMMAND_TEMPLATE = "python -m odf {}"
 ODF_FILES_INFO = [
     {"path": "docs/case-study.odf", "prefix": "genFormulaOutput"},
     {"path": "docs/case-study-adapt.odf", "prefix": "genFormulaOutputAdapt"},
 ]
 # Path relative to this script (tests/test_case_study.py) for the subdirectory
-CLI_OUTPUT_FILES_SUBDIR = "../../report/chapters/case-study/cli_outputs/"
+CLI_OUTPUT_FILES_SUBDIR = CURRENT_CONFIG["output_dir"]
 
 
 def run_cli_for_latex(odf_file_path_relative_to_project_root):
@@ -545,7 +566,7 @@ def run_cli_for_latex(odf_file_path_relative_to_project_root):
         # For this setup, ODF_FILES_INFO paths are already relative to project root.
 
         env = os.environ.copy()
-        env["COLUMNS"] = "75"  # Set desired terminal width
+        env["COLUMNS"] = CURRENT_CONFIG["terminal_width"]
 
         result = subprocess.run(
             command,
@@ -586,11 +607,17 @@ def parse_cli_output_for_latex(raw_output):
     # or "Processing Complete."
     # Using re.DOTALL so '.' matches newlines via (?s)
     # Adjusted to handle the exact ANSI sequence from the sample.
+    # Replace ANSI escape sequences by replacing control character
+    output_without_ansi = raw_output.replace("\x1b", "ESC")
+
     pattern = re.compile(
-        r"(?s)(---------------------------------------------------------------------------\s*\x1b\[90mProcessing Formula (\d+):\x1b\[0m.*?)(?=\n---------------------------------------------------------------------------\s*\x1b\[90mProcessing Formula|\nProcessing Complete\.)"
+        r"(?s)(-+\s*ESC\[90mProcessing Formula (\d+):ESC\[0m.*?)(?=\n-+\s*ESC\[90mProcessing Formula|\nProcessing Complete\.)"
+    ) if IS_PRESENTATION else re.compile(
+        r"(?s)(-+\s*\x1b\[90mProcessing Formula (\d+):\x1b\[0m.*?)(?=\n-+\s*\x1b\[90mProcessing Formula|\nProcessing Complete\.)"
     )
 
-    for match in pattern.finditer(raw_output):
+    for match in pattern.finditer(
+            output_without_ansi if IS_PRESENTATION else raw_output):
         full_block_content = match.group(
             1).strip()  # group(1) is the entire block
         formula_number = match.group(2)  # group(2) is the formula number
@@ -645,7 +672,7 @@ def generate_cli_output_listing_files(all_formula_outputs_data):
                 # The lstlisting environment uses options defined globally via \lstset in helpers/commands.tex
                 file_content = f"% Auto-generated CLI output for formula {number_str} from {item_data['path']}\n"
                 file_content += f"% Source ODF: {item_data['path']}, Formula No: {number_str}\n"
-                file_content += "\\begin{lstlisting}[breaklines=true, basicstyle=\\ttfamily\\footnotesize]\n"
+                file_content += f"\\begin{{lstlisting}}[breaklines=true, basicstyle=\\ttfamily{CURRENT_CONFIG['font_size']}]\n"
                 file_content += f"{raw_block_str}\n"
                 file_content += "\\end{lstlisting}\n"
 
