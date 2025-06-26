@@ -317,4 +317,4 @@ Layer 3 provides various risk analysis queries for objects in the graph:
 
 # References
 
-[1] S. M. Nicoletti, E. M. Hahn, M. Fumagalli, G. Guizzardi, and M. Stoelinga, “WATCHDOG: an ontology-aWare risk AssessmenT approaCH via object-oriented DisruptiOn Graphs”.
+[1] S. M. Nicoletti, E. M. Hahn, M. Fumagalli, G. Guizzardi, and M. Stoelinga, “WATCHDOG: an ontology-aWare risk AssessmenT approaCH via object-oriented DisruptiOn Graphs,” in Advanced Information Systems Engineering, J. Krogstie, S. Rinderle-Ma, G. Kappel, and H. A. Proper, Eds., Cham: Springer Nature Switzerland, 2025, pp. 314–331. doi: 10.1007/978-3-031-94571-7_18.
